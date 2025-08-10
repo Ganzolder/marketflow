@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from '@/components/ui/textarea';
 import { PlusCircle, Loader2 } from "lucide-react";
-import { addActivityToAction, type ActivityFormState } from '@/lib/actions';
+import { addActivityToAction } from '@/lib/actions';
+import type { ActivityFormState } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 
 function SubmitButton() {
@@ -31,12 +32,12 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
     
-    const initialState: ActivityFormState = { message: "", errors: {} };
+    const initialState: ActivityFormState = { message: "", errors: {}, error: false };
     const [state, dispatch] = useActionState(addActivityToAction, initialState);
 
     useEffect(() => {
         if (state.message) {
-            if (state.errors) {
+            if (state.errors || state.error) {
                 toast({
                     variant: "destructive",
                     title: "Ошибка",

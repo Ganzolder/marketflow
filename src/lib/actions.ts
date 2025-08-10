@@ -123,6 +123,7 @@ const ActivitySchema = z.object({
 
 export type ActivityFormState = {
   message: string;
+  error?: boolean;
   errors?: {
     name?: string[];
     description?: string[];
@@ -160,7 +161,7 @@ export async function addActivityToAction(
     await addActivity(campaignId, actionId, activityData as Omit<Activity, 'id'>);
   } catch (error) {
      const errorMessage = error instanceof Error ? error.message : "Произошла неизвестная ошибка.";
-    return { message: `Ошибка базы данных: не удалось создать активность. ${errorMessage}` };
+    return { message: `Ошибка базы данных: не удалось создать активность. ${errorMessage}`, error: true };
   }
 
   revalidatePath(`/campaigns/${campaignId}/${actionId}`);

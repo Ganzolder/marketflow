@@ -44,3 +44,15 @@ export type Campaign = {
 };
 
 export type UpcomingAction = Action & { campaignName: string, campaignId: string };
+
+export type ActivityFormState = {
+  message: string;
+  error?: boolean;
+  errors?: {
+    name?: string[];
+    description?: string[];
+    budget?: string[];
+    startDate?: string[];
+    endDate?: string[];
+  };
+};
