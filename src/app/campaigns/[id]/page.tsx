@@ -1,23 +1,70 @@
 
-import type { Campaign } from '@/lib/types';
+"use client";
+
+import { useState, useEffect } from 'react';
+import type { Campaign, Action } from '@/lib/types';
 import { getCampaignById } from '@/lib/data';
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { Edit, Calendar as CalendarIcon, DollarSign, Target, FilePlus } from 'lucide-react';
+import { Edit, Calendar as CalendarIcon, DollarSign, Target, FilePlus, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/status-badge';
 import { NewActionButton } from './new-action-button';
 import { EditActionButton } from './edit-action-button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
-export default async function CampaignDetailPage({ params }: { params: { id: string } }) {
-  const campaign = await getCampaignById(params.id);
+export default function CampaignDetailPage() {
+  const params = useParams();
+  const id = params.id as string;
+  
+  const [campaign, setCampaign] = useState<Campaign | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [startDateFilter, setStartDateFilter] = useState('');
+  const [endDateFilter, setEndDateFilter] = useState('');
+
+  useEffect(() => {
+    if (id) {
+      getCampaignById(id).then(campaignData => {
+        if (!campaignData) {
+          notFound();
+        } else {
+          setCampaign(campaignData);
+        }
+        setLoading(false);
+      });
+    }
+  }, [id]);
+
+  if (loading) {
+    return (
+        <div className="flex items-center justify-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+    );
+  }
 
   if (!campaign) {
-    notFound();
+    return notFound();
   }
+  
+  const filteredActions = campaign.actions.filter(action => {
+    const actionStartDate = new Date(action.startDate);
+    const actionEndDate = new Date(action.endDate);
+    const filterStartDate = startDateFilter ? new Date(startDateFilter) : null;
+    const filterEndDate = endDateFilter ? new Date(endDateFilter) : null;
+
+    if (filterStartDate && actionStartDate < filterStartDate) {
+        return false;
+    }
+    if (filterEndDate && actionEndDate > filterEndDate) {
+        return false;
+    }
+    return true;
+  });
 
   const locale = 'ru-RU';
   const currencyOptions = { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 };
@@ -77,10 +124,20 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
                     <NewActionButton campaignId={campaign.id} />
                 </div>
                 <CardDescription>Список всех акций, связанных с этой кампанией.</CardDescription>
+                 <div className="grid md:grid-cols-2 gap-4 pt-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="start-date-filter">Начало акции после</Label>
+                      <Input id="start-date-filter" type="date" value={startDateFilter} onChange={e => setStartDateFilter(e.target.value)} />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="end-date-filter">Окончание акции до</Label>
+                      <Input id="end-date-filter" type="date" value={endDateFilter} onChange={e => setEndDateFilter(e.target.value)} />
+                    </div>
+                </div>
             </CardHeader>
             <CardContent>
                 <div className="grid gap-4 md:grid-cols-2">
-                    {campaign.actions.map(action => (
+                    {filteredActions.map(action => (
                         <Card key={action.id}>
                             <CardHeader>
                                 <CardTitle className="text-lg flex justify-between items-start">
@@ -121,10 +178,10 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
                         </Card>
                     ))}
                 </div>
-                 {campaign.actions.length === 0 && (
+                 {filteredActions.length === 0 && (
                         <div className="text-center text-sm text-muted-foreground py-10">
                             <FilePlus className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                            Акции еще не добавлены.
+                             {campaign.actions.length > 0 ? 'Нет акций, соответствующих фильтру.' : 'Акции еще не добавлены.'}
                         </div>
                     )}
             </CardContent>
