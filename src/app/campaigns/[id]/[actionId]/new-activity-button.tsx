@@ -113,7 +113,7 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
                 </DialogHeader>
                  <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col min-h-0 gap-4">
-                        <ScrollArea className="flex-1 -mr-6 pr-6">
+                        <ScrollArea className="flex-1 pr-6 -mr-6">
                             <div className="grid md:grid-cols-2 gap-8 py-4">
                                 {/* Left Column */}
                                 <div className="space-y-4">
@@ -288,7 +288,7 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
                                                             <FormItem className="flex flex-row items-start space-x-2 space-y-0">
                                                                 <FormControl>
                                                                     <Checkbox
-                                                                        checked={field.value}
+                                                                        checked={field.value === undefined ? true : field.value}
                                                                         onCheckedChange={field.onChange}
                                                                     />
                                                                 </FormControl>
