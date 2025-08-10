@@ -24,6 +24,7 @@ const KpiSchema = z.object({
     name: z.string().min(1, "Название KPI обязательно."),
     target: z.coerce.number().min(1, "Цель должна быть больше 0."),
     unit: z.string().min(1, "Укажите единицу измерения."),
+    multiple: z.coerce.number().min(1, "Кратность должна быть больше 0."),
     parentId: z.string().nullable(),
 });
 
@@ -179,7 +180,7 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
                                                 type="button"
                                                 variant="outline"
                                                 size="sm"
-                                                onClick={() => append({ id: `kpi-${Date.now()}`, name: '', target: 0, unit: '', parentId: null })}
+                                                onClick={() => append({ id: `kpi-${Date.now()}`, name: '', target: 0, unit: '', multiple: 1, parentId: null })}
                                             >
                                                 <PlusCircle className="mr-2 h-4 w-4" />
                                                 Добавить KPI
@@ -189,8 +190,8 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
                                             const currentKpi = kpis?.[index];
                                             const parentKpi = kpis?.find(p => p.id === currentKpi?.parentId);
                                             const conversion = parentKpi && parentKpi.target > 0 && currentKpi && currentKpi.target > 0 ? (currentKpi.target / parentKpi.target) * 100 : null;
-                                            const costPerUnit = !parentKpi && currentKpi && currentKpi.target > 0 ? budget / currentKpi.target : null;
-
+                                            const costPerUnit = currentKpi && currentKpi.target > 0 && currentKpi.multiple > 0 ? budget / (currentKpi.target / currentKpi.multiple) : null;
+                                            
                                             return (
                                             <div key={field.id} className="grid grid-cols-1 gap-4 p-4 border rounded-lg relative">
                                                 <Button
@@ -216,7 +217,7 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
                                                     )}
                                                 />
                                                 
-                                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 items-start">
+                                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                                                     <FormField
                                                         control={form.control}
                                                         name={`kpis.${index}.target`}
@@ -239,6 +240,17 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
                                                             </FormItem>
                                                         )}
                                                     />
+                                                     <FormField
+                                                        control={form.control}
+                                                        name={`kpis.${index}.multiple`}
+                                                        render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>Кратность</FormLabel>
+                                                                <FormControl><Input type="number" placeholder="1" {...field} /></FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
                                                     <FormField
                                                         control={form.control}
                                                         name={`kpis.${index}.parentId`}
@@ -253,7 +265,7 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
                                                                     </FormControl>
                                                                     <SelectContent>
                                                                         <SelectItem value="null">Нет</SelectItem>
-                                                                        {kpis.filter(kpi => kpi.id !== currentKpi?.id).map(kpi => (
+                                                                        {kpis?.filter(kpi => kpi.id !== currentKpi?.id).map(kpi => (
                                                                             <SelectItem key={kpi.id} value={kpi.id}>{kpi.name}</SelectItem>
                                                                         ))}
                                                                     </SelectContent>
@@ -262,34 +274,34 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
                                                             </FormItem>
                                                         )}
                                                     />
-                                                    <div className="flex items-center gap-4 text-muted-foreground pt-8 text-xs">
-                                                        {conversion !== null && parentKpi && (
-                                                            <TooltipProvider>
-                                                            <Tooltip>
-                                                                <TooltipTrigger className="flex items-center gap-1">
-                                                                    <TrendingUp className="w-4 h-4 text-green-500"/> 
-                                                                    <span className="font-bold text-green-500">{conversion.toFixed(1)}%</span>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent>
-                                                                <p>Конверсия из "{parentKpi.name}"</p>
-                                                                </TooltipContent>
-                                                            </Tooltip>
-                                                            </TooltipProvider>
+                                                </div>
+                                                <div className="flex items-center gap-4 text-muted-foreground pt-2 text-xs border-t mt-2 pt-2">
+                                                    {conversion !== null && parentKpi && (
+                                                        <TooltipProvider>
+                                                        <Tooltip>
+                                                            <TooltipTrigger className="flex items-center gap-1">
+                                                                <TrendingUp className="w-4 h-4 text-green-500"/> 
+                                                                <span className="font-bold text-green-500">{conversion.toFixed(1)}%</span>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>
+                                                            <p>Конверсия из "{parentKpi.name}"</p>
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                        </TooltipProvider>
                                                     )}
                                                     {costPerUnit !== null && (
-                                                            <TooltipProvider>
-                                                            <Tooltip>
-                                                                <TooltipTrigger className="flex items-center gap-1">
-                                                                    <CircleDollarSign className="w-4 h-4 text-blue-500" />
-                                                                    <span className="font-bold text-blue-500">{new Intl.NumberFormat(locale, currencyOptions).format(costPerUnit)}</span>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent>
-                                                                    <p>Стоимость за {currentKpi?.unit || 'ед.'}</p>
-                                                                </TooltipContent>
-                                                            </Tooltip>
-                                                            </TooltipProvider>
+                                                        <TooltipProvider>
+                                                        <Tooltip>
+                                                            <TooltipTrigger className="flex items-center gap-1">
+                                                                <CircleDollarSign className="w-4 h-4 text-blue-500" />
+                                                                <span className="font-bold text-blue-500">{new Intl.NumberFormat(locale, currencyOptions).format(costPerUnit)}</span>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>
+                                                                <p>Стоимость за {currentKpi?.multiple || 1} {currentKpi?.unit || 'ед.'}</p>
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                        </TooltipProvider>
                                                     )}
-                                                    </div>
                                                 </div>
                                             </div>
                                             )
@@ -317,6 +329,3 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
         </Dialog>
     );
 }
-    
-
-    

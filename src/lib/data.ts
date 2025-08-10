@@ -1,5 +1,5 @@
 
-import { Campaign, UpcomingAction, Action, Activity } from './types';
+import { Campaign, UpcomingAction, Action, Activity, KPI } from './types';
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, addDoc, writeBatch, runTransaction } from "firebase/firestore";
 
@@ -208,6 +208,7 @@ export async function updateActivity(campaignId: string, actionId: string, updat
                 return {
                     ...uk,
                     current: existingKpi ? existingKpi.current : 0,
+                    multiple: uk.multiple || 1,
                 };
             });
 
@@ -271,7 +272,24 @@ export async function getCampaignById(id: string): Promise<Campaign | undefined>
   const campaignSnap = await getDoc(campaignRef);
 
   if (campaignSnap.exists()) {
-    return { id: campaignSnap.id, ...campaignSnap.data() } as Campaign;
+    const campaignData = campaignSnap.data() as Omit<Campaign, 'id'>;
+    // Data sanitization: ensure kpis have a multiple property
+    if (campaignData.actions) {
+        campaignData.actions.forEach(action => {
+            if (action.activities) {
+                action.activities.forEach(activity => {
+                    if (activity.kpis) {
+                        activity.kpis.forEach(kpi => {
+                            if (kpi.multiple === undefined) {
+                                kpi.multiple = 1;
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
+    return { id: campaignSnap.id, ...campaignData } as Campaign;
   } else {
     await seedDatabase();
     const campaignSnapAfterSeed = await getDoc(campaignRef);

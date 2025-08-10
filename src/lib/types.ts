@@ -15,6 +15,7 @@ export type KPI = {
   target: number;
   current: number; // For future use to track progress
   unit: string;
+  multiple: number;
   parentId: string | null; // ID of the parent KPI for conversion tracking
 }
 

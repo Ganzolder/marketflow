@@ -115,6 +115,7 @@ const KpiSchema = z.object({
     name: z.string(),
     target: z.coerce.number(),
     unit: z.string(),
+    multiple: z.coerce.number().min(1),
     parentId: z.string().nullable(),
 });
 
@@ -173,7 +174,7 @@ export async function addActivityToAction(
     budget: formData.get('budget'),
     startDate: formData.get('start-date'),
     endDate: formData.get('end-date'),
-    kpis: kpis.map((kpi: any) => ({ ...kpi, target: Number(kpi.target) })),
+    kpis: kpis.map((kpi: any) => ({ ...kpi, target: Number(kpi.target), multiple: Number(kpi.multiple) || 1 })),
     campaignId: formData.get('campaignId'),
     actionId: formData.get('actionId'),
   });
@@ -219,7 +220,7 @@ export async function updateActivity(
     budget: formData.get('budget'),
     startDate: formData.get('start-date'),
     endDate: formData.get('end-date'),
-    kpis: kpis.map((kpi: any) => ({ ...kpi, target: Number(kpi.target) })),
+    kpis: kpis.map((kpi: any) => ({ ...kpi, target: Number(kpi.target), multiple: Number(kpi.multiple) || 1 })),
     campaignId: formData.get('campaignId'),
     actionId: formData.get('actionId'),
     id: formData.get('activityId'),

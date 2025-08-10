@@ -1,5 +1,4 @@
 
-
 import { notFound } from 'next/navigation';
 import { getCampaignById } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
@@ -47,8 +46,9 @@ export default async function ActionDetailPage({ params }: ActionDetailPageProps
         <div className={`space-y-4 ${parentId !== null ? 'pl-6 border-l ml-2' : ''}`}>
             {children.map(kpi => {
                 const parentKpi = allKpis.find(p => p.id === kpi.parentId);
-                const conversion = parentKpi && parentKpi.target > 0 ? (kpi.target / parentKpi.target) * 100 : null;
-                const costPerUnit = kpi.target > 0 ? budget / kpi.target : 0;
+                const conversion = parentKpi && parentKpi.target > 0 && kpi.target > 0 ? (kpi.target / parentKpi.target) * 100 : null;
+                const costPerUnit = kpi.target > 0 && kpi.multiple > 0 ? budget / (kpi.target / kpi.multiple) : null;
+                const multiple = kpi.multiple || 1;
 
                 return (
                     <div key={kpi.id} className="relative">
@@ -59,13 +59,13 @@ export default async function ActionDetailPage({ params }: ActionDetailPageProps
                                     <p className="font-semibold">{kpi.name}</p>
                                     <Badge variant="secondary">{kpi.target.toLocaleString(locale)} {kpi.unit}</Badge>
                                 </div>
-                                <div className="flex items-center gap-4 text-muted-foreground mt-2 text-xs">
+                                <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-muted-foreground mt-2 text-xs">
                                    {conversion !== null && parentKpi && (
                                         <TooltipProvider>
                                           <Tooltip>
                                             <TooltipTrigger className="flex items-center gap-1">
-                                                <TrendingUp className="w-3.5 h-3.5"/> 
-                                                <span>{conversion.toFixed(2)}% conv.</span>
+                                                <TrendingUp className="w-3.5 h-3.5 text-green-500"/> 
+                                                <span className="font-medium text-green-500">{conversion.toFixed(1)}%</span>
                                             </TooltipTrigger>
                                             <TooltipContent>
                                               <p>Конверсия из "{parentKpi.name}"</p>
@@ -73,15 +73,15 @@ export default async function ActionDetailPage({ params }: ActionDetailPageProps
                                           </Tooltip>
                                         </TooltipProvider>
                                    )}
-                                   {parentId === null && (
+                                   {costPerUnit !== null && (
                                         <TooltipProvider>
                                            <Tooltip>
                                              <TooltipTrigger className="flex items-center gap-1">
-                                                <CircleDollarSign className="w-3.5 h-3.5" />
-                                                <span>{new Intl.NumberFormat(locale, currencyOptions).format(costPerUnit)} / {kpi.unit}</span>
+                                                <CircleDollarSign className="w-3.5 h-3.5 text-blue-500" />
+                                                <span className="font-medium text-blue-500">{new Intl.NumberFormat(locale, currencyOptions).format(costPerUnit)}</span>
                                               </TooltipTrigger>
                                               <TooltipContent>
-                                                <p>Стоимость за единицу</p>
+                                                <p>Стоимость за {multiple.toLocaleString(locale)} {kpi.unit}</p>
                                               </TooltipContent>
                                            </Tooltip>
                                         </TooltipProvider>
