@@ -1,4 +1,5 @@
 
+
 import { notFound } from 'next/navigation';
 import { getCampaignById } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
@@ -19,6 +20,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { UpdateMetricsForm } from './update-metrics-form';
+import { GeneralExpensesList } from './general-expenses-list';
 
 type ActionDetailPageProps = {
   params: {
@@ -90,6 +92,8 @@ export default async function ActionDetailPage({ params }: ActionDetailPageProps
             )}
           </CardContent>
         </Card>
+
+        <GeneralExpensesList action={action} campaignId={campaign.id} />
 
         <Card>
             <CardHeader>

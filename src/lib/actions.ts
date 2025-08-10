@@ -2,9 +2,9 @@
 "use server";
 
 import { z } from "zod";
-import { addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData } from "./data";
+import { addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction } from "./data";
 import { revalidatePath } from "next/cache";
-import type { Action, Activity, KPI } from "./types";
+import type { Action, Activity, KPI, Expense } from "./types";
 
 const ActionSchema = z.object({
   name: z.string().min(3, { message: "Название акции должно содержать не менее 3 символов." }),
@@ -332,15 +332,34 @@ export async function updateActivityMetrics(
 }
 
 const AddExpenseSchema = z.object({
-  campaignId: z.string(),
-  actionId: z.string(),
-  activityId: z.string(),
   description: z.string().min(1, "Описание обязательно."),
   amount: z.coerce.number().gt(0, "Сумма должна быть больше нуля."),
   date: z.string().refine((date) => !isNaN(Date.parse(date)), "Неверный формат даты."),
   legalEntity: z.string().optional(),
   photoURL: z.string().url("Неверный URL-адрес фотографии.").optional().or(z.literal('')),
 });
+
+const ActivityExpenseSchema = AddExpenseSchema.extend({
+  campaignId: z.string(),
+  actionId: z.string(),
+  activityId: z.string(),
+});
+
+const GeneralExpenseSchema = AddExpenseSchema.extend({
+  campaignId: z.string(),
+  actionId: z.string(),
+});
+
+const UpdateGeneralExpenseSchema = GeneralExpenseSchema.extend({
+    expenseId: z.string(),
+});
+
+const DeleteGeneralExpenseSchema = z.object({
+    campaignId: z.string(),
+    actionId: z.string(),
+    expenseId: z.string(),
+});
+
 
 export type ExpenseFormState = {
   message: string;
@@ -349,7 +368,7 @@ export type ExpenseFormState = {
 };
 
 export async function addExpense(prevState: ExpenseFormState | null, formData: FormData): Promise<ExpenseFormState> {
-    const validatedFields = AddExpenseSchema.safeParse({
+    const validatedFields = ActivityExpenseSchema.safeParse({
         campaignId: formData.get('campaignId'),
         actionId: formData.get('actionId'),
         activityId: formData.get('activityId'),
@@ -379,4 +398,97 @@ export async function addExpense(prevState: ExpenseFormState | null, formData: F
 
     revalidatePath(`/campaigns/${campaignId}/${actionId}`);
     return { message: "Расход успешно добавлен." };
+}
+
+export async function addGeneralExpense(prevState: ExpenseFormState | null, formData: FormData): Promise<ExpenseFormState> {
+    const validatedFields = GeneralExpenseSchema.safeParse({
+        campaignId: formData.get('campaignId'),
+        actionId: formData.get('actionId'),
+        description: formData.get('description'),
+        amount: formData.get('amount'),
+        date: formData.get('date'),
+        legalEntity: formData.get('legalEntity'),
+        photoURL: formData.get('photoURL'),
+    });
+
+    if (!validatedFields.success) {
+        return {
+            message: "Ошибка валидации.",
+            error: true,
+            errors: validatedFields.error.flatten().fieldErrors,
+        };
+    }
+
+    const { campaignId, actionId, ...expenseData } = validatedFields.data;
+
+    try {
+        await addGeneralExpenseToAction(campaignId, actionId, expenseData);
+    } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+        return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
+    }
+
+    revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+    return { message: "Общий расход успешно добавлен." };
+}
+
+export async function updateGeneralExpense(prevState: ExpenseFormState | null, formData: FormData): Promise<ExpenseFormState> {
+    const validatedFields = UpdateGeneralExpenseSchema.safeParse({
+        expenseId: formData.get('expenseId'),
+        campaignId: formData.get('campaignId'),
+        actionId: formData.get('actionId'),
+        description: formData.get('description'),
+        amount: formData.get('amount'),
+        date: formData.get('date'),
+        legalEntity: formData.get('legalEntity'),
+        photoURL: formData.get('photoURL'),
+    });
+
+    if (!validatedFields.success) {
+        return {
+            message: "Ошибка валидации.",
+            error: true,
+            errors: validatedFields.error.flatten().fieldErrors,
+        };
+    }
+    
+    const { campaignId, actionId, expenseId, ...expenseData } = validatedFields.data;
+    const expenseToUpdate: Expense = { id: expenseId, ...expenseData };
+
+    try {
+        await updateGeneralExpenseInAction(campaignId, actionId, expenseToUpdate);
+    } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+        return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
+    }
+
+    revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+    return { message: "Общий расход успешно обновлен." };
+}
+
+export async function deleteGeneralExpense(prevState: DeleteFormState | null, formData: FormData): Promise<DeleteFormState> {
+    const validatedFields = DeleteGeneralExpenseSchema.safeParse({
+        campaignId: formData.get('campaignId'),
+        actionId: formData.get('actionId'),
+        expenseId: formData.get('expenseId'),
+    });
+    
+    if (!validatedFields.success) {
+        return {
+            message: "Ошибка валидации: не удалось получить необходимые ID.",
+            error: true,
+        };
+    }
+
+    const { campaignId, actionId, expenseId } = validatedFields.data;
+
+    try {
+        await deleteGeneralExpenseFromAction(campaignId, actionId, expenseId);
+    } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+        return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
+    }
+
+    revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+    return { message: "Общий расход успешно удален." };
 }

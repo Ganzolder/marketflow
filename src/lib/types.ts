@@ -51,6 +51,7 @@ export type Action = {
   endDate: string;
   goals: Goal[];
   activities: Activity[];
+  generalExpenses: Expense[];
 };
 
 export type CampaignStatus = 'active' | 'planned' | 'completed' | 'paused';
@@ -81,3 +82,4 @@ export type ActivityFormState = {
     kpis?: string[];
   };
 };
+

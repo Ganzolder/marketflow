@@ -36,6 +36,7 @@ async function seedDatabase() {
               { id: 'g2', name: 'Клики', target: 5000, current: 4200, unit: 'кликов' }
             ],
             activities: [],
+            generalExpenses: [],
           },
           {
             id: 'act-c1-2',
@@ -47,6 +48,7 @@ async function seedDatabase() {
             endDate: '2024-08-15',
             goals: [],
             activities: [],
+            generalExpenses: [],
           }
         ],
       },
@@ -92,7 +94,7 @@ async function seedDatabase() {
 }
 
 
-export async function addAction(campaignId: string, action: Omit<Action, 'id' | 'goals' | 'activities'>) {
+export async function addAction(campaignId: string, action: Omit<Action, 'id' | 'goals' | 'activities' | 'generalExpenses'>) {
     const campaignRef = doc(db, "campaigns", campaignId);
     
     const newAction: Action = {
@@ -100,6 +102,7 @@ export async function addAction(campaignId: string, action: Omit<Action, 'id' | 
         id: `act-${campaignId.substring(0,4)}-${(Math.random() + 1).toString(36).substring(7)}`, // more unique ID
         goals: [],
         activities: [],
+        generalExpenses: [],
     };
     await updateDoc(campaignRef, {
         actions: arrayUnion(newAction)
@@ -333,6 +336,8 @@ export async function addExpenseToActivity(campaignId: string, actionId: string,
             }
             activity.expenses.push(newExpense);
 
+            activity.spent = activity.expenses.reduce((acc, exp) => acc + exp.amount, 0);
+
             transaction.update(campaignRef, { actions: newActions });
         });
     } catch (e) {
@@ -359,6 +364,9 @@ export async function getCampaignById(id: string): Promise<Campaign | undefined>
     const campaignData = snap.data() as Omit<Campaign, 'id'>;
       if (campaignData.actions) {
           campaignData.actions.forEach(action => {
+              if (!action.generalExpenses) {
+                  action.generalExpenses = [];
+              }
               if (action.activities) {
                   action.activities.forEach(activity => {
                       if (!activity.expenses) {
@@ -411,4 +419,92 @@ export async function getUpcomingActions(): Promise<UpcomingAction[]> {
   });
 
   return upcoming.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+}
+
+
+export async function addGeneralExpenseToAction(campaignId: string, actionId: string, expense: Omit<Expense, 'id'>) {
+    const campaignRef = doc(db, 'campaigns', campaignId);
+
+    try {
+        await runTransaction(db, async (transaction) => {
+            const campaignDoc = await transaction.get(campaignRef);
+            if (!campaignDoc.exists()) throw new Error("Campaign does not exist!");
+
+            const campaignData = campaignDoc.data() as Campaign;
+            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
+            if (actionIndex === -1) throw new Error("Action not found!");
+
+            const newActions = [...campaignData.actions];
+            const action = newActions[actionIndex];
+
+            const newExpense: Expense = {
+                ...expense,
+                id: `gexp-${actionId.substring(0,4)}-${(Math.random() + 1).toString(36).substring(7)}`,
+            };
+
+            if (!action.generalExpenses) {
+                action.generalExpenses = [];
+            }
+            action.generalExpenses.push(newExpense);
+
+            transaction.update(campaignRef, { actions: newActions });
+        });
+    } catch (e) {
+        console.error("Add general expense transaction failed: ", e);
+        throw e;
+    }
+}
+
+export async function updateGeneralExpenseInAction(campaignId: string, actionId: string, updatedExpense: Expense) {
+    const campaignRef = doc(db, 'campaigns', campaignId);
+    try {
+        await runTransaction(db, async (transaction) => {
+            const campaignDoc = await transaction.get(campaignRef);
+            if (!campaignDoc.exists()) throw new Error("Campaign does not exist!");
+
+            const campaignData = campaignDoc.data() as Campaign;
+            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
+            if (actionIndex === -1) throw new Error("Action not found!");
+
+            const newActions = [...campaignData.actions];
+            const action = newActions[actionIndex];
+            
+            if (!action.generalExpenses) throw new Error("General expenses not found!");
+            
+            const expenseIndex = action.generalExpenses.findIndex(e => e.id === updatedExpense.id);
+            if (expenseIndex === -1) throw new Error("Expense not found!");
+
+            action.generalExpenses[expenseIndex] = updatedExpense;
+
+            transaction.update(campaignRef, { actions: newActions });
+        });
+    } catch (e) {
+        console.error("Update general expense transaction failed: ", e);
+        throw e;
+    }
+}
+
+export async function deleteGeneralExpenseFromAction(campaignId: string, actionId: string, expenseId: string) {
+    const campaignRef = doc(db, 'campaigns', campaignId);
+    try {
+        await runTransaction(db, async (transaction) => {
+            const campaignDoc = await transaction.get(campaignRef);
+            if (!campaignDoc.exists()) throw new Error("Campaign does not exist!");
+            
+            const campaignData = campaignDoc.data() as Campaign;
+            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
+            if (actionIndex === -1) throw new Error("Action not found!");
+
+            const newActions = [...campaignData.actions];
+            const action = newActions[actionIndex];
+            if (!action.generalExpenses) return;
+
+            action.generalExpenses = action.generalExpenses.filter(e => e.id !== expenseId);
+
+            transaction.update(campaignRef, { actions: newActions });
+        });
+    } catch (e) {
+        console.error("Delete general expense transaction failed: ", e);
+        throw e;
+    }
 }
