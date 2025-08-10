@@ -55,7 +55,7 @@ export function AddExpenseButton({ activityId, campaignId, actionId }: { activit
                     Добавить трату
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Добавить расход</DialogTitle>
                     <DialogDescription>
@@ -106,4 +106,3 @@ export function AddExpenseButton({ activityId, campaignId, actionId }: { activit
         </Dialog>
     );
 }
-
