@@ -1,21 +1,50 @@
+
+'use client';
+
+import { useState, useEffect } from 'react';
+import type { Campaign, Action } from '@/lib/types';
 import { getCampaignById } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { Edit, Calendar as CalendarIcon, DollarSign, Target } from 'lucide-react';
+import { Edit, Calendar as CalendarIcon, DollarSign, Target, FilePlus, Hand, CheckCircle2, ListTodo, Edit2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/status-badge';
 import { NewActionButton } from './new-action-button';
+import { cn } from '@/lib/utils';
+import { EditActionButton } from './edit-action-button';
 
 
-export default async function CampaignDetailPage({ params }: { params: { id: string } }) {
-  const campaign = await getCampaignById(params.id);
+export default function CampaignDetailPage({ params }: { params: { id: string } }) {
+  const [campaign, setCampaign] = useState<Campaign | null>(null);
+  const [selectedAction, setSelectedAction] = useState<Action | null>(null);
+
+  useEffect(() => {
+    getCampaignById(params.id).then(campaignData => {
+      if (!campaignData) {
+        notFound();
+      }
+      setCampaign(campaignData);
+      if (campaignData.actions.length > 0) {
+        setSelectedAction(campaignData.actions[0]);
+      }
+    });
+  }, [params.id]);
+  
+  useEffect(() => {
+    // If the campaign data is refreshed (e.g. after an edit),
+    // update the selected action to match the latest data.
+    if (campaign && selectedAction) {
+        const updatedAction = campaign.actions.find(a => a.id === selectedAction.id);
+        setSelectedAction(updatedAction || null);
+    }
+  }, [campaign, selectedAction]);
+
 
   if (!campaign) {
-    notFound();
+    return <div>Загрузка...</div>;
   }
 
   const locale = 'ru-RU';
@@ -27,7 +56,7 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
       <PageHeader title={campaign.name}>
         <Button variant="outline">
           <Edit className="mr-2 h-4 w-4" />
-          Редактировать
+          Редактировать кампанию
         </Button>
       </PageHeader>
 
@@ -68,63 +97,84 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
           </CardContent>
         </Card>
 
-        <div>
-          <h2 className="text-2xl font-bold font-headline mb-4">Цели кампании</h2>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {campaign.goals.map(goal => (
-              <Card key={goal.id}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">{goal.name}</CardTitle>
+        {/* Main content grid */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+          {/* Left Column: Actions List */}
+          <div className="md:col-span-4 lg:col-span-3 space-y-4">
+            <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold font-headline">Акции</h2>
+                <NewActionButton campaignId={campaign.id} />
+            </div>
+            <div className="space-y-2">
+                {campaign.actions.map(action => (
+                    <Card 
+                        key={action.id} 
+                        className={cn("cursor-pointer transition-all hover:shadow-md", selectedAction?.id === action.id ? "border-primary ring-2 ring-primary" : "border-border")}
+                        onClick={() => setSelectedAction(action)}
+                    >
+                        <CardHeader className="p-4 pb-2">
+                            <CardTitle className="text-base flex justify-between items-start">
+                                <span>{action.name}</span>
+                                <EditActionButton action={action} campaignId={campaign.id}/>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-4 pt-0">
+                             <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                <StatusBadge status={action.status} />
+                                <span>{new Date(action.startDate).toLocaleDateString(locale, {month: 'short', day: 'numeric'})} - {new Date(action.endDate).toLocaleDateString(locale, {month: 'short', day: 'numeric'})}</span>
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))}
+                {campaign.actions.length === 0 && (
+                    <div className="text-center text-sm text-muted-foreground py-10">
+                        <FilePlus className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                        Акции еще не добавлены.
+                    </div>
+                )}
+            </div>
+          </div>
+          
+          {/* Right Column: Selected Action Details */}
+          <div className="md:col-span-8 lg:col-span-9 sticky top-24">
+             <Card className="min-h-[400px]">
+                <CardHeader>
+                   <CardTitle>{selectedAction ? selectedAction.name : "Выберите акцию"}</CardTitle>
+                   <CardDescription>{selectedAction ? selectedAction.type : "Выберите акцию из списка слева, чтобы увидеть ее детали."}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Progress value={(goal.current / goal.target) * 100} className="mb-2 h-3 bg-primary/20" indicatorClassName="bg-primary" />
-                  <p className="text-sm text-muted-foreground">
-                    <span className="font-bold text-foreground">{goal.current.toLocaleString(locale)}</span> / {goal.target.toLocaleString(locale)} {goal.unit}
-                  </p>
+                    {selectedAction ? (
+                        <div>
+                             <h3 className="text-lg font-semibold mb-4">Цели акции</h3>
+                             {selectedAction.goals.length > 0 ? (
+                                <div className="grid gap-4 md:grid-cols-2">
+                                {selectedAction.goals.map(goal => (
+                                <Card key={goal.id} className="bg-muted/50">
+                                    <CardHeader className="pb-2">
+                                    <CardTitle className="text-base">{goal.name}</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                    <Progress value={(goal.current / goal.target) * 100} className="mb-2 h-3 bg-primary/20" indicatorClassName="bg-primary" />
+                                    <p className="text-sm text-muted-foreground">
+                                        <span className="font-bold text-foreground">{goal.current.toLocaleString(locale)}</span> / {goal.target.toLocaleString(locale)} {goal.unit}
+                                    </p>
+                                    </CardContent>
+                                </Card>
+                                ))}
+                            </div>
+                             ): (
+                                <p className="text-sm text-muted-foreground">Для этой акции цели еще не определены.</p>
+                             )}
+                        </div>
+                    ) : (
+                         <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground pt-16">
+                            <Hand className="h-12 w-12 mb-4" />
+                            <p>Выберите акцию, чтобы просмотреть ее детали.</p>
+                        </div>
+                    )}
                 </CardContent>
-              </Card>
-            ))}
+             </Card>
           </div>
-        </div>
-
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold font-headline">Акции</h2>
-            <NewActionButton campaignId={campaign.id} />
-          </div>
-          <Card>
-            <CardContent className="pt-6">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Название</TableHead>
-                    <TableHead>Тип</TableHead>
-                    <TableHead>Статус</TableHead>
-                    <TableHead>Дата начала</TableHead>
-                    <TableHead>Дата окончания</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {campaign.actions.map(action => (
-                    <TableRow key={action.id}>
-                      <TableCell className="font-medium">{action.name}</TableCell>
-                      <TableCell>{action.type}</TableCell>
-                      <TableCell><StatusBadge status={action.status} /></TableCell>
-                      <TableCell>{new Date(action.startDate).toLocaleDateString(locale, dateOptions)}</TableCell>
-                      <TableCell>{new Date(action.endDate).toLocaleDateString(locale, dateOptions)}</TableCell>
-                    </TableRow>
-                  ))}
-                  {campaign.actions.length === 0 && (
-                    <TableRow>
-                        <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
-                            Акции еще не добавлены.
-                        </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>

@@ -8,10 +8,11 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PlusCircle, Loader2 } from "lucide-react";
-import { addActionToCampaign, type ActionFormState } from '@/lib/actions';
+import { Loader2, Edit2 } from "lucide-react";
+import { editActionInCampaign, type ActionFormState } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import type { Action } from '@/lib/types';
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -22,19 +23,19 @@ function SubmitButton() {
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Сохранение...
                 </>
-            ) : "Сохранить"}
+            ) : "Сохранить изменения"}
         </Button>
     )
 }
 
-export function NewActionButton({ campaignId }: { campaignId: string }) {
+export function EditActionButton({ action, campaignId }: { action: Action, campaignId: string }) {
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
     const router = useRouter();
     
     const initialState: ActionFormState = { message: "", errors: {} };
-    const [state, dispatch] = useActionState(addActionToCampaign, initialState);
+    const [state, dispatch] = useActionState(editActionInCampaign, initialState);
 
     useEffect(() => {
         if (state.message) {
@@ -50,7 +51,6 @@ export function NewActionButton({ campaignId }: { campaignId: string }) {
                     description: state.message,
                 });
                 setOpen(false);
-                formRef.current?.reset();
                 router.refresh();
             }
         }
@@ -59,47 +59,48 @@ export function NewActionButton({ campaignId }: { campaignId: string }) {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button size="sm">
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Добавить
+                <Button variant="ghost" size="icon" className="h-6 w-6">
+                    <Edit2 className="h-4 w-4" />
+                    <span className="sr-only">Редактировать акцию</span>
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[625px]">
                 <DialogHeader>
-                    <DialogTitle>Создать новую акцию</DialogTitle>
+                    <DialogTitle>Редактировать акцию</DialogTitle>
                     <DialogDescription>
-                        Заполните информацию о новой акции для вашей кампании.
+                        Измените информацию об акции для вашей кампании.
                     </DialogDescription>
                 </DialogHeader>
                 <form action={dispatch} ref={formRef}>
                     <input type="hidden" name="campaignId" value={campaignId} />
+                    <input type="hidden" name="actionId" value={action.id} />
                     <div className="grid gap-6 py-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="action-name">Название акции</Label>
-                                <Input id="action-name" name="action-name" placeholder="например, Весенняя распродажа" />
+                                <Input id="action-name" name="action-name" defaultValue={action.name} />
                                 {state.errors?.name && <p className="text-sm text-destructive">{state.errors.name[0]}</p>}
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="action-type">Тип акции</Label>
-                                <Input id="action-type" name="action-type" placeholder="например, Цифровая реклама" />
+                                <Input id="action-type" name="action-type" defaultValue={action.type} />
                                 {state.errors?.type && <p className="text-sm text-destructive">{state.errors.type[0]}</p>}
                             </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="start-date">Дата начала</Label>
-                                <Input id="start-date" name="start-date" type="date" />
+                                <Input id="start-date" name="start-date" type="date" defaultValue={action.startDate} />
                                 {state.errors?.startDate && <p className="text-sm text-destructive">{state.errors.startDate[0]}</p>}
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="end-date">Дата окончания</Label>
-                                <Input id="end-date" name="end-date" type="date" />
+                                <Input id="end-date" name="end-date" type="date" defaultValue={action.endDate} />
                                 {state.errors?.endDate && <p className="text-sm text-destructive">{state.errors.endDate[0]}</p>}
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="status">Статус</Label>
-                                <Select name="status" defaultValue="planned">
+                                <Select name="status" defaultValue={action.status}>
                                     <SelectTrigger id="status">
                                         <SelectValue placeholder="Выберите статус" />
                                     </SelectTrigger>

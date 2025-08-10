@@ -1,6 +1,7 @@
+
 import { Campaign, UpcomingAction, Action } from './types';
 import { db } from './firebase';
-import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, addDoc, writeBatch } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, addDoc, writeBatch, runTransaction } from "firebase/firestore";
 
 // Helper function to seed the database with initial data if it's empty
 async function seedDatabase() {
@@ -45,7 +46,6 @@ async function seedDatabase() {
         ],
       },
       {
-        id: 'c2',
         name: 'Запуск нового продукта "Квант"',
         description: 'Маркетинговая кампания для запуска нового инновационного продукта.',
         budget: 75000,
@@ -58,7 +58,6 @@ async function seedDatabase() {
         actions: [],
       },
       {
-        id: 'c3',
         name: 'Кампания по повышению узнаваемости бренда Q1 2024',
         description: 'Кампания, направленная на повышение узнаваемости бренда среди целевой аудитории.',
         budget: 15000,
@@ -74,14 +73,8 @@ async function seedDatabase() {
 
     const batch = writeBatch(db);
     initialCampaigns.forEach(campaignData => {
-        // For campaigns that don't have an ID, we let Firestore generate it
-        if (campaignData.id) {
-             const docRef = doc(db, "campaigns", campaignData.id);
-             batch.set(docRef, campaignData);
-        } else {
-            const docRef = doc(collection(db, "campaigns"));
-            batch.set(docRef, campaignData);
-        }
+      const docRef = doc(collection(db, "campaigns"));
+      batch.set(docRef, campaignData);
     });
     await batch.commit();
 
@@ -93,7 +86,7 @@ async function seedDatabase() {
    return campaignsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Campaign));
 }
 
-// Simulate a database write operation
+
 export async function addAction(campaignId: string, action: Omit<Action, 'id' | 'goals'>) {
     const campaignRef = doc(db, "campaigns", campaignId);
     const campaignDoc = await getDoc(campaignRef);
@@ -102,7 +95,7 @@ export async function addAction(campaignId: string, action: Omit<Action, 'id' | 
         const campaignData = campaignDoc.data() as Campaign;
         const newAction: Action = {
             ...action,
-            id: `act-${campaignId.substring(0,4)}-${campaignData.actions.length + 1}`,
+            id: `act-${campaignId.substring(0,4)}-${(Math.random() + 1).toString(36).substring(7)}`, // more unique ID
             goals: [] // Start with no goals
         };
         await updateDoc(campaignRef, {
@@ -113,6 +106,34 @@ export async function addAction(campaignId: string, action: Omit<Action, 'id' | 
     }
 }
 
+export async function updateAction(campaignId: string, updatedAction: Action) {
+  const campaignRef = doc(db, 'campaigns', campaignId);
+  
+  try {
+    await runTransaction(db, async (transaction) => {
+      const campaignDoc = await transaction.get(campaignRef);
+      if (!campaignDoc.exists()) {
+        throw "Campaign document does not exist!";
+      }
+
+      const campaignData = campaignDoc.data() as Campaign;
+      const actionIndex = campaignData.actions.findIndex(a => a.id === updatedAction.id);
+      
+      if (actionIndex === -1) {
+        throw "Action not found in this campaign!";
+      }
+
+      const newActions = [...campaignData.actions];
+      newActions[actionIndex] = { ...newActions[actionIndex], ...updatedAction };
+
+      transaction.update(campaignRef, { actions: newActions });
+    });
+  } catch (e) {
+    console.error("Transaction failed: ", e);
+    throw new Error('Failed to update action.');
+  }
+}
+
 
 export async function getCampaigns(): Promise<Campaign[]> {
   const campaignsCollection = collection(db, "campaigns");
@@ -121,7 +142,7 @@ export async function getCampaigns(): Promise<Campaign[]> {
     // This will seed the database and return the seeded data
     return await seedDatabase();
   }
-  return campaignsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Campaign));
+  return campaignsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Campaign)).sort((a,b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
 }
 
 export async function getCampaignById(id: string): Promise<Campaign | undefined> {

@@ -1,8 +1,10 @@
+
 "use server";
 
 import { z } from "zod";
-import { addAction } from "./data";
+import { addAction, updateAction } from "./data";
 import { revalidatePath } from "next/cache";
+import type { Action } from "./types";
 
 const AddActionSchema = z.object({
   name: z.string().min(3, { message: "Название акции должно содержать не менее 3 символов." }),
@@ -13,7 +15,11 @@ const AddActionSchema = z.object({
   campaignId: z.string(),
 });
 
-export type AddActionFormState = {
+const EditActionSchema = AddActionSchema.extend({
+  id: z.string(),
+});
+
+export type ActionFormState = {
   message: string;
   errors?: {
     name?: string[];
@@ -22,13 +28,14 @@ export type AddActionFormState = {
     endDate?: string[];
     status?: string[];
     campaignId?: string[];
+    id?: string[];
   };
 };
 
 export async function addActionToCampaign(
-  prevState: AddActionFormState,
+  prevState: ActionFormState,
   formData: FormData
-): Promise<AddActionFormState> {
+): Promise<ActionFormState> {
   
   const validatedFields = AddActionSchema.safeParse({
     name: formData.get('action-name'),
@@ -57,4 +64,39 @@ export async function addActionToCampaign(
 
   revalidatePath(`/campaigns/${campaignId}`);
   return { message: "Акция успешно добавлена." };
+}
+
+export async function editActionInCampaign(
+  prevState: ActionFormState,
+  formData: FormData
+): Promise<ActionFormState> {
+  
+  const validatedFields = EditActionSchema.safeParse({
+    id: formData.get('actionId'),
+    name: formData.get('action-name'),
+    type: formData.get('action-type'),
+    startDate: formData.get('start-date'),
+    endDate: formData.get('end-date'),
+    status: formData.get('status'),
+    campaignId: formData.get('campaignId'),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      message: "Ошибка валидации. Не удалось обновить акцию.",
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+  
+  const { campaignId, ...actionData } = validatedFields.data;
+
+  try {
+    await updateAction(campaignId, actionData as Action);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Произошла неизвестная ошибка.";
+    return { message: `Ошибка базы данных: не удалось обновить акцию. ${errorMessage}` };
+  }
+
+  revalidatePath(`/campaigns/${campaignId}`);
+  return { message: "Акция успешно обновлена." };
 }
