@@ -155,7 +155,9 @@ export default async function ActionDetailPage({ params }: ActionDetailPageProps
             <CardContent>
                  {action.activities && action.activities.length > 0 ? (
                     <div className="grid lg:grid-cols-2 gap-6 items-start">
-                        {action.activities.map(activity => (
+                        {action.activities.map(activity => {
+                            const kpis = activity.kpis || [];
+                            return (
                              <Card key={activity.id} className="h-full flex flex-col">
                                 <CardHeader>
                                     <div className="flex items-start justify-between">
@@ -172,8 +174,51 @@ export default async function ActionDetailPage({ params }: ActionDetailPageProps
                                 <CardContent className="text-sm text-muted-foreground flex-1">
                                     <UpdateMetricsForm activity={activity} campaignId={campaign.id} actionId={action.id} />
                                 </CardContent>
+                                <CardFooter className="flex-col items-start gap-2 pt-4 border-t">
+                                     {kpis.map(kpi => {
+                                        const parentKpi = kpis.find(p => p.id === kpi.parentId);
+                                        // Conversion uses current values
+                                        const conversion = parentKpi && parentKpi.current > 0 && kpi.current > 0 ? (kpi.current / parentKpi.current) * 100 : null;
+                                        // Cost uses current SPENT vs current KPI value
+                                        const costPerUnit = kpi.current > 0 && activity.spent > 0 && kpi.multiple > 0 ? activity.spent / (kpi.current / kpi.multiple) : null;
+                                        
+                                        if (conversion === null && costPerUnit === null) return null;
+
+                                        return (
+                                            <div key={`footer-${kpi.id}`} className="flex items-center gap-4 text-xs">
+                                                <p className="font-medium text-foreground w-24 truncate">{kpi.name}:</p>
+                                                {conversion !== null && parentKpi && (
+                                                    <TooltipProvider>
+                                                        <Tooltip>
+                                                        <TooltipTrigger className="flex items-center gap-1">
+                                                            <TrendingUp className="w-4 h-4 text-green-500"/> 
+                                                            <span className="font-bold text-green-500">{conversion.toFixed(1)}%</span>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>CR из "{parentKpi.name}" (факт)</p>
+                                                        </TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
+                                                )}
+                                                {costPerUnit !== null && (
+                                                    <TooltipProvider>
+                                                        <Tooltip>
+                                                            <TooltipTrigger className="flex items-center gap-1">
+                                                            <CircleDollarSign className="w-4 h-4 text-blue-500" />
+                                                            <span className="font-bold text-blue-500">{new Intl.NumberFormat(locale, currencyOptions).format(costPerUnit)}</span>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>
+                                                              <p>Стоимость за {kpi.multiple} {kpi.unit} (факт)</p>
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
+                                                )}
+                                            </div>
+                                        )
+                                     })}
+                                </CardFooter>
                             </Card>
-                        ))}
+                        )})}
                     </div>
                  ) : (
                      <div className="text-center text-sm text-muted-foreground py-10 border-2 border-dashed rounded-lg">
