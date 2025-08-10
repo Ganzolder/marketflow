@@ -1,22 +1,23 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useFormStatus } from 'react-dom';
-import { useFieldArray, useForm } from 'react-hook-form';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Edit2, PlusCircle, Trash2 } from "lucide-react";
+import { Loader2, Edit2, PlusCircle, Trash2, TrendingUp, CircleDollarSign } from "lucide-react";
 import { updateActivity } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import type { Activity } from '@/lib/types';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useFieldArray } from 'react-hook-form';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 
 const KpiSchema = z.object({
@@ -41,6 +42,8 @@ const EditActivityFormSchema = z.object({
 export function EditActivityButton({ activity, campaignId, actionId }: { activity: Activity, campaignId: string, actionId: string }) {
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
+    const locale = 'ru-RU';
+    const currencyOptions = { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 };
     
     const form = useForm<z.infer<typeof EditActivityFormSchema>>({
         resolver: zodResolver(EditActivityFormSchema),
@@ -60,6 +63,7 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
     });
 
     const kpis = form.watch('kpis');
+    const budget = form.watch('budget');
 
     async function onSubmit(values: z.infer<typeof EditActivityFormSchema>) {
         const formData = new FormData();
@@ -98,7 +102,7 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                     <span className="sr-only">Редактировать активность</span>
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[725px]">
+            <DialogContent className="sm:max-w-[800px] flex flex-col max-h-[90vh]">
                 <DialogHeader>
                     <DialogTitle>Редактировать активность</DialogTitle>
                     <DialogDescription>
@@ -106,7 +110,8 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                     </DialogDescription>
                 </DialogHeader>
                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 flex-1 min-h-0">
+                        <ScrollArea className="h-full pr-6">
                          <div className="grid gap-4 py-4">
                             <FormField
                                 control={form.control}
@@ -179,49 +184,61 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                                         Добавить KPI
                                     </Button>
                                 </div>
-                                {fields.map((field, index) => (
-                                    <div key={field.id} className="grid grid-cols-[auto_1fr_1fr] gap-2 items-start p-3 border rounded-lg">
-                                        <div className="flex flex-col gap-2 col-span-3 pb-2 mb-2 border-b">
+                                {fields.map((field, index) => {
+                                    const currentKpi = kpis?.[index];
+                                    const parentKpi = kpis?.find(p => p.id === currentKpi?.parentId);
+                                    const conversion = parentKpi && parentKpi.target > 0 && currentKpi && currentKpi.target > 0 ? (currentKpi.target / parentKpi.target) * 100 : null;
+                                    const costPerUnit = !parentKpi && currentKpi && currentKpi.target > 0 ? budget / currentKpi.target : null;
+
+                                    return (
+                                    <div key={field.id} className="grid grid-cols-1 gap-4 p-4 border rounded-lg relative">
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            className="absolute top-2 right-2 h-7 w-7 text-destructive hover:text-destructive"
+                                            onClick={() => remove(index)}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                            <span className="sr-only">Удалить KPI</span>
+                                        </Button>
+                                        
+                                        <FormField
+                                            control={form.control}
+                                            name={`kpis.${index}.name`}
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Название KPI</FormLabel>
+                                                    <FormControl><Input placeholder="напр. Показы" {...field} /></FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        
+                                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 items-start">
                                             <FormField
-                                                control={form.control}
-                                                name={`kpis.${index}.name`}
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormLabel>Название KPI</FormLabel>
-                                                        <FormControl><Input {...field} /></FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-                                        </div>
-                                         <div className="grid gap-2">
-                                             <FormField
                                                 control={form.control}
                                                 name={`kpis.${index}.target`}
                                                 render={({ field }) => (
                                                     <FormItem>
                                                         <FormLabel>Цель</FormLabel>
-                                                        <FormControl><Input type="number" {...field} /></FormControl>
+                                                        <FormControl><Input type="number" placeholder="1000" {...field} /></FormControl>
                                                         <FormMessage />
                                                     </FormItem>
                                                 )}
                                             />
-                                        </div>
-                                         <div className="grid gap-2">
                                             <FormField
                                                 control={form.control}
                                                 name={`kpis.${index}.unit`}
                                                 render={({ field }) => (
                                                     <FormItem>
                                                         <FormLabel>Ед. изм.</FormLabel>
-                                                        <FormControl><Input {...field} /></FormControl>
+                                                        <FormControl><Input placeholder="шт." {...field} /></FormControl>
                                                         <FormMessage />
                                                     </FormItem>
                                                 )}
                                             />
-                                        </div>
-                                        <div className="grid gap-2">
-                                            <FormField
+                                             <FormField
                                                 control={form.control}
                                                 name={`kpis.${index}.parentId`}
                                                 render={({ field }) => (
@@ -235,7 +252,7 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                                                             </FormControl>
                                                             <SelectContent>
                                                                 <SelectItem value="null">Нет</SelectItem>
-                                                                {kpis?.filter(kpi => kpi.id !== field.id).map(kpi => (
+                                                                {kpis?.filter(kpi => kpi.id !== currentKpi?.id).map(kpi => (
                                                                     <SelectItem key={kpi.id} value={kpi.id}>{kpi.name}</SelectItem>
                                                                 ))}
                                                             </SelectContent>
@@ -244,23 +261,42 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                                                     </FormItem>
                                                 )}
                                             />
-                                        </div>
-                                        <div className="col-span-3 flex justify-end">
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="icon"
-                                                className="text-destructive hover:text-destructive"
-                                                onClick={() => remove(index)}
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
+                                            <div className="flex items-center gap-4 text-muted-foreground pt-8 text-xs">
+                                                {conversion !== null && parentKpi && (
+                                                    <TooltipProvider>
+                                                        <Tooltip>
+                                                        <TooltipTrigger className="flex items-center gap-1">
+                                                            <TrendingUp className="w-4 h-4 text-green-500"/> 
+                                                            <span className="font-bold text-green-500">{conversion.toFixed(1)}%</span>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>Конверсия из "{parentKpi.name}"</p>
+                                                        </TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
+                                                )}
+                                                {costPerUnit !== null && (
+                                                    <TooltipProvider>
+                                                        <Tooltip>
+                                                            <TooltipTrigger className="flex items-center gap-1">
+                                                            <CircleDollarSign className="w-4 h-4 text-blue-500" />
+                                                            <span className="font-bold text-blue-500">{new Intl.NumberFormat(locale, currencyOptions).format(costPerUnit)}</span>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>
+                                                            <p>Стоимость за {currentKpi?.unit || 'ед.'}</p>
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
-                                ))}
+                                    )
+                                })}
                             </div>
                         </div>
-                        <DialogFooter>
+                        </ScrollArea>
+                        <DialogFooter className="pt-4 border-t">
                             <DialogClose asChild>
                                 <Button variant="outline">Отмена</Button>
                             </DialogClose>
@@ -280,3 +316,4 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
     );
 }
 
+    
