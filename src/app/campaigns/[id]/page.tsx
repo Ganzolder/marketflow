@@ -1,8 +1,5 @@
 
-'use client';
-
-import { useState, useEffect } from 'react';
-import type { Campaign, Action } from '@/lib/types';
+import type { Campaign } from '@/lib/types';
 import { getCampaignById } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
@@ -15,20 +12,11 @@ import { StatusBadge } from '@/components/status-badge';
 import { NewActionButton } from './new-action-button';
 import { EditActionButton } from './edit-action-button';
 
-export default function CampaignDetailPage({ params }: { params: { id: string } }) {
-  const [campaign, setCampaign] = useState<Campaign | null>(null);
-
-  useEffect(() => {
-    getCampaignById(params.id).then(campaignData => {
-      if (!campaignData) {
-        notFound();
-      }
-      setCampaign(campaignData);
-    });
-  }, [params.id]);
+export default async function CampaignDetailPage({ params }: { params: { id: string } }) {
+  const campaign = await getCampaignById(params.id);
 
   if (!campaign) {
-    return <div>Загрузка...</div>;
+    notFound();
   }
 
   const locale = 'ru-RU';
