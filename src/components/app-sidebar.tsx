@@ -16,8 +16,10 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  SidebarFooter,
 } from '@/components/ui/sidebar';
 import { useSidebar } from './ui/sidebar';
+import { ThemeSwitcher } from './theme-switcher';
 
 const menuItems = [
   { href: '/', label: 'Панель управления', icon: LayoutGrid },
@@ -57,6 +59,9 @@ export function AppSidebar() {
           ))}
         </SidebarMenu>
       </SidebarContent>
+      <SidebarFooter>
+        <ThemeSwitcher />
+      </SidebarFooter>
     </Sidebar>
   );
 }
