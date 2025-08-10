@@ -11,7 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { Loader2, DollarSign } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { AddExpenseButton } from './add-expense-button';
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -64,26 +65,15 @@ export function UpdateMetricsForm({ activity, campaignId, actionId }: { activity
 
             {/* Budget Section */}
             <div>
-                <Label className="text-base font-medium">Бюджет</Label>
+                <div className='flex justify-between items-center'>
+                    <Label className="text-base font-medium">Бюджет</Label>
+                    <AddExpenseButton activityId={activity.id} campaignId={campaignId} actionId={actionId}/>
+                </div>
+
                 <div className="text-sm text-muted-foreground mt-1 mb-2">
                     {new Intl.NumberFormat(locale, currencyOptions).format(activity.spent)} / {new Intl.NumberFormat(locale, currencyOptions).format(activity.budget)}
                 </div>
                 <Progress value={budgetProgress} indicatorClassName={budgetProgress > 100 ? 'bg-destructive' : 'bg-primary'} />
-                <div className="flex items-end gap-2 mt-3">
-                    <div className="grid w-full gap-1.5">
-                        <Label htmlFor={`newSpent-${activity.id}`} className="text-xs">Добавить трату</Label>
-                         <div className="relative">
-                            <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                id={`newSpent-${activity.id}`}
-                                name="newSpent"
-                                type="number"
-                                placeholder="0.00"
-                                className="pl-7 h-9"
-                            />
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <Separator />
@@ -126,4 +116,3 @@ export function UpdateMetricsForm({ activity, campaignId, actionId }: { activity
         </form>
     );
 }
-

@@ -1,4 +1,5 @@
 
+
 export type Goal = {
   id: string;
   name: string;
@@ -19,6 +20,15 @@ export type KPI = {
   parentId: string | null; // ID of the parent KPI for conversion tracking
 }
 
+export type Expense = {
+    id: string;
+    description: string;
+    amount: number;
+    date: string;
+    legalEntity?: string;
+    photoURL?: string;
+}
+
 export type Activity = {
   id: string;
   name: string;
@@ -28,6 +38,7 @@ export type Activity = {
   startDate: string;
   endDate: string;
   kpis: KPI[];
+  expenses: Expense[];
 };
 
 export type Action = {

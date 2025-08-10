@@ -2,7 +2,7 @@
 "use server";
 
 import { z } from "zod";
-import { addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData } from "./data";
+import { addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData } from "./data";
 import { revalidatePath } from "next/cache";
 import type { Action, Activity, KPI } from "./types";
 
@@ -193,6 +193,7 @@ export async function addActivityToAction(
   const activityToSave = {
       ...activityData,
       spent: 0,
+      expenses: [],
       kpis: activityData.kpis.map(kpi => ({...kpi, current: 0})) 
   }
 
@@ -281,7 +282,6 @@ const UpdateMetricsSchema = z.object({
   campaignId: z.string(),
   actionId: z.string(),
   activityId: z.string(),
-  newSpent: z.coerce.number().min(0).optional(),
   kpis: z.record(z.string(), z.coerce.number().min(0)).optional()
 });
 
@@ -308,7 +308,6 @@ export async function updateActivityMetrics(
         campaignId: formData.get('campaignId'),
         actionId: formData.get('actionId'),
         activityId: formData.get('activityId'),
-        newSpent: formData.get('newSpent') || '0',
         kpis: kpiUpdates
     });
     
@@ -319,10 +318,10 @@ export async function updateActivityMetrics(
         };
     }
 
-    const { campaignId, actionId, activityId, newSpent, kpis } = validatedFields.data;
+    const { campaignId, actionId, activityId, kpis } = validatedFields.data;
 
     try {
-        await updateActivityMetricsData(campaignId, actionId, activityId, newSpent || 0, kpis || {});
+        await updateActivityMetricsData(campaignId, actionId, activityId, kpis || {});
     } catch (e) {
         const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
         return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
@@ -330,4 +329,54 @@ export async function updateActivityMetrics(
 
     revalidatePath(`/campaigns/${campaignId}/${actionId}`);
     return { message: "Метрики успешно обновлены." };
+}
+
+const AddExpenseSchema = z.object({
+  campaignId: z.string(),
+  actionId: z.string(),
+  activityId: z.string(),
+  description: z.string().min(1, "Описание обязательно."),
+  amount: z.coerce.number().gt(0, "Сумма должна быть больше нуля."),
+  date: z.string().refine((date) => !isNaN(Date.parse(date)), "Неверный формат даты."),
+  legalEntity: z.string().optional(),
+  photoURL: z.string().url("Неверный URL-адрес фотографии.").optional().or(z.literal('')),
+});
+
+export type ExpenseFormState = {
+  message: string;
+  error?: boolean;
+  errors?: z.ZodError<z.infer<typeof AddExpenseSchema>>['formErrors']['fieldErrors']
+};
+
+export async function addExpense(prevState: ExpenseFormState | null, formData: FormData): Promise<ExpenseFormState> {
+    const validatedFields = AddExpenseSchema.safeParse({
+        campaignId: formData.get('campaignId'),
+        actionId: formData.get('actionId'),
+        activityId: formData.get('activityId'),
+        description: formData.get('description'),
+        amount: formData.get('amount'),
+        date: formData.get('date'),
+        legalEntity: formData.get('legalEntity'),
+        photoURL: formData.get('photoURL'),
+    });
+
+    if (!validatedFields.success) {
+        return {
+            message: "Ошибка валидации.",
+            error: true,
+            errors: validatedFields.error.flatten().fieldErrors,
+        };
+    }
+
+    const { campaignId, actionId, activityId, ...expenseData } = validatedFields.data;
+
+    try {
+        await addExpenseToActivityData(campaignId, actionId, activityId, expenseData);
+    } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+        return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
+    }
+
+    revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+    return { message: "Расход успешно добавлен." };
 }

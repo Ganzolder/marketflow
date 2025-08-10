@@ -1,5 +1,6 @@
 
-import { Campaign, UpcomingAction, Action, Activity, KPI } from './types';
+
+import { Campaign, UpcomingAction, Action, Activity, KPI, Expense } from './types';
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, addDoc, writeBatch, runTransaction } from "firebase/firestore";
 
@@ -262,7 +263,7 @@ export async function deleteActivity(campaignId: string, actionId: string, activ
     }
 }
 
-export async function updateActivityMetrics(campaignId: string, actionId: string, activityId: string, newSpent: number, kpiUpdates: Record<string, number>) {
+export async function updateActivityMetrics(campaignId: string, actionId: string, activityId: string, kpiUpdates: Record<string, number>) {
     const campaignRef = doc(db, 'campaigns', campaignId);
 
     try {
@@ -282,15 +283,7 @@ export async function updateActivityMetrics(campaignId: string, actionId: string
             if (activityIndex === -1) throw new Error("Activity not found in this action!");
 
             const activity = action.activities[activityIndex];
-
-            // Update budget spent
-            activity.spent = (activity.spent || 0) + newSpent;
-            if (activity.spent > activity.budget) {
-                // Optional: Decide if you want to throw an error or just cap it
-                // throw new Error("Spending exceeds budget!");
-                activity.spent = activity.budget;
-            }
-
+            
             // Update KPIs
             if (activity.kpis && activity.kpis.length > 0) {
                 activity.kpis = activity.kpis.map(kpi => {
@@ -309,6 +302,46 @@ export async function updateActivityMetrics(campaignId: string, actionId: string
     }
 }
 
+export async function addExpenseToActivity(campaignId: string, actionId: string, activityId: string, expense: Omit<Expense, 'id'>) {
+    const campaignRef = doc(db, 'campaigns', campaignId);
+
+    try {
+        await runTransaction(db, async (transaction) => {
+            const campaignDoc = await transaction.get(campaignRef);
+            if (!campaignDoc.exists()) throw new Error("Campaign does not exist!");
+
+            const campaignData = campaignDoc.data() as Campaign;
+            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
+            if (actionIndex === -1) throw new Error("Action not found!");
+
+            const newActions = [...campaignData.actions];
+            const action = newActions[actionIndex];
+            if (!action.activities) throw new Error("Activity array not found!");
+
+            const activityIndex = action.activities.findIndex(act => act.id === activityId);
+            if (activityIndex === -1) throw new Error("Activity not found!");
+
+            const activity = action.activities[activityIndex];
+
+            const newExpense: Expense = {
+                ...expense,
+                id: `exp-${activityId.substring(0,4)}-${(Math.random() + 1).toString(36).substring(7)}`,
+            };
+
+            if (!activity.expenses) {
+                activity.expenses = [];
+            }
+            activity.expenses.push(newExpense);
+
+            transaction.update(campaignRef, { actions: newActions });
+        });
+    } catch (e) {
+        console.error("Add expense transaction failed: ", e);
+        throw e;
+    }
+}
+
+
 export async function getCampaigns(): Promise<Campaign[]> {
   const campaignsCollection = collection(db, "campaigns");
   const campaignsSnapshot = await getDocs(campaignsCollection);
@@ -321,60 +354,38 @@ export async function getCampaigns(): Promise<Campaign[]> {
 export async function getCampaignById(id: string): Promise<Campaign | undefined> {
   const campaignRef = doc(db, "campaigns", id);
   const campaignSnap = await getDoc(campaignRef);
+  
+  const processCampaignData = (snap: any): Campaign => {
+    const campaignData = snap.data() as Omit<Campaign, 'id'>;
+      if (campaignData.actions) {
+          campaignData.actions.forEach(action => {
+              if (action.activities) {
+                  action.activities.forEach(activity => {
+                      if (!activity.expenses) {
+                          activity.expenses = [];
+                      }
+                      activity.spent = activity.expenses.reduce((acc, expense) => acc + expense.amount, 0);
+
+                      if (activity.kpis) {
+                          activity.kpis.forEach(kpi => {
+                              if (kpi.multiple === undefined) kpi.multiple = 1;
+                              if (kpi.current === undefined) kpi.current = 0;
+                          });
+                      }
+                  });
+              }
+          });
+      }
+      return { id: snap.id, ...campaignData } as Campaign;
+  }
 
   if (campaignSnap.exists()) {
-    const campaignData = campaignSnap.data() as Omit<Campaign, 'id'>;
-    // Data sanitization
-    if (campaignData.actions) {
-        campaignData.actions.forEach(action => {
-            if (action.activities) {
-                action.activities.forEach(activity => {
-                    if (activity.spent === undefined) {
-                      activity.spent = 0;
-                    }
-                    if (activity.kpis) {
-                        activity.kpis.forEach(kpi => {
-                            if (kpi.multiple === undefined) {
-                                kpi.multiple = 1;
-                            }
-                            if (kpi.current === undefined) {
-                                kpi.current = 0;
-                            }
-                        });
-                    }
-                });
-            }
-        });
-    }
-    return { id: campaignSnap.id, ...campaignData } as Campaign;
+    return processCampaignData(campaignSnap);
   } else {
     await seedDatabase();
     const campaignSnapAfterSeed = await getDoc(campaignRef);
      if (campaignSnapAfterSeed.exists()) {
-        const campaignData = campaignSnapAfterSeed.data() as Omit<Campaign, 'id'>;
-        // Data sanitization after seed
-        if (campaignData.actions) {
-            campaignData.actions.forEach(action => {
-                if (action.activities) {
-                    action.activities.forEach(activity => {
-                        if (activity.spent === undefined) {
-                            activity.spent = 0;
-                        }
-                        if (activity.kpis) {
-                            activity.kpis.forEach(kpi => {
-                                if (kpi.multiple === undefined) {
-                                    kpi.multiple = 1;
-                                }
-                                if (kpi.current === undefined) {
-                                    kpi.current = 0;
-                                }
-                            });
-                        }
-                    });
-                }
-            });
-        }
-        return { id: campaignSnapAfterSeed.id, ...campaignData } as Campaign;
+        return processCampaignData(campaignSnapAfterSeed);
     }
     return undefined;
   }
