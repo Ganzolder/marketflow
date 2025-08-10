@@ -1,8 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useActionState, useRef } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useState, useEffect, useActionState, useRef, useTransition } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -16,10 +15,10 @@ import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { Progress } from '@/components/ui/progress';
 
 function SubmitButton({ disabled }: { disabled?: boolean }) {
-    const { pending } = useFormStatus();
+    const [isPending, startTransition] = useTransition();
     return (
-        <Button type="submit" disabled={pending || disabled}>
-            {pending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Добавление...</> : "Добавить расход"}
+        <Button type="submit" disabled={disabled || isPending}>
+            {disabled || isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Добавление...</> : "Добавить расход"}
         </Button>
     )
 }
@@ -31,11 +30,13 @@ export function AddExpenseButton({ activityId, campaignId, actionId }: { activit
     
     const [file, setFile] = useState<File | null>(null);
     const [uploadProgress, setUploadProgress] = useState(0);
-    const [uploading, setUploading] = useState(false);
-    const [photoURL, setPhotoURL] = useState('');
-    
+    const [isUploading, setIsUploading] = useState(false);
+    const [isPending, startTransition] = useTransition();
+
     const initialState: ExpenseFormState = { message: "", errors: {} };
     const [state, dispatch] = useActionState(addExpense, initialState);
+    
+    const photoURLRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (state?.message) {
@@ -53,7 +54,7 @@ export function AddExpenseButton({ activityId, campaignId, actionId }: { activit
                 setOpen(false);
                 formRef.current?.reset();
                 setFile(null);
-                setPhotoURL('');
+                if (photoURLRef.current) photoURLRef.current.value = '';
                 setUploadProgress(0);
             }
         }
@@ -62,37 +63,59 @@ export function AddExpenseButton({ activityId, campaignId, actionId }: { activit
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             setFile(e.target.files[0]);
-            handleUpload(e.target.files[0]);
+        } else {
+            setFile(null);
         }
     };
+    
+    const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
 
-    const handleUpload = (fileToUpload: File) => {
-        if (!fileToUpload) return;
+        startTransition(async () => {
+            let fileUrl = '';
+            if (file) {
+                setIsUploading(true);
+                setUploadProgress(0);
 
-        const storageRef = ref(storage, `expense_proofs/${campaignId}/${activityId}/${Date.now()}_${fileToUpload.name}`);
-        const uploadTask = uploadBytesResumable(storageRef, fileToUpload);
+                const storageRef = ref(storage, `expense_proofs/${campaignId}/${activityId}/${Date.now()}_${file.name}`);
+                const uploadTask = uploadBytesResumable(storageRef, file);
 
-        setUploading(true);
-        setUploadProgress(0);
-
-        uploadTask.on('state_changed',
-            (snapshot) => {
-                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                setUploadProgress(progress);
-            },
-            (error) => {
-                console.error("Upload failed:", error);
-                toast({ variant: "destructive", title: "Ошибка загрузки", description: "Не удалось загрузить файл." });
-                setUploading(false);
-            },
-            () => {
-                getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-                    setPhotoURL(downloadURL);
-                    setUploading(false);
+                await new Promise<void>((resolve, reject) => {
+                    uploadTask.on('state_changed',
+                        (snapshot) => {
+                            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                            setUploadProgress(progress);
+                        },
+                        (error) => {
+                            console.error("Upload failed:", error);
+                            toast({ variant: "destructive", title: "Ошибка загрузки", description: "Не удалось загрузить файл." });
+                            setIsUploading(false);
+                            reject(error);
+                        },
+                        async () => {
+                            try {
+                                fileUrl = await getDownloadURL(uploadTask.snapshot.ref);
+                                if (photoURLRef.current) {
+                                  photoURLRef.current.value = fileUrl;
+                                }
+                                setIsUploading(false);
+                                resolve();
+                            } catch(e) {
+                                reject(e)
+                            }
+                        }
+                    );
                 });
             }
-        );
-    };
+            
+            if (photoURLRef.current) {
+               photoURLRef.current.value = fileUrl;
+            }
+
+            const formData = new FormData(formRef.current!);
+            dispatch(formData);
+        });
+    }
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -109,11 +132,11 @@ export function AddExpenseButton({ activityId, campaignId, actionId }: { activit
                         Заполните информацию о расходе для этой активности.
                     </DialogDescription>
                 </DialogHeader>
-                <form action={dispatch} ref={formRef}>
+                <form onSubmit={handleFormSubmit} ref={formRef}>
                     <input type="hidden" name="campaignId" value={campaignId} />
                     <input type="hidden" name="actionId" value={actionId} />
                     <input type="hidden" name="activityId" value={activityId} />
-                    <input type="hidden" name="photoURL" value={photoURL} />
+                    <input type="hidden" name="photoURL" ref={photoURLRef} />
 
                     <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
@@ -140,14 +163,14 @@ export function AddExpenseButton({ activityId, campaignId, actionId }: { activit
                         </div>
                          <div className="grid gap-2">
                             <Label htmlFor="photoFile">Фото-подтверждение</Label>
-                            <Input id="photoFile" type="file" onChange={handleFileChange} disabled={uploading} />
-                            {uploading && (
+                            <Input id="photoFile" type="file" onChange={handleFileChange} disabled={isUploading || isPending} />
+                            {isUploading && (
                                 <div className="space-y-1">
                                     <p className="text-sm text-muted-foreground">Загрузка...</p>
                                     <Progress value={uploadProgress} className="h-2" />
                                 </div>
                             )}
-                            {photoURL && !uploading && (
+                            {photoURLRef.current?.value && !isUploading && (
                                 <div className="flex items-center gap-2 text-sm text-green-600">
                                     <CheckCircle2 className="h-4 w-4" />
                                     <span>Файл успешно загружен.</span>
@@ -158,9 +181,11 @@ export function AddExpenseButton({ activityId, campaignId, actionId }: { activit
                     </div>
                     <DialogFooter>
                         <DialogClose asChild>
-                            <Button variant="outline">Отмена</Button>
+                            <Button variant="outline" type="button">Отмена</Button>
                         </DialogClose>
-                        <SubmitButton disabled={uploading} />
+                        <Button type="submit" disabled={isUploading || isPending}>
+                            {(isUploading || isPending) ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Добавление...</> : "Добавить расход"}
+                        </Button>
                     </DialogFooter>
                 </form>
             </DialogContent>
