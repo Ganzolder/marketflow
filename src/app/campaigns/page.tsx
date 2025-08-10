@@ -68,6 +68,13 @@ export default async function CampaignsPage() {
                   </TableCell>
                 </TableRow>
               ))}
+               {campaigns.length === 0 && (
+                <TableRow>
+                    <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
+                        Кампании еще не созданы.
+                    </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>

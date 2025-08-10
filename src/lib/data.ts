@@ -1,88 +1,15 @@
 import { Campaign, UpcomingAction, Action } from './types';
 import { db } from './firebase';
-import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, addDoc, writeBatch } from "firebase/firestore";
 
-// Helper function to fetch initial data if the database is empty
+// Helper function to seed the database with initial data if it's empty
 async function seedDatabase() {
   const campaignsCollection = collection(db, "campaigns");
   const campaignsSnapshot = await getDocs(campaignsCollection);
   if (campaignsSnapshot.empty) {
+    console.log("Database is empty, seeding with initial data...");
     const initialCampaigns: Omit<Campaign, 'id'>[] = [
       {
-        name: 'Летняя распродажа 2024',
-        description: 'Большая распродажа для привлечения новых клиентов в летний сезон.',
-        budget: 25000,
-        startDate: '2024-06-01',
-        endDate: '2024-08-31',
-        status: 'active',
-        goals: [
-          { id: 'goal-1', name: 'Увеличение продаж', target: 50000, current: 35000, unit: 'USD' },
-          { id: 'goal-2', name: 'Привлечение новых клиентов', target: 1000, current: 650, unit: 'клиентов' },
-        ],
-        actions: [
-          {
-            id: 'act-c1-1',
-            name: 'Реклама в соцсетях',
-            type: 'Цифровая реклама',
-            status: 'in-progress',
-            startDate: '2024-06-01',
-            endDate: '2024-07-31',
-            goals: [
-              { id: 'g1', name: 'Охват', target: 100000, current: 75000, unit: 'показов' },
-              { id: 'g2', name: 'Клики', target: 5000, current: 4200, unit: 'кликов' }
-            ]
-          },
-          {
-            id: 'act-c1-2',
-            name: 'Email-рассылка',
-            type: 'Email-маркетинг',
-            status: 'planned',
-            startDate: '2024-07-15',
-            endDate: '2024-08-15',
-            goals: []
-          }
-        ],
-      },
-      // ... more initial campaigns if needed
-    ];
-    for (const campaignData of initialCampaigns) {
-      await addDoc(collection(db, "campaigns"), campaignData);
-    }
-    console.log("Database seeded with initial data.");
-  }
-}
-
-
-// Simulate a database write operation
-export async function addAction(campaignId: string, action: Omit<Action, 'id' | 'goals'>) {
-    const campaignRef = doc(db, "campaigns", campaignId);
-    const campaignDoc = await getDoc(campaignRef);
-
-    if (campaignDoc.exists()) {
-        const campaignData = campaignDoc.data() as Campaign;
-        const newAction: Action = {
-            ...action,
-            id: `act-${campaignId}-${campaignData.actions.length + 1}`,
-            goals: [] // Start with no goals
-        };
-        await updateDoc(campaignRef, {
-            actions: arrayUnion(newAction)
-        });
-    } else {
-        throw new Error('Campaign not found');
-    }
-}
-
-
-export async function getCampaigns(): Promise<Campaign[]> {
-  const campaignsCollection = collection(db, "campaigns");
-  const campaignsSnapshot = await getDocs(campaignsCollection);
-  if (campaignsSnapshot.empty) {
-    // This is a temporary measure for development to ensure there's data.
-    // In a real application, you might handle this differently.
-    const mockCampaigns: Campaign[] = [
-      {
-        id: 'c1',
         name: 'Летняя распродажа 2024',
         description: 'Большая распродажа для привлечения новых клиентов в летний сезон.',
         budget: 25000,
@@ -144,7 +71,55 @@ export async function getCampaigns(): Promise<Campaign[]> {
         actions: [],
       }
     ];
-    return mockCampaigns;
+
+    const batch = writeBatch(db);
+    initialCampaigns.forEach(campaignData => {
+        // For campaigns that don't have an ID, we let Firestore generate it
+        if (campaignData.id) {
+             const docRef = doc(db, "campaigns", campaignData.id);
+             batch.set(docRef, campaignData);
+        } else {
+            const docRef = doc(collection(db, "campaigns"));
+            batch.set(docRef, campaignData);
+        }
+    });
+    await batch.commit();
+
+    console.log("Database seeded with initial data.");
+    // Re-fetch the data after seeding
+    const newSnapshot = await getDocs(campaignsCollection);
+    return newSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Campaign));
+  }
+   return campaignsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Campaign));
+}
+
+// Simulate a database write operation
+export async function addAction(campaignId: string, action: Omit<Action, 'id' | 'goals'>) {
+    const campaignRef = doc(db, "campaigns", campaignId);
+    const campaignDoc = await getDoc(campaignRef);
+
+    if (campaignDoc.exists()) {
+        const campaignData = campaignDoc.data() as Campaign;
+        const newAction: Action = {
+            ...action,
+            id: `act-${campaignId.substring(0,4)}-${campaignData.actions.length + 1}`,
+            goals: [] // Start with no goals
+        };
+        await updateDoc(campaignRef, {
+            actions: arrayUnion(newAction)
+        });
+    } else {
+        throw new Error('Campaign not found');
+    }
+}
+
+
+export async function getCampaigns(): Promise<Campaign[]> {
+  const campaignsCollection = collection(db, "campaigns");
+  const campaignsSnapshot = await getDocs(campaignsCollection);
+  if (campaignsSnapshot.empty) {
+    // This will seed the database and return the seeded data
+    return await seedDatabase();
   }
   return campaignsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Campaign));
 }
@@ -156,6 +131,13 @@ export async function getCampaignById(id: string): Promise<Campaign | undefined>
   if (campaignSnap.exists()) {
     return { id: campaignSnap.id, ...campaignSnap.data() } as Campaign;
   } else {
+    // If not found, maybe the DB is not seeded yet.
+    // This is a fallback for development.
+    await seedDatabase();
+    const campaignSnapAfterSeed = await getDoc(campaignRef);
+     if (campaignSnapAfterSeed.exists()) {
+        return { id: campaignSnapAfterSeed.id, ...campaignSnapAfterSeed.data() } as Campaign;
+    }
     return undefined;
   }
 }
