@@ -111,191 +111,197 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                 </DialogHeader>
                  <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 flex-1 flex flex-col min-h-0">
-                        <ScrollArea className="flex-1 pr-6 -mr-6">
-                         <div className="grid gap-4 py-4 pr-6">
-                            <FormField
-                                control={form.control}
-                                name="name"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Название активности</FormLabel>
-                                        <FormControl><Input {...field} /></FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="description"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Описание (необязательно)</FormLabel>
-                                        <FormControl><Textarea {...field} /></FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <FormField
-                                    control={form.control}
-                                    name="budget"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Бюджет ($)</FormLabel>
-                                            <FormControl><Input type="number" {...field} /></FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="startDate"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Дата начала</FormLabel>
-                                            <FormControl><Input type="date" {...field} /></FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                 <FormField
-                                    control={form.control}
-                                    name="endDate"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Дата окончания</FormLabel>
-                                            <FormControl><Input type="date" {...field} /></FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
-
-                            <div className="space-y-4 pt-4">
-                                <div className="flex items-center justify-between">
-                                    <h4 className="text-lg font-medium">KPIs</h4>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => append({ id: `kpi-${Date.now()}`, name: '', target: 0, current: 0, unit: '', parentId: null })}
-                                    >
-                                        <PlusCircle className="mr-2 h-4 w-4" />
-                                        Добавить KPI
-                                    </Button>
-                                </div>
-                                {fields.map((field, index) => {
-                                    const currentKpi = kpis?.[index];
-                                    const parentKpi = kpis?.find(p => p.id === currentKpi?.parentId);
-                                    const conversion = parentKpi && parentKpi.target > 0 && currentKpi && currentKpi.target > 0 ? (currentKpi.target / parentKpi.target) * 100 : null;
-                                    const costPerUnit = !parentKpi && currentKpi && currentKpi.target > 0 ? budget / currentKpi.target : null;
-
-                                    return (
-                                    <div key={field.id} className="grid grid-cols-1 gap-4 p-4 border rounded-lg relative">
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="icon"
-                                            className="absolute top-2 right-2 h-7 w-7 text-destructive hover:text-destructive"
-                                            onClick={() => remove(index)}
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                            <span className="sr-only">Удалить KPI</span>
-                                        </Button>
-                                        
+                       <div className="flex-1 min-h-0">
+                            <ScrollArea className="h-full pr-6 -mr-6">
+                                <div className="grid md:grid-cols-2 gap-8 py-4 pr-2">
+                                     {/* Left Column */}
+                                     <div className="space-y-4">
                                         <FormField
                                             control={form.control}
-                                            name={`kpis.${index}.name`}
+                                            name="name"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>Название KPI</FormLabel>
-                                                    <FormControl><Input placeholder="напр. Показы" {...field} /></FormControl>
+                                                    <FormLabel>Название активности</FormLabel>
+                                                    <FormControl><Input {...field} /></FormControl>
                                                     <FormMessage />
                                                 </FormItem>
                                             )}
                                         />
-                                        
-                                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 items-start">
+                                        <FormField
+                                            control={form.control}
+                                            name="description"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Описание (необязательно)</FormLabel>
+                                                    <FormControl><Textarea {...field} /></FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="budget"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Бюджет ($)</FormLabel>
+                                                    <FormControl><Input type="number" {...field} /></FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                         <div className="grid grid-cols-2 gap-4">
                                             <FormField
                                                 control={form.control}
-                                                name={`kpis.${index}.target`}
+                                                name="startDate"
                                                 render={({ field }) => (
                                                     <FormItem>
-                                                        <FormLabel>Цель</FormLabel>
-                                                        <FormControl><Input type="number" placeholder="1000" {...field} /></FormControl>
+                                                        <FormLabel>Дата начала</FormLabel>
+                                                        <FormControl><Input type="date" {...field} /></FormControl>
                                                         <FormMessage />
                                                     </FormItem>
                                                 )}
                                             />
                                             <FormField
                                                 control={form.control}
-                                                name={`kpis.${index}.unit`}
+                                                name="endDate"
                                                 render={({ field }) => (
                                                     <FormItem>
-                                                        <FormLabel>Ед. изм.</FormLabel>
-                                                        <FormControl><Input placeholder="шт." {...field} /></FormControl>
+                                                        <FormLabel>Дата окончания</FormLabel>
+                                                        <FormControl><Input type="date" {...field} /></FormControl>
                                                         <FormMessage />
                                                     </FormItem>
                                                 )}
                                             />
-                                             <FormField
-                                                control={form.control}
-                                                name={`kpis.${index}.parentId`}
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormLabel>Родитель</FormLabel>
-                                                        <Select onValueChange={(value) => field.onChange(value === 'null' ? null : value)} value={field.value || 'null'}>
-                                                            <FormControl>
-                                                                <SelectTrigger>
-                                                                    <SelectValue placeholder="Нет" />
-                                                                </SelectTrigger>
-                                                            </FormControl>
-                                                            <SelectContent>
-                                                                <SelectItem value="null">Нет</SelectItem>
-                                                                {kpis?.filter(kpi => kpi.id !== currentKpi?.id).map(kpi => (
-                                                                    <SelectItem key={kpi.id} value={kpi.id}>{kpi.name}</SelectItem>
-                                                                ))}
-                                                            </SelectContent>
-                                                        </Select>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-                                            <div className="flex items-center gap-4 text-muted-foreground pt-8 text-xs">
-                                                {conversion !== null && parentKpi && (
-                                                    <TooltipProvider>
-                                                        <Tooltip>
-                                                        <TooltipTrigger className="flex items-center gap-1">
-                                                            <TrendingUp className="w-4 h-4 text-green-500"/> 
-                                                            <span className="font-bold text-green-500">{conversion.toFixed(1)}%</span>
-                                                        </TooltipTrigger>
-                                                        <TooltipContent>
-                                                            <p>Конверсия из "{parentKpi.name}"</p>
-                                                        </TooltipContent>
-                                                        </Tooltip>
-                                                    </TooltipProvider>
-                                                )}
-                                                {costPerUnit !== null && (
-                                                    <TooltipProvider>
-                                                        <Tooltip>
-                                                            <TooltipTrigger className="flex items-center gap-1">
-                                                            <CircleDollarSign className="w-4 h-4 text-blue-500" />
-                                                            <span className="font-bold text-blue-500">{new Intl.NumberFormat(locale, currencyOptions).format(costPerUnit)}</span>
-                                                            </TooltipTrigger>
-                                                            <TooltipContent>
-                                                            <p>Стоимость за {currentKpi?.unit || 'ед.'}</p>
-                                                            </TooltipContent>
-                                                        </Tooltip>
-                                                    </TooltipProvider>
-                                                )}
-                                            </div>
                                         </div>
                                     </div>
-                                    )
-                                })}
-                            </div>
+
+                                    {/* Right Column (KPIs) */}
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <h4 className="text-lg font-medium">KPIs</h4>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => append({ id: `kpi-${Date.now()}`, name: '', target: 0, current: 0, unit: '', parentId: null })}
+                                            >
+                                                <PlusCircle className="mr-2 h-4 w-4" />
+                                                Добавить KPI
+                                            </Button>
+                                        </div>
+                                        {fields.map((field, index) => {
+                                            const currentKpi = kpis?.[index];
+                                            const parentKpi = kpis?.find(p => p.id === currentKpi?.parentId);
+                                            const conversion = parentKpi && parentKpi.target > 0 && currentKpi && currentKpi.target > 0 ? (currentKpi.target / parentKpi.target) * 100 : null;
+                                            const costPerUnit = !parentKpi && currentKpi && currentKpi.target > 0 ? budget / currentKpi.target : null;
+
+                                            return (
+                                            <div key={field.id} className="grid grid-cols-1 gap-4 p-4 border rounded-lg relative">
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="absolute top-2 right-2 h-7 w-7 text-destructive hover:text-destructive"
+                                                    onClick={() => remove(index)}
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                    <span className="sr-only">Удалить KPI</span>
+                                                </Button>
+                                                
+                                                <FormField
+                                                    control={form.control}
+                                                    name={`kpis.${index}.name`}
+                                                    render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel>Название KPI</FormLabel>
+                                                            <FormControl><Input placeholder="напр. Показы" {...field} /></FormControl>
+                                                            <FormMessage />
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                                
+                                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 items-start">
+                                                    <FormField
+                                                        control={form.control}
+                                                        name={`kpis.${index}.target`}
+                                                        render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>Цель</FormLabel>
+                                                                <FormControl><Input type="number" placeholder="1000" {...field} /></FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                    <FormField
+                                                        control={form.control}
+                                                        name={`kpis.${index}.unit`}
+                                                        render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>Ед. изм.</FormLabel>
+                                                                <FormControl><Input placeholder="шт." {...field} /></FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                    <FormField
+                                                        control={form.control}
+                                                        name={`kpis.${index}.parentId`}
+                                                        render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>Родитель</FormLabel>
+                                                                <Select onValueChange={(value) => field.onChange(value === 'null' ? null : value)} value={field.value || 'null'}>
+                                                                    <FormControl>
+                                                                        <SelectTrigger>
+                                                                            <SelectValue placeholder="Нет" />
+                                                                        </SelectTrigger>
+                                                                    </FormControl>
+                                                                    <SelectContent>
+                                                                        <SelectItem value="null">Нет</SelectItem>
+                                                                        {kpis?.filter(kpi => kpi.id !== currentKpi?.id).map(kpi => (
+                                                                            <SelectItem key={kpi.id} value={kpi.id}>{kpi.name}</SelectItem>
+                                                                        ))}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                    <div className="flex items-center gap-4 text-muted-foreground pt-8 text-xs">
+                                                        {conversion !== null && parentKpi && (
+                                                            <TooltipProvider>
+                                                                <Tooltip>
+                                                                <TooltipTrigger className="flex items-center gap-1">
+                                                                    <TrendingUp className="w-4 h-4 text-green-500"/> 
+                                                                    <span className="font-bold text-green-500">{conversion.toFixed(1)}%</span>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>
+                                                                    <p>Конверсия из "{parentKpi.name}"</p>
+                                                                </TooltipContent>
+                                                                </Tooltip>
+                                                            </TooltipProvider>
+                                                        )}
+                                                        {costPerUnit !== null && (
+                                                            <TooltipProvider>
+                                                                <Tooltip>
+                                                                    <TooltipTrigger className="flex items-center gap-1">
+                                                                    <CircleDollarSign className="w-4 h-4 text-blue-500" />
+                                                                    <span className="font-bold text-blue-500">{new Intl.NumberFormat(locale, currencyOptions).format(costPerUnit)}</span>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent>
+                                                                    <p>Стоимость за {currentKpi?.unit || 'ед.'}</p>
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                            </TooltipProvider>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+                            </ScrollArea>
                         </div>
-                        </ScrollArea>
                         <DialogFooter className="pt-4 border-t">
                             <DialogClose asChild>
                                 <Button variant="outline">Отмена</Button>
