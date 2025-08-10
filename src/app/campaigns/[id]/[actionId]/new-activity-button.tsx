@@ -107,71 +107,71 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
                 </DialogHeader>
                  <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 flex-1 flex flex-col min-h-0">
-                        <div className="flex-1 min-h-0">
-                            <ScrollArea className="h-full pr-6 -mr-6">
-                                <div className="grid md:grid-cols-2 gap-8 py-4 pr-2">
-                                    {/* Left Column */}
-                                    <div className="space-y-4">
-                                        <FormField
-                                            control={form.control}
-                                            name="name"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Название активности</FormLabel>
-                                                    <FormControl><Input placeholder="например, Конкурс в Instagram" {...field} /></FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="description"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Описание (необязательно)</FormLabel>
-                                                    <FormControl><Textarea placeholder="Опишите детали активности..." {...field} /></FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="budget"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Бюджет ($)</FormLabel>
-                                                    <FormControl><Input type="number" placeholder="500" {...field} /></FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <FormField
-                                                control={form.control}
-                                                name="startDate"
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormLabel>Дата начала</FormLabel>
-                                                        <FormControl><Input type="date" {...field} /></FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-                                            <FormField
-                                                control={form.control}
-                                                name="endDate"
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormLabel>Дата окончания</FormLabel>
-                                                        <FormControl><Input type="date" {...field} /></FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-                                        </div>
-                                    </div>
-                                    
-                                    {/* Right Column (KPIs) */}
+                        <div className="grid md:grid-cols-2 gap-8 flex-1 min-h-0">
+                            {/* Left Column */}
+                            <div className="space-y-4 py-4">
+                                <FormField
+                                    control={form.control}
+                                    name="name"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Название активности</FormLabel>
+                                            <FormControl><Input placeholder="например, Конкурс в Instagram" {...field} /></FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="description"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Описание (необязательно)</FormLabel>
+                                            <FormControl><Textarea placeholder="Опишите детали активности..." {...field} /></FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="budget"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Бюджет ($)</FormLabel>
+                                            <FormControl><Input type="number" placeholder="500" {...field} /></FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <div className="grid grid-cols-2 gap-4">
+                                    <FormField
+                                        control={form.control}
+                                        name="startDate"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Дата начала</FormLabel>
+                                                <FormControl><Input type="date" {...field} /></FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="endDate"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Дата окончания</FormLabel>
+                                                <FormControl><Input type="date" {...field} /></FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                            </div>
+                            
+                            {/* Right Column (KPIs) */}
+                            <div className="flex flex-col min-h-0">
+                                <ScrollArea className="flex-1 -mr-6 pr-6 py-4">
                                     <div className="space-y-4">
                                         <div className="flex items-center justify-between">
                                             <h4 className="text-lg font-medium">KPIs</h4>
@@ -295,8 +295,8 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
                                             )
                                         })}
                                     </div>
-                                </div>
-                            </ScrollArea>
+                                </ScrollArea>
+                            </div>
                         </div>
                         <DialogFooter className="pt-4 border-t">
                             <DialogClose asChild>
