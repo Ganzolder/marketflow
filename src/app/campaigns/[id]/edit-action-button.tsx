@@ -33,7 +33,6 @@ export function EditActionButton({ action, campaignId }: { action: Action, campa
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
-    const router = useRouter();
     
     const initialState: ActionFormState = { message: "", errors: {} };
     const [state, dispatch] = useActionState(editActionInCampaign, initialState);
@@ -52,10 +51,9 @@ export function EditActionButton({ action, campaignId }: { action: Action, campa
                     description: state.message,
                 });
                 setOpen(false);
-                router.refresh();
             }
         }
-    }, [state, toast, router]);
+    }, [state, toast]);
 
     const handleButtonClick = (e: React.MouseEvent) => {
         e.stopPropagation();
