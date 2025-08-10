@@ -14,15 +14,6 @@ import { storage } from '@/lib/firebase';
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { Progress } from '@/components/ui/progress';
 
-function SubmitButton({ disabled }: { disabled?: boolean }) {
-    const [isPending, startTransition] = useTransition();
-    return (
-        <Button type="submit" disabled={disabled || isPending}>
-            {disabled || isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Добавление...</> : "Добавить расход"}
-        </Button>
-    )
-}
-
 export function AddExpenseButton({ activityId, campaignId, actionId }: { activityId: string; campaignId: string; actionId: string; }) {
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
@@ -39,7 +30,7 @@ export function AddExpenseButton({ activityId, campaignId, actionId }: { activit
     const photoURLRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        if (state?.message) {
+        if (!isPending && state?.message) {
             if (state.error) {
                 toast({
                     variant: "destructive",
@@ -54,11 +45,10 @@ export function AddExpenseButton({ activityId, campaignId, actionId }: { activit
                 setOpen(false);
                 formRef.current?.reset();
                 setFile(null);
-                if (photoURLRef.current) photoURLRef.current.value = '';
                 setUploadProgress(0);
             }
         }
-    }, [state, toast]);
+    }, [state, isPending, toast]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -70,49 +60,51 @@ export function AddExpenseButton({ activityId, campaignId, actionId }: { activit
     
     const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-
+        
         startTransition(async () => {
             let fileUrl = '';
+
             if (file) {
                 setIsUploading(true);
                 setUploadProgress(0);
+                
+                try {
+                    const storageRef = ref(storage, `expense_proofs/${campaignId}/${activityId}/${Date.now()}_${file.name}`);
+                    const uploadTask = uploadBytesResumable(storageRef, file);
 
-                const storageRef = ref(storage, `expense_proofs/${campaignId}/${activityId}/${Date.now()}_${file.name}`);
-                const uploadTask = uploadBytesResumable(storageRef, file);
-
-                await new Promise<void>((resolve, reject) => {
-                    uploadTask.on('state_changed',
-                        (snapshot) => {
-                            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                            setUploadProgress(progress);
-                        },
-                        (error) => {
-                            console.error("Upload failed:", error);
-                            toast({ variant: "destructive", title: "Ошибка загрузки", description: "Не удалось загрузить файл." });
-                            setIsUploading(false);
-                            reject(error);
-                        },
-                        async () => {
-                            try {
-                                fileUrl = await getDownloadURL(uploadTask.snapshot.ref);
-                                if (photoURLRef.current) {
-                                  photoURLRef.current.value = fileUrl;
+                    fileUrl = await new Promise<string>((resolve, reject) => {
+                        uploadTask.on('state_changed',
+                            (snapshot) => {
+                                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                                setUploadProgress(progress);
+                            },
+                            (error) => {
+                                console.error("Upload failed:", error);
+                                reject(error);
+                            },
+                            async () => {
+                                try {
+                                    const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                                    resolve(downloadURL);
+                                } catch(e) {
+                                    reject(e);
                                 }
-                                setIsUploading(false);
-                                resolve();
-                            } catch(e) {
-                                reject(e)
                             }
-                        }
-                    );
-                });
+                        );
+                    });
+
+                } catch (error) {
+                    toast({ variant: "destructive", title: "Ошибка загрузки", description: "Не удалось загрузить файл." });
+                    setIsUploading(false);
+                    return; // Stop submission if upload fails
+                } finally {
+                    setIsUploading(false);
+                }
             }
             
-            if (photoURLRef.current) {
-               photoURLRef.current.value = fileUrl;
-            }
-
             const formData = new FormData(formRef.current!);
+            formData.set('photoURL', fileUrl);
+
             dispatch(formData);
         });
     }
@@ -136,7 +128,7 @@ export function AddExpenseButton({ activityId, campaignId, actionId }: { activit
                     <input type="hidden" name="campaignId" value={campaignId} />
                     <input type="hidden" name="actionId" value={actionId} />
                     <input type="hidden" name="activityId" value={activityId} />
-                    <input type="hidden" name="photoURL" ref={photoURLRef} />
+                    {/* The photoURL is now set via code, no need for a hidden input ref */}
 
                     <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
@@ -163,17 +155,11 @@ export function AddExpenseButton({ activityId, campaignId, actionId }: { activit
                         </div>
                          <div className="grid gap-2">
                             <Label htmlFor="photoFile">Фото-подтверждение</Label>
-                            <Input id="photoFile" type="file" onChange={handleFileChange} disabled={isUploading || isPending} />
+                            <Input id="photoFile" name="photoFile" type="file" onChange={handleFileChange} disabled={isUploading || isPending} />
                             {isUploading && (
                                 <div className="space-y-1">
                                     <p className="text-sm text-muted-foreground">Загрузка...</p>
                                     <Progress value={uploadProgress} className="h-2" />
-                                </div>
-                            )}
-                            {photoURLRef.current?.value && !isUploading && (
-                                <div className="flex items-center gap-2 text-sm text-green-600">
-                                    <CheckCircle2 className="h-4 w-4" />
-                                    <span>Файл успешно загружен.</span>
                                 </div>
                             )}
                              {state?.errors?.photoURL && <p className="text-sm text-destructive">{state.errors.photoURL[0]}</p>}
