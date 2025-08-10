@@ -1,11 +1,11 @@
 
 "use client";
 
-import { useEffect, useRef } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useEffect, useRef, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { updateActivityMetrics, type MetricsFormState } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
-import type { Activity, KPI } from '@/lib/types';
+import type { Activity } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -35,7 +35,7 @@ export function UpdateMetricsForm({ activity, campaignId, actionId }: { activity
     const currencyOptions = { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 };
     
     const initialState: MetricsFormState = { message: "" };
-    const [state, dispatch] = useFormState(updateActivityMetrics, initialState);
+    const [state, dispatch] = useActionState(updateActivityMetrics, initialState);
 
     useEffect(() => {
         if (state?.message) {

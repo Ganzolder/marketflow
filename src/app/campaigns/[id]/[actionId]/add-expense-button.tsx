@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useState, useEffect, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -26,7 +26,7 @@ export function AddExpenseButton({ activityId, campaignId, actionId }: { activit
     const { toast } = useToast();
     
     const initialState: ExpenseFormState = { message: "", errors: {} };
-    const [state, dispatch] = useFormState(addExpense, initialState);
+    const [state, dispatch] = useActionState(addExpense, initialState);
 
     useEffect(() => {
         if (!state) return;
