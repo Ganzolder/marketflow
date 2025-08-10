@@ -57,10 +57,16 @@ export function EditActionButton({ action, campaignId }: { action: Action, campa
         }
     }, [state, toast, router]);
 
+    const handleButtonClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        e.preventDefault();
+        setOpen(true);
+    }
+
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-6 w-6">
+                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleButtonClick}>
                     <Edit2 className="h-4 w-4" />
                     <span className="sr-only">Редактировать акцию</span>
                 </Button>

@@ -1,0 +1,121 @@
+
+import { notFound } from 'next/navigation';
+import { getCampaignById } from '@/lib/data';
+import { PageHeader } from '@/components/page-header';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { StatusBadge } from '@/components/status-badge';
+import { Calendar as CalendarIcon, Target, Users } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+
+type ActionDetailPageProps = {
+  params: {
+    id: string;
+    actionId: string;
+  };
+};
+
+export default async function ActionDetailPage({ params }: ActionDetailPageProps) {
+  const campaign = await getCampaignById(params.id);
+  const action = campaign?.actions.find((a) => a.id === params.actionId);
+
+  if (!campaign || !action) {
+    notFound();
+  }
+
+  const locale = 'ru-RU';
+  const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+
+  return (
+    <div>
+      <PageHeader title={action.name} description={`Акция в рамках кампании: ${campaign.name}`} />
+
+      <div className="grid gap-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Информация об акции</CardTitle>
+          </CardHeader>
+          <CardContent>
+             <div className="grid md:grid-cols-3 gap-6 text-sm mb-6">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-muted rounded-md">
+                        <CalendarIcon className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div>
+                        <p className="text-muted-foreground">Длительность</p>
+                        <p className="font-semibold text-lg">{new Date(action.startDate).toLocaleDateString(locale, dateOptions)} - {new Date(action.endDate).toLocaleDateString(locale, dateOptions)}</p>
+                    </div>
+                </div>
+                 <div className="flex items-center gap-3">
+                    <div className="p-2 bg-muted rounded-md">
+                        <Target className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div>
+                        <p className="text-muted-foreground">Статус</p>
+                        <div className="font-semibold text-lg"><StatusBadge status={action.status} /></div>
+                    </div>
+                </div>
+                 <div className="flex items-center gap-3">
+                    <div className="p-2 bg-muted rounded-md">
+                        <Users className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div>
+                        <p className="text-muted-foreground">Целевая аудитория</p>
+                        <div className="font-semibold text-lg">{action.targetAudience || 'Не указана'}</div>
+                    </div>
+                </div>
+            </div>
+            {action.description && (
+                <>
+                    <Separator className="my-4" />
+                    <div>
+                        <h4 className="font-semibold mb-2">Описание</h4>
+                        <p className="text-muted-foreground">{action.description}</p>
+                    </div>
+                </>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+            <CardHeader>
+                <CardTitle>Цели акции</CardTitle>
+                <CardDescription>Отслеживание прогресса по ключевым показателям.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                {action.goals.length > 0 ? (
+                    <div className="space-y-4">
+                    {action.goals.map(goal => (
+                        <div key={goal.id}>
+                            <div className="flex justify-between text-sm mb-1">
+                                <span className="text-muted-foreground">{goal.name}</span>
+                                <span className="font-medium">{Math.round((goal.current / goal.target) * 100)}%</span>
+                            </div>
+                            <Progress value={(goal.current / goal.target) * 100} className="h-3" />
+                            <p className="text-sm text-muted-foreground text-right mt-1">
+                                {goal.current.toLocaleString(locale)} / {goal.target.toLocaleString(locale)} {goal.unit}
+                            </p>
+                        </div>
+                    ))}
+                    </div>
+                    ) : (
+                    <p className="text-sm text-muted-foreground text-center py-4">Цели для этой акции еще не определены.</p>
+                )}
+            </CardContent>
+        </Card>
+
+        <Card>
+            <CardHeader>
+                <CardTitle>Активности</CardTitle>
+                <CardDescription>Список задач и мероприятий в рамках данной акции.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                 <div className="text-center text-sm text-muted-foreground py-10 border-2 border-dashed rounded-lg">
+                    <p>Активности еще не добавлены.</p>
+                </div>
+            </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

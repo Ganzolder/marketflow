@@ -9,13 +9,13 @@ import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Edit, Calendar as CalendarIcon, DollarSign, Target, FilePlus, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/status-badge';
 import { NewActionButton } from './new-action-button';
 import { EditActionButton } from './edit-action-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import Link from 'next/link';
 
 export default function CampaignDetailPage() {
   const params = useParams();
@@ -138,44 +138,25 @@ export default function CampaignDetailPage() {
             <CardContent>
                 <div className="grid gap-4 md:grid-cols-2">
                     {filteredActions.map(action => (
-                        <Card key={action.id}>
-                            <CardHeader>
-                                <CardTitle className="text-lg flex justify-between items-start">
-                                    <span>{action.name}</span>
-                                    <EditActionButton action={action} campaignId={campaign.id}/>
-                                </CardTitle>
-                                <CardDescription>{action.description}</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between text-sm text-muted-foreground">
-                                        <StatusBadge status={action.status} />
-                                        <span>{new Date(action.startDate).toLocaleDateString(locale, {month: 'short', day: 'numeric'})} - {new Date(action.endDate).toLocaleDateString(locale, {month: 'short', day: 'numeric'})}</span>
+                        <Link key={action.id} href={`/campaigns/${campaign.id}/${action.id}`} className="block hover:shadow-lg transition-shadow rounded-lg">
+                            <Card className="h-full">
+                                <CardHeader>
+                                    <CardTitle className="text-lg flex justify-between items-start">
+                                        <span>{action.name}</span>
+                                        <EditActionButton action={action} campaignId={campaign.id}/>
+                                    </CardTitle>
+                                    <CardDescription>{action.description}</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between text-sm text-muted-foreground">
+                                            <StatusBadge status={action.status} />
+                                            <span>{new Date(action.startDate).toLocaleDateString(locale, {month: 'short', day: 'numeric'})} - {new Date(action.endDate).toLocaleDateString(locale, {month: 'short', day: 'numeric'})}</span>
+                                        </div>
                                     </div>
-                                    <div>
-                                         <h4 className="text-sm font-semibold mb-2">Цели</h4>
-                                         {action.goals.length > 0 ? (
-                                            <div className="space-y-3">
-                                            {action.goals.map(goal => (
-                                                <div key={goal.id}>
-                                                    <div className="flex justify-between text-xs mb-1">
-                                                        <span className="text-muted-foreground">{goal.name}</span>
-                                                        <span className="font-medium">{Math.round((goal.current / goal.target) * 100)}%</span>
-                                                    </div>
-                                                    <Progress value={(goal.current / goal.target) * 100} className="h-2" />
-                                                    <p className="text-xs text-muted-foreground text-right mt-1">
-                                                        {goal.current.toLocaleString(locale)} / {goal.target.toLocaleString(locale)} {goal.unit}
-                                                    </p>
-                                                </div>
-                                            ))}
-                                            </div>
-                                         ) : (
-                                            <p className="text-xs text-muted-foreground">Цели не определены.</p>
-                                         )}
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
+                                </CardContent>
+                            </Card>
+                        </Link>
                     ))}
                 </div>
                  {filteredActions.length === 0 && (
