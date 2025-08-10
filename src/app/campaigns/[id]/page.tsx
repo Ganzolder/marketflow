@@ -7,19 +7,16 @@ import { getCampaignById } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { Edit, Calendar as CalendarIcon, DollarSign, Target, FilePlus, Hand, CheckCircle2, ListTodo, Edit2 } from 'lucide-react';
+import { Edit, Calendar as CalendarIcon, DollarSign, Target, FilePlus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/status-badge';
 import { NewActionButton } from './new-action-button';
-import { cn } from '@/lib/utils';
 import { EditActionButton } from './edit-action-button';
-
 
 export default function CampaignDetailPage({ params }: { params: { id: string } }) {
   const [campaign, setCampaign] = useState<Campaign | null>(null);
-  const [selectedAction, setSelectedAction] = useState<Action | null>(null);
 
   useEffect(() => {
     getCampaignById(params.id).then(campaignData => {
@@ -27,21 +24,8 @@ export default function CampaignDetailPage({ params }: { params: { id: string } 
         notFound();
       }
       setCampaign(campaignData);
-      if (campaignData.actions.length > 0) {
-        setSelectedAction(campaignData.actions[0]);
-      }
     });
   }, [params.id]);
-  
-  useEffect(() => {
-    // If the campaign data is refreshed (e.g. after an edit),
-    // update the selected action to match the latest data.
-    if (campaign && selectedAction) {
-        const updatedAction = campaign.actions.find(a => a.id === selectedAction.id);
-        setSelectedAction(updatedAction || null);
-    }
-  }, [campaign, selectedAction]);
-
 
   if (!campaign) {
     return <div>Загрузка...</div>;
@@ -97,85 +81,66 @@ export default function CampaignDetailPage({ params }: { params: { id: string } 
           </CardContent>
         </Card>
 
-        {/* Main content grid */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-          {/* Left Column: Actions List */}
-          <div className="md:col-span-4 lg:col-span-3 space-y-4">
-            <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold font-headline">Акции</h2>
-                <NewActionButton campaignId={campaign.id} />
-            </div>
-            <div className="space-y-2">
-                {campaign.actions.map(action => (
-                    <Card 
-                        key={action.id} 
-                        className={cn("cursor-pointer transition-all hover:shadow-md", selectedAction?.id === action.id ? "border-primary ring-2 ring-primary" : "border-border")}
-                        onClick={() => setSelectedAction(action)}
-                    >
-                        <CardHeader className="p-4 pb-2">
-                            <CardTitle className="text-base flex justify-between items-start">
-                                <span>{action.name}</span>
-                                <EditActionButton action={action} campaignId={campaign.id}/>
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-4 pt-0">
-                             <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                <StatusBadge status={action.status} />
-                                <span>{new Date(action.startDate).toLocaleDateString(locale, {month: 'short', day: 'numeric'})} - {new Date(action.endDate).toLocaleDateString(locale, {month: 'short', day: 'numeric'})}</span>
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
-                {campaign.actions.length === 0 && (
-                    <div className="text-center text-sm text-muted-foreground py-10">
-                        <FilePlus className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                        Акции еще не добавлены.
-                    </div>
-                )}
-            </div>
-          </div>
-          
-          {/* Right Column: Selected Action Details */}
-          <div className="md:col-span-8 lg:col-span-9 sticky top-24">
-             <Card className="min-h-[400px]">
-                <CardHeader>
-                   <CardTitle>{selectedAction ? selectedAction.name : "Выберите акцию"}</CardTitle>
-                   <CardDescription>{selectedAction ? selectedAction.type : "Выберите акцию из списка слева, чтобы увидеть ее детали."}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    {selectedAction ? (
-                        <div>
-                             <h3 className="text-lg font-semibold mb-4">Цели акции</h3>
-                             {selectedAction.goals.length > 0 ? (
-                                <div className="grid gap-4 md:grid-cols-2">
-                                {selectedAction.goals.map(goal => (
-                                <Card key={goal.id} className="bg-muted/50">
-                                    <CardHeader className="pb-2">
-                                    <CardTitle className="text-base">{goal.name}</CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                    <Progress value={(goal.current / goal.target) * 100} className="mb-2 h-3 bg-primary/20" indicatorClassName="bg-primary" />
-                                    <p className="text-sm text-muted-foreground">
-                                        <span className="font-bold text-foreground">{goal.current.toLocaleString(locale)}</span> / {goal.target.toLocaleString(locale)} {goal.unit}
-                                    </p>
-                                    </CardContent>
-                                </Card>
-                                ))}
-                            </div>
-                             ): (
-                                <p className="text-sm text-muted-foreground">Для этой акции цели еще не определены.</p>
-                             )}
-                        </div>
-                    ) : (
-                         <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground pt-16">
-                            <Hand className="h-12 w-12 mb-4" />
-                            <p>Выберите акцию, чтобы просмотреть ее детали.</p>
+        {/* Actions List */}
+        <Card>
+            <CardHeader>
+                <div className="flex items-center justify-between">
+                    <CardTitle>Акции</CardTitle>
+                    <NewActionButton campaignId={campaign.id} />
+                </div>
+                <CardDescription>Список всех акций, связанных с этой кампанией.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {campaign.actions.map(action => (
+                        <Card key={action.id}>
+                            <CardHeader>
+                                <CardTitle className="text-lg flex justify-between items-start">
+                                    <span>{action.name}</span>
+                                    <EditActionButton action={action} campaignId={campaign.id}/>
+                                </CardTitle>
+                                <CardDescription>{action.type}</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                                        <StatusBadge status={action.status} />
+                                        <span>{new Date(action.startDate).toLocaleDateString(locale, {month: 'short', day: 'numeric'})} - {new Date(action.endDate).toLocaleDateString(locale, {month: 'short', day: 'numeric'})}</span>
+                                    </div>
+                                    <div>
+                                         <h4 className="text-sm font-semibold mb-2">Цели</h4>
+                                         {action.goals.length > 0 ? (
+                                            <div className="space-y-3">
+                                            {action.goals.map(goal => (
+                                                <div key={goal.id}>
+                                                    <div className="flex justify-between text-xs mb-1">
+                                                        <span className="text-muted-foreground">{goal.name}</span>
+                                                        <span className="font-medium">{Math.round((goal.current / goal.target) * 100)}%</span>
+                                                    </div>
+                                                    <Progress value={(goal.current / goal.target) * 100} className="h-2" />
+                                                    <p className="text-xs text-muted-foreground text-right mt-1">
+                                                        {goal.current.toLocaleString(locale)} / {goal.target.toLocaleString(locale)} {goal.unit}
+                                                    </p>
+                                                </div>
+                                            ))}
+                                            </div>
+                                         ) : (
+                                            <p className="text-xs text-muted-foreground">Цели не определены.</p>
+                                         )}
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+                 {campaign.actions.length === 0 && (
+                        <div className="text-center text-sm text-muted-foreground py-10">
+                            <FilePlus className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                            Акции еще не добавлены.
                         </div>
                     )}
-                </CardContent>
-             </Card>
-          </div>
-        </div>
+            </CardContent>
+        </Card>
       </div>
     </div>
   )
