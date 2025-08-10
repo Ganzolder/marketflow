@@ -336,7 +336,7 @@ const AddExpenseSchema = z.object({
   amount: z.coerce.number().gt(0, "Сумма должна быть больше нуля."),
   date: z.string().refine((date) => !isNaN(Date.parse(date)), "Неверный формат даты."),
   legalEntity: z.string().optional(),
-  photoURL: z.string().url("Неверный URL-адрес фотографии.").optional().or(z.literal('')),
+  photoURL: z.string().url("Неверный URL-адрес фотографии.").or(z.literal('')).optional(),
 });
 
 const ActivityExpenseSchema = AddExpenseSchema.extend({

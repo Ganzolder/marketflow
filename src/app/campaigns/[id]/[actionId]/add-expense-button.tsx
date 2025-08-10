@@ -27,10 +27,8 @@ export function AddExpenseButton({ activityId, campaignId, actionId }: { activit
     const initialState: ExpenseFormState = { message: "", errors: {} };
     const [state, dispatch] = useActionState(addExpense, initialState);
     
-    const photoURLRef = useRef<HTMLInputElement>(null);
-
     useEffect(() => {
-        if (!isPending && state?.message) {
+        if (state?.message && !isPending && !isUploading) {
             if (state.error) {
                 toast({
                     variant: "destructive",
@@ -48,7 +46,7 @@ export function AddExpenseButton({ activityId, campaignId, actionId }: { activit
                 setUploadProgress(0);
             }
         }
-    }, [state, isPending, toast]);
+    }, [state, isPending, isUploading, toast]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -62,7 +60,8 @@ export function AddExpenseButton({ activityId, campaignId, actionId }: { activit
         event.preventDefault();
         
         startTransition(async () => {
-            let fileUrl = '';
+            const formData = new FormData(formRef.current!);
+            let fileUrl = formData.get('photoURL_text') as string || '';
 
             if (file) {
                 setIsUploading(true);
@@ -96,15 +95,14 @@ export function AddExpenseButton({ activityId, campaignId, actionId }: { activit
                 } catch (error) {
                     toast({ variant: "destructive", title: "Ошибка загрузки", description: "Не удалось загрузить файл." });
                     setIsUploading(false);
-                    return; // Stop submission if upload fails
+                    return;
                 } finally {
                     setIsUploading(false);
                 }
             }
             
-            const formData = new FormData(formRef.current!);
             formData.set('photoURL', fileUrl);
-
+            formData.delete('photoURL_text');
             dispatch(formData);
         });
     }
@@ -128,7 +126,6 @@ export function AddExpenseButton({ activityId, campaignId, actionId }: { activit
                     <input type="hidden" name="campaignId" value={campaignId} />
                     <input type="hidden" name="actionId" value={actionId} />
                     <input type="hidden" name="activityId" value={activityId} />
-                    {/* The photoURL is now set via code, no need for a hidden input ref */}
 
                     <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
@@ -154,7 +151,7 @@ export function AddExpenseButton({ activityId, campaignId, actionId }: { activit
                              {state?.errors?.legalEntity && <p className="text-sm text-destructive">{state.errors.legalEntity[0]}</p>}
                         </div>
                          <div className="grid gap-2">
-                            <Label htmlFor="photoFile">Фото-подтверждение</Label>
+                            <Label htmlFor="photoFile">Загрузить файл</Label>
                             <Input id="photoFile" name="photoFile" type="file" onChange={handleFileChange} disabled={isUploading || isPending} />
                             {isUploading && (
                                 <div className="space-y-1">
@@ -162,6 +159,10 @@ export function AddExpenseButton({ activityId, campaignId, actionId }: { activit
                                     <Progress value={uploadProgress} className="h-2" />
                                 </div>
                             )}
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="photoURL_text">Или вставьте URL</Label>
+                            <Input id="photoURL_text" name="photoURL_text" type="text" placeholder="https://example.com/image.png" disabled={isUploading || isPending || !!file} />
                              {state?.errors?.photoURL && <p className="text-sm text-destructive">{state.errors.photoURL[0]}</p>}
                         </div>
                     </div>

@@ -29,7 +29,7 @@ export function EditGeneralExpenseButton({ expense, campaignId, actionId }: { ex
     const [state, dispatch] = useActionState(updateGeneralExpense, initialState);
     
     useEffect(() => {
-        if (!isPending && state?.message) {
+        if (state?.message && !isPending && !isUploading) {
             if (state.error) {
                 toast({
                     variant: "destructive",
@@ -46,7 +46,7 @@ export function EditGeneralExpenseButton({ expense, campaignId, actionId }: { ex
                 setUploadProgress(0);
             }
         }
-    }, [state, isPending, toast]);
+    }, [state, isPending, isUploading, toast]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -60,7 +60,8 @@ export function EditGeneralExpenseButton({ expense, campaignId, actionId }: { ex
         event.preventDefault();
         
         startTransition(async () => {
-            let fileUrl = expense.photoURL || '';
+            const formData = new FormData(formRef.current!);
+            let fileUrl = formData.get('photoURL_text') as string || '';
 
             if (file) {
                 setIsUploading(true);
@@ -99,9 +100,8 @@ export function EditGeneralExpenseButton({ expense, campaignId, actionId }: { ex
                 }
             }
             
-            const formData = new FormData(formRef.current!);
             formData.set('photoURL', fileUrl);
-
+            formData.delete('photoURL_text');
             dispatch(formData);
         });
     }
@@ -147,16 +147,19 @@ export function EditGeneralExpenseButton({ expense, campaignId, actionId }: { ex
                             <Input id="legalEntity" name="legalEntity" defaultValue={expense.legalEntity} />
                              {state?.errors?.legalEntity && <p className="text-sm text-destructive">{state.errors.legalEntity[0]}</p>}
                         </div>
-                         <div className="grid gap-2">
-                            <Label htmlFor="photoFile">Фото-подтверждение</Label>
-                             {expense.photoURL && !file && <a href={expense.photoURL} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline mb-2 block truncate">Текущий файл: {expense.photoURL.split('?')[0].split('%2F').pop()}</a>}
+                        <div className="grid gap-2">
+                            <Label htmlFor="photoFile">Загрузить новый файл</Label>
                             <Input id="photoFile" name="photoFile" type="file" onChange={handleFileChange} disabled={isUploading || isPending} />
-                            {isUploading && (
+                             {isUploading && (
                                 <div className="space-y-1">
                                     <p className="text-sm text-muted-foreground">Загрузка...</p>
                                     <Progress value={uploadProgress} className="h-2" />
                                 </div>
                             )}
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="photoURL_text">Или вставьте URL</Label>
+                            <Input id="photoURL_text" name="photoURL_text" type="text" defaultValue={expense.photoURL || ''} placeholder="https://example.com/image.png" disabled={isUploading || isPending || !!file} />
                              {state?.errors?.photoURL && <p className="text-sm text-destructive">{state.errors.photoURL[0]}</p>}
                         </div>
                     </div>
