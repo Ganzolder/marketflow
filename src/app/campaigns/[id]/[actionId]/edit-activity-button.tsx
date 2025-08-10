@@ -110,9 +110,9 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                     </DialogDescription>
                 </DialogHeader>
                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 flex-1 min-h-0">
-                        <ScrollArea className="h-full pr-6">
-                         <div className="grid gap-4 py-4">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 flex-1 flex flex-col min-h-0">
+                        <ScrollArea className="flex-1 pr-6 -mr-6">
+                         <div className="grid gap-4 py-4 pr-6">
                             <FormField
                                 control={form.control}
                                 name="name"
@@ -315,5 +315,7 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
         </Dialog>
     );
 }
+
+    
 
     
