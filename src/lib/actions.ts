@@ -3,7 +3,6 @@
 import { z } from "zod";
 import { addAction } from "./data";
 import { revalidatePath } from "next/cache";
-import { ActionStatus } from "./types";
 
 const AddActionSchema = z.object({
   name: z.string().min(3, { message: "Название акции должно содержать не менее 3 символов." }),
@@ -47,12 +46,13 @@ export async function addActionToCampaign(
     };
   }
   
-  const { campaignId, ...actionData } = validatedFields.data;
+  const { campaignId, status, ...actionData } = validatedFields.data;
 
   try {
-    await addAction(campaignId, actionData);
+    await addAction(campaignId, { ...actionData, status: status as 'planned' | 'in-progress' | 'completed' });
   } catch (error) {
-    return { message: "Ошибка базы данных: не удалось создать акцию." };
+    const errorMessage = error instanceof Error ? error.message : "Произошла неизвестная ошибка.";
+    return { message: `Ошибка базы данных: не удалось создать акцию. ${errorMessage}` };
   }
 
   revalidatePath(`/campaigns/${campaignId}`);

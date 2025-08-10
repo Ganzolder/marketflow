@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PlusCircle, Loader2 } from "lucide-react";
 import { addActionToCampaign, type AddActionFormState } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -29,6 +30,7 @@ export function NewActionButton({ campaignId }: { campaignId: string }) {
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
+    const router = useRouter();
     
     const initialState: AddActionFormState = { message: "", errors: {} };
     const [state, dispatch] = useActionState(addActionToCampaign, initialState);
@@ -46,11 +48,12 @@ export function NewActionButton({ campaignId }: { campaignId: string }) {
                     title: "Успех",
                     description: state.message,
                 });
-                setOpen(false); // Close dialog on success
+                setOpen(false);
                 formRef.current?.reset();
+                router.refresh();
             }
         }
-    }, [state, toast]);
+    }, [state, toast, router]);
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
