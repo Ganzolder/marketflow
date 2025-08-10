@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useState, useEffect, useRef, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -31,7 +31,7 @@ export function NewActionButton({ campaignId }: { campaignId: string }) {
     const formRef = useRef<HTMLFormElement>(null);
     
     const initialState: AddActionFormState = { message: "", errors: {} };
-    const [state, dispatch] = useFormState(addActionToCampaign, initialState);
+    const [state, dispatch] = useActionState(addActionToCampaign, initialState);
 
     useEffect(() => {
         if (state.message) {
