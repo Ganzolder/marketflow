@@ -202,7 +202,6 @@ export async function updateActivity(campaignId: string, actionId: string, updat
             }
             
             const existingActivity = action.activities[activityIndex];
-            // Ensure existingActivity.kpis is an array before calling .find()
             const existingKpis = existingActivity.kpis || [];
 
             const updatedKpis = updatedActivity.kpis.map(uk => {
@@ -215,7 +214,11 @@ export async function updateActivity(campaignId: string, actionId: string, updat
             });
 
 
-            action.activities[activityIndex] = { ...updatedActivity, kpis: updatedKpis };
+            action.activities[activityIndex] = { 
+              ...existingActivity, 
+              ...updatedActivity, 
+              kpis: updatedKpis 
+            };
             
             transaction.update(campaignRef, { actions: newActions });
         });
@@ -259,6 +262,52 @@ export async function deleteActivity(campaignId: string, actionId: string, activ
     }
 }
 
+export async function updateActivityMetrics(campaignId: string, actionId: string, activityId: string, newSpent: number, kpiUpdates: Record<string, number>) {
+    const campaignRef = doc(db, 'campaigns', campaignId);
+
+    try {
+        await runTransaction(db, async (transaction) => {
+            const campaignDoc = await transaction.get(campaignRef);
+            if (!campaignDoc.exists()) throw new Error("Campaign document does not exist!");
+
+            const campaignData = campaignDoc.data() as Campaign;
+            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
+            if (actionIndex === -1) throw new Error("Action not found in this campaign!");
+
+            const newActions = [...campaignData.actions];
+            const action = newActions[actionIndex];
+            if (!action.activities) throw new Error("Activities array does not exist in this action!");
+
+            const activityIndex = action.activities.findIndex(act => act.id === activityId);
+            if (activityIndex === -1) throw new Error("Activity not found in this action!");
+
+            const activity = action.activities[activityIndex];
+
+            // Update budget spent
+            activity.spent = (activity.spent || 0) + newSpent;
+            if (activity.spent > activity.budget) {
+                // Optional: Decide if you want to throw an error or just cap it
+                // throw new Error("Spending exceeds budget!");
+                activity.spent = activity.budget;
+            }
+
+            // Update KPIs
+            if (activity.kpis && activity.kpis.length > 0) {
+                activity.kpis = activity.kpis.map(kpi => {
+                    if (kpiUpdates.hasOwnProperty(kpi.id)) {
+                        return { ...kpi, current: kpiUpdates[kpi.id] };
+                    }
+                    return kpi;
+                });
+            }
+
+            transaction.update(campaignRef, { actions: newActions });
+        });
+    } catch (e) {
+        console.error("Metrics update transaction failed: ", e);
+        throw e;
+    }
+}
 
 export async function getCampaigns(): Promise<Campaign[]> {
   const campaignsCollection = collection(db, "campaigns");
@@ -275,15 +324,21 @@ export async function getCampaignById(id: string): Promise<Campaign | undefined>
 
   if (campaignSnap.exists()) {
     const campaignData = campaignSnap.data() as Omit<Campaign, 'id'>;
-    // Data sanitization: ensure kpis have a multiple property
+    // Data sanitization
     if (campaignData.actions) {
         campaignData.actions.forEach(action => {
             if (action.activities) {
                 action.activities.forEach(activity => {
+                    if (activity.spent === undefined) {
+                      activity.spent = 0;
+                    }
                     if (activity.kpis) {
                         activity.kpis.forEach(kpi => {
                             if (kpi.multiple === undefined) {
                                 kpi.multiple = 1;
+                            }
+                            if (kpi.current === undefined) {
+                                kpi.current = 0;
                             }
                         });
                     }
@@ -296,7 +351,30 @@ export async function getCampaignById(id: string): Promise<Campaign | undefined>
     await seedDatabase();
     const campaignSnapAfterSeed = await getDoc(campaignRef);
      if (campaignSnapAfterSeed.exists()) {
-        return { id: campaignSnapAfterSeed.id, ...campaignSnapAfterSeed.data() } as Campaign;
+        const campaignData = campaignSnapAfterSeed.data() as Omit<Campaign, 'id'>;
+        // Data sanitization after seed
+        if (campaignData.actions) {
+            campaignData.actions.forEach(action => {
+                if (action.activities) {
+                    action.activities.forEach(activity => {
+                        if (activity.spent === undefined) {
+                            activity.spent = 0;
+                        }
+                        if (activity.kpis) {
+                            activity.kpis.forEach(kpi => {
+                                if (kpi.multiple === undefined) {
+                                    kpi.multiple = 1;
+                                }
+                                if (kpi.current === undefined) {
+                                    kpi.current = 0;
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        }
+        return { id: campaignSnapAfterSeed.id, ...campaignData } as Campaign;
     }
     return undefined;
   }

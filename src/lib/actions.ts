@@ -2,7 +2,7 @@
 "use server";
 
 import { z } from "zod";
-import { addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData } from "./data";
+import { addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData } from "./data";
 import { revalidatePath } from "next/cache";
 import type { Action, Activity, KPI } from "./types";
 
@@ -114,6 +114,7 @@ const KpiSchema = z.object({
     id: z.string(),
     name: z.string(),
     target: z.coerce.number(),
+    current: z.coerce.number(),
     unit: z.string(),
     multiple: z.coerce.number().min(1),
     parentId: z.string().nullable(),
@@ -174,7 +175,7 @@ export async function addActivityToAction(
     budget: formData.get('budget'),
     startDate: formData.get('start-date'),
     endDate: formData.get('end-date'),
-    kpis: kpis.map((kpi: any) => ({ ...kpi, target: Number(kpi.target), multiple: Number(kpi.multiple) || 1 })),
+    kpis: kpis.map((kpi: any) => ({ ...kpi, target: Number(kpi.target), multiple: Number(kpi.multiple) || 1, current: 0 })),
     campaignId: formData.get('campaignId'),
     actionId: formData.get('actionId'),
   });
@@ -191,7 +192,8 @@ export async function addActivityToAction(
   
   const activityToSave = {
       ...activityData,
-      kpis: activityData.kpis.map(kpi => ({...kpi, current: 0})) // Add current value
+      spent: 0,
+      kpis: activityData.kpis.map(kpi => ({...kpi, current: 0})) 
   }
 
   try {
@@ -220,7 +222,7 @@ export async function updateActivity(
     budget: formData.get('budget'),
     startDate: formData.get('start-date'),
     endDate: formData.get('end-date'),
-    kpis: kpis.map((kpi: any) => ({ ...kpi, target: Number(kpi.target), multiple: Number(kpi.multiple) || 1 })),
+    kpis: kpis.map((kpi: any) => ({ ...kpi, target: Number(kpi.target), current: Number(kpi.current), multiple: Number(kpi.multiple) || 1 })),
     campaignId: formData.get('campaignId'),
     actionId: formData.get('actionId'),
     id: formData.get('activityId'),
@@ -272,4 +274,60 @@ export async function deleteActivity(prevState: DeleteFormState | null, formData
 
     revalidatePath(`/campaigns/${campaignId}/${actionId}`);
     return { message: "Активность успешно удалена." };
+}
+
+
+const UpdateMetricsSchema = z.object({
+  campaignId: z.string(),
+  actionId: z.string(),
+  activityId: z.string(),
+  newSpent: z.coerce.number().min(0).optional(),
+  kpis: z.record(z.string(), z.coerce.number().min(0)).optional()
+});
+
+export type MetricsFormState = {
+  message: string;
+  error?: boolean;
+};
+
+export async function updateActivityMetrics(
+  prevState: MetricsFormState | null,
+  formData: FormData
+): Promise<MetricsFormState> {
+    const kpiUpdates: Record<string, number> = {};
+    for (const [key, value] of formData.entries()) {
+        if (key.startsWith('kpi-')) {
+            const kpiId = key.replace('kpi-', '');
+            if (value) { // only include if value is provided
+                kpiUpdates[kpiId] = parseFloat(value as string);
+            }
+        }
+    }
+
+    const validatedFields = UpdateMetricsSchema.safeParse({
+        campaignId: formData.get('campaignId'),
+        actionId: formData.get('actionId'),
+        activityId: formData.get('activityId'),
+        newSpent: formData.get('newSpent') || '0',
+        kpis: kpiUpdates
+    });
+    
+    if (!validatedFields.success) {
+        return {
+            message: "Ошибка валидации: не удалось обновить метрики.",
+            error: true,
+        };
+    }
+
+    const { campaignId, actionId, activityId, newSpent, kpis } = validatedFields.data;
+
+    try {
+        await updateActivityMetricsData(campaignId, actionId, activityId, newSpent || 0, kpis || {});
+    } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+        return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
+    }
+
+    revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+    return { message: "Метрики успешно обновлены." };
 }

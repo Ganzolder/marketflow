@@ -23,6 +23,7 @@ const KpiSchema = z.object({
     id: z.string(),
     name: z.string().min(1, "Название KPI обязательно."),
     target: z.coerce.number().min(1, "Цель должна быть больше 0."),
+    current: z.coerce.number(),
     unit: z.string().min(1, "Укажите единицу измерения."),
     multiple: z.coerce.number().min(1, "Кратность должна быть больше 0."),
     parentId: z.string().nullable(),
@@ -71,7 +72,7 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
         formData.append('budget', values.budget.toString());
         formData.append('start-date', values.startDate);
         formData.append('end-date', values.endDate);
-        formData.append('kpis', JSON.stringify(values.kpis || []));
+        formData.append('kpis', JSON.stringify(values.kpis?.map(kpi => ({...kpi, current: 0})) || []));
 
         const result = await addActivityToAction(null, formData);
 
@@ -180,7 +181,7 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
                                                 type="button"
                                                 variant="outline"
                                                 size="sm"
-                                                onClick={() => append({ id: `kpi-${Date.now()}`, name: '', target: 0, unit: '', multiple: 1, parentId: null })}
+                                                onClick={() => append({ id: `kpi-${Date.now()}`, name: '', target: 0, current: 0, unit: '', multiple: 1, parentId: null })}
                                             >
                                                 <PlusCircle className="mr-2 h-4 w-4" />
                                                 Добавить KPI

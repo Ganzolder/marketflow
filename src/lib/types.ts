@@ -13,7 +13,7 @@ export type KPI = {
   id: string;
   name: string;
   target: number;
-  current: number; // For future use to track progress
+  current: number; 
   unit: string;
   multiple: number;
   parentId: string | null; // ID of the parent KPI for conversion tracking
@@ -24,6 +24,7 @@ export type Activity = {
   name: string;
   description?: string;
   budget: number;
+  spent: number;
   startDate: string;
   endDate: string;
   kpis: KPI[];

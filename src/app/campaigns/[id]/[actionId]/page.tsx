@@ -17,7 +17,8 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip"
+} from "@/components/ui/tooltip";
+import { UpdateMetricsForm } from './update-metrics-form';
 
 type ActionDetailPageProps = {
   params: {
@@ -37,65 +38,6 @@ export default async function ActionDetailPage({ params }: ActionDetailPageProps
   const locale = 'ru-RU';
   const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
   const currencyOptions = { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 };
-
-  const renderKpiTree = (kpis: KPI[], parentId: string | null = null, budget: number, allKpis: KPI[]) => {
-    const children = kpis.filter(kpi => kpi.parentId === parentId);
-    if (children.length === 0) return null;
-
-    return (
-        <div className={`space-y-4 ${parentId !== null ? 'pl-6 border-l ml-2' : ''}`}>
-            {children.map(kpi => {
-                const parentKpi = allKpis.find(p => p.id === kpi.parentId);
-                const conversion = parentKpi && parentKpi.target > 0 && kpi.target > 0 ? (kpi.target / parentKpi.target) * 100 : null;
-                const costPerUnit = kpi.target > 0 && kpi.multiple > 0 ? budget / (kpi.target / kpi.multiple) : null;
-                const multiple = kpi.multiple || 1;
-
-                return (
-                    <div key={kpi.id} className="relative">
-                        {parentId !== null && <div className="absolute -left-6 top-2.5 h-px w-4 bg-border"></div>}
-                        <Card className="bg-muted/30">
-                            <CardContent className="p-3 text-sm">
-                                <div className="flex justify-between items-center">
-                                    <p className="font-semibold">{kpi.name}</p>
-                                    <Badge variant="secondary">{kpi.target.toLocaleString(locale)} {kpi.unit}</Badge>
-                                </div>
-                                <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-muted-foreground mt-2 text-xs">
-                                   {conversion !== null && parentKpi && (
-                                        <TooltipProvider>
-                                          <Tooltip>
-                                            <TooltipTrigger className="flex items-center gap-1">
-                                                <TrendingUp className="w-3.5 h-3.5 text-green-500"/> 
-                                                <span className="font-medium text-green-500">{conversion.toFixed(1)}%</span>
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                              <p>Конверсия из "{parentKpi.name}"</p>
-                                            </TooltipContent>
-                                          </Tooltip>
-                                        </TooltipProvider>
-                                   )}
-                                   {costPerUnit !== null && (
-                                        <TooltipProvider>
-                                           <Tooltip>
-                                             <TooltipTrigger className="flex items-center gap-1">
-                                                <CircleDollarSign className="w-3.5 h-3.5 text-blue-500" />
-                                                <span className="font-medium text-blue-500">{new Intl.NumberFormat(locale, currencyOptions).format(costPerUnit)}</span>
-                                              </TooltipTrigger>
-                                              <TooltipContent>
-                                                <p>Стоимость за {multiple.toLocaleString(locale)} {kpi.unit}</p>
-                                              </TooltipContent>
-                                           </Tooltip>
-                                        </TooltipProvider>
-                                   )}
-                                </div>
-                                {renderKpiTree(kpis, kpi.id, budget, allKpis)}
-                            </CardContent>
-                        </Card>
-                    </div>
-                )
-            })}
-        </div>
-    )
-  }
 
 
   return (
@@ -193,7 +135,7 @@ export default async function ActionDetailPage({ params }: ActionDetailPageProps
                                     <div className="flex items-start justify-between">
                                         <div className="flex-1">
                                             <CardTitle className="text-lg">{activity.name}</CardTitle>
-                                            {activity.description && <CardDescription>{activity.description}</CardDescription>}
+                                            {activity.description && <CardDescription className="mt-1">{activity.description}</CardDescription>}
                                         </div>
                                         <div className="flex items-center ml-4">
                                             <EditActivityButton activity={activity} campaignId={campaign.id} actionId={action.id} />
@@ -201,25 +143,8 @@ export default async function ActionDetailPage({ params }: ActionDetailPageProps
                                         </div>
                                     </div>
                                 </CardHeader>
-                                <CardContent className="text-sm text-muted-foreground space-y-3 flex-1">
-                                    <div className="flex items-center justify-between border-b pb-2">
-                                        <div className="flex items-center gap-2">
-                                            <CalendarIcon className="w-4 h-4" />
-                                            <span>{new Date(activity.startDate).toLocaleDateString(locale, {day: '2-digit', month: 'short'})} - {new Date(activity.endDate).toLocaleDateString(locale, {day: '2-digit', month: 'short', year: 'numeric'})}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <DollarSign className="w-4 h-4" />
-                                            <span className="font-semibold">{new Intl.NumberFormat(locale, {style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0}).format(activity.budget)}</span>
-                                        </div>
-                                    </div>
-                                    <div>
-                                       <h4 className="font-medium text-foreground mb-2">KPI</h4>
-                                       {activity.kpis && activity.kpis.length > 0 ? (
-                                            renderKpiTree(activity.kpis, null, activity.budget, activity.kpis)
-                                       ) : (
-                                            <p className="text-xs text-center text-muted-foreground py-2">KPI не добавлены.</p>
-                                       )}
-                                    </div>
+                                <CardContent className="text-sm text-muted-foreground flex-1">
+                                    <UpdateMetricsForm activity={activity} campaignId={campaign.id} actionId={action.id} />
                                 </CardContent>
                             </Card>
                         ))}
