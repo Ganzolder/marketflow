@@ -156,6 +156,12 @@ export async function addActivity(campaignId: string, actionId: string, activity
             };
 
             const newActions = [...campaignData.actions];
+            
+            // Ensure activities array exists
+            if (!newActions[actionIndex].activities) {
+                newActions[actionIndex].activities = [];
+            }
+            
             newActions[actionIndex].activities.push(newActivity);
             
             transaction.update(campaignRef, { actions: newActions });
@@ -201,15 +207,17 @@ export async function getUpcomingActions(): Promise<UpcomingAction[]> {
   const upcoming: UpcomingAction[] = [];
 
   campaigns.forEach(campaign => {
-    campaign.actions.forEach(action => {
-      if ((action.status === 'planned' || action.status === 'in-progress') && new Date(action.startDate) >= today) {
-        upcoming.push({
-          ...action,
-          campaignName: campaign.name,
-          campaignId: campaign.id
+    if (campaign.actions) {
+        campaign.actions.forEach(action => {
+            if ((action.status === 'planned' || action.status === 'in-progress') && new Date(action.startDate) >= today) {
+                upcoming.push({
+                ...action,
+                campaignName: campaign.name,
+                campaignId: campaign.id
+                });
+            }
         });
-      }
-    });
+    }
   });
 
   return upcoming.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());

@@ -86,7 +86,7 @@ export default async function ActionDetailPage({ params }: ActionDetailPageProps
                 <CardDescription>Отслеживание прогресса по ключевым показателям.</CardDescription>
             </CardHeader>
             <CardContent>
-                {action.goals.length > 0 ? (
+                {action.goals && action.goals.length > 0 ? (
                     <div className="space-y-4">
                     {action.goals.map(goal => (
                         <div key={goal.id}>
