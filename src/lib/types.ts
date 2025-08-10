@@ -1,3 +1,4 @@
+
 export type Goal = {
   id: string;
   name: string;
@@ -8,6 +9,15 @@ export type Goal = {
 
 export type ActionStatus = 'planned' | 'in-progress' | 'completed';
 
+export type KPI = {
+  id: string;
+  name: string;
+  target: number;
+  current: number; // For future use to track progress
+  unit: string;
+  parentId: string | null; // ID of the parent KPI for conversion tracking
+}
+
 export type Activity = {
   id: string;
   name: string;
@@ -15,6 +25,7 @@ export type Activity = {
   budget: number;
   startDate: string;
   endDate: string;
+  kpis: KPI[];
 };
 
 export type Action = {
@@ -54,5 +65,6 @@ export type ActivityFormState = {
     budget?: string[];
     startDate?: string[];
     endDate?: string[];
+    kpis?: string[];
   };
 };

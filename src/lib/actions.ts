@@ -4,7 +4,7 @@
 import { z } from "zod";
 import { addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData } from "./data";
 import { revalidatePath } from "next/cache";
-import type { Action, Activity } from "./types";
+import type { Action, Activity, KPI } from "./types";
 
 const ActionSchema = z.object({
   name: z.string().min(3, { message: "Название акции должно содержать не менее 3 символов." }),
@@ -37,7 +37,7 @@ export type ActionFormState = {
 };
 
 export async function addActionToCampaign(
-  prevState: ActionFormState,
+  prevState: ActionFormState | null,
   formData: FormData
 ): Promise<ActionFormState> {
   
@@ -72,7 +72,7 @@ export async function addActionToCampaign(
 }
 
 export async function editActionInCampaign(
-  prevState: ActionFormState,
+  prevState: ActionFormState | null,
   formData: FormData
 ): Promise<ActionFormState> {
   
@@ -110,12 +110,21 @@ export async function editActionInCampaign(
 
 // --- Activity Actions ---
 
+const KpiSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+    target: z.coerce.number(),
+    unit: z.string(),
+    parentId: z.string().nullable(),
+});
+
 const ActivitySchema = z.object({
   name: z.string().min(3, { message: "Название активности должно содержать не менее 3 символов." }),
   description: z.string().optional(),
   budget: z.coerce.number().min(0, { message: "Бюджет не может быть отрицательным." }),
   startDate: z.string().refine((date) => !isNaN(Date.parse(date)), { message: "Неверный формат даты начала." }),
   endDate: z.string().refine((date) => !isNaN(Date.parse(date)), { message: "Неверный формат даты окончания." }),
+  kpis: z.array(KpiSchema),
   campaignId: z.string(),
   actionId: z.string(),
 });
@@ -140,6 +149,7 @@ export type ActivityFormState = {
     budget?: string[];
     startDate?: string[];
     endDate?: string[];
+    kpis?: string[];
     id?: string[];
   };
 };
@@ -150,9 +160,12 @@ export type DeleteFormState = {
 };
 
 export async function addActivityToAction(
-  prevState: ActivityFormState,
+  prevState: ActivityFormState | null,
   formData: FormData
 ): Promise<ActivityFormState> {
+  
+  const kpisString = formData.get('kpis') as string;
+  const kpis = kpisString ? JSON.parse(kpisString) : [];
 
   const validatedFields = ActivitySchema.safeParse({
     name: formData.get('activity-name'),
@@ -160,6 +173,7 @@ export async function addActivityToAction(
     budget: formData.get('budget'),
     startDate: formData.get('start-date'),
     endDate: formData.get('end-date'),
+    kpis: kpis.map((kpi: any) => ({ ...kpi, target: Number(kpi.target) })),
     campaignId: formData.get('campaignId'),
     actionId: formData.get('actionId'),
   });
@@ -173,9 +187,14 @@ export async function addActivityToAction(
   }
   
   const { campaignId, actionId, ...activityData } = validatedFields.data;
+  
+  const activityToSave = {
+      ...activityData,
+      kpis: activityData.kpis.map(kpi => ({...kpi, current: 0})) // Add current value
+  }
 
   try {
-    await addActivity(campaignId, actionId, activityData as Omit<Activity, 'id'>);
+    await addActivity(campaignId, actionId, activityToSave as Omit<Activity, 'id'>);
   } catch (error) {
      const errorMessage = error instanceof Error ? error.message : "Произошла неизвестная ошибка.";
     return { message: `Ошибка базы данных: не удалось создать активность. ${errorMessage}`, error: true };
@@ -187,9 +206,12 @@ export async function addActivityToAction(
 
 
 export async function updateActivity(
-  prevState: ActivityFormState,
+  prevState: ActivityFormState | null,
   formData: FormData
 ): Promise<ActivityFormState> {
+
+  const kpisString = formData.get('kpis') as string;
+  const kpis = kpisString ? JSON.parse(kpisString) : [];
 
   const validatedFields = EditActivitySchema.safeParse({
     name: formData.get('activity-name'),
@@ -197,6 +219,7 @@ export async function updateActivity(
     budget: formData.get('budget'),
     startDate: formData.get('start-date'),
     endDate: formData.get('end-date'),
+    kpis: kpis.map((kpi: any) => ({ ...kpi, target: Number(kpi.target) })),
     campaignId: formData.get('campaignId'),
     actionId: formData.get('actionId'),
     id: formData.get('activityId'),
@@ -223,7 +246,7 @@ export async function updateActivity(
   return { message: "Активность успешно обновлена." };
 }
 
-export async function deleteActivity(prevState: DeleteFormState, formData: FormData): Promise<DeleteFormState> {
+export async function deleteActivity(prevState: DeleteFormState | null, formData: FormData): Promise<DeleteFormState> {
     const validatedFields = DeleteActivitySchema.safeParse({
         campaignId: formData.get('campaignId'),
         actionId: formData.get('actionId'),

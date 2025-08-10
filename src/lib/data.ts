@@ -97,8 +97,8 @@ export async function addAction(campaignId: string, action: Omit<Action, 'id' | 
     const newAction: Action = {
         ...action,
         id: `act-${campaignId.substring(0,4)}-${(Math.random() + 1).toString(36).substring(7)}`, // more unique ID
-        goals: [], // Start with no goals
-        activities: [], // Start with no activities
+        goals: [],
+        activities: [],
     };
     await updateDoc(campaignRef, {
         actions: arrayUnion(newAction)
@@ -157,7 +157,6 @@ export async function addActivity(campaignId: string, actionId: string, activity
 
             const newActions = [...campaignData.actions];
             
-            // Ensure activities array exists
             if (!newActions[actionIndex].activities) {
                 newActions[actionIndex].activities = [];
             }
@@ -201,8 +200,19 @@ export async function updateActivity(campaignId: string, actionId: string, updat
             if (activityIndex === -1) {
                 throw new Error("Activity not found in this action!");
             }
+            
+            // Make sure to preserve fields that are not in the form, like 'current' for KPIs
+            const existingActivity = action.activities[activityIndex];
+            const updatedKpis = updatedActivity.kpis.map(uk => {
+                const existingKpi = existingActivity.kpis.find(ek => ek.id === uk.id);
+                return {
+                    ...uk,
+                    current: existingKpi ? existingKpi.current : 0,
+                };
+            });
 
-            action.activities[activityIndex] = { ...action.activities[activityIndex], ...updatedActivity };
+
+            action.activities[activityIndex] = { ...updatedActivity, kpis: updatedKpis };
             
             transaction.update(campaignRef, { actions: newActions });
         });
@@ -251,7 +261,6 @@ export async function getCampaigns(): Promise<Campaign[]> {
   const campaignsCollection = collection(db, "campaigns");
   const campaignsSnapshot = await getDocs(campaignsCollection);
   if (campaignsSnapshot.empty) {
-    // This will seed the database and return the seeded data
     return await seedDatabase();
   }
   return campaignsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Campaign)).sort((a,b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
@@ -264,8 +273,6 @@ export async function getCampaignById(id: string): Promise<Campaign | undefined>
   if (campaignSnap.exists()) {
     return { id: campaignSnap.id, ...campaignSnap.data() } as Campaign;
   } else {
-    // If not found, maybe the DB is not seeded yet.
-    // This is a fallback for development.
     await seedDatabase();
     const campaignSnapAfterSeed = await getDoc(campaignRef);
      if (campaignSnapAfterSeed.exists()) {
