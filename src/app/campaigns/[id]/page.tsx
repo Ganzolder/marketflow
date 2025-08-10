@@ -2,13 +2,14 @@ import { getCampaignById } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { Edit, PlusCircle, Calendar as CalendarIcon, DollarSign, Target } from 'lucide-react';
+import { Edit, Calendar as CalendarIcon, DollarSign, Target } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/status-badge';
-import Link from 'next/link';
+import { NewActionButton } from './new-action-button';
+
 
 export default async function CampaignDetailPage({ params }: { params: { id: string } }) {
   const campaign = await getCampaignById(params.id);
@@ -89,12 +90,7 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold font-headline">Акции</h2>
-            <Button asChild>
-              <Link href={`/campaigns/${campaign.id}/new-action`}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Добавить акцию
-              </Link>
-            </Button>
+            <NewActionButton campaignId={campaign.id} />
           </div>
           <Card>
             <CardContent className="pt-6">

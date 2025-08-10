@@ -1,4 +1,4 @@
-import type { Campaign, UpcomingAction } from './types';
+import type { Campaign, UpcomingAction, Action } from './types';
 
 const MOCK_CAMPAIGNS: Campaign[] = [
   {
@@ -78,6 +78,23 @@ const MOCK_CAMPAIGNS: Campaign[] = [
     actions: [],
   },
 ];
+
+// Simulate a database write operation
+export async function addAction(campaignId: string, action: Omit<Action, 'id' | 'goals'>) {
+    await new Promise(resolve => setTimeout(resolve, 50));
+    const campaign = MOCK_CAMPAIGNS.find(c => c.id === campaignId);
+    if (campaign) {
+        const newAction: Action = {
+            ...action,
+            id: `act-${campaignId}-${campaign.actions.length + 1}`,
+            goals: [] // Start with no goals
+        };
+        campaign.actions.push(newAction);
+    } else {
+        throw new Error('Campaign not found');
+    }
+}
+
 
 export async function getCampaigns(): Promise<Campaign[]> {
   // Simulate network delay
