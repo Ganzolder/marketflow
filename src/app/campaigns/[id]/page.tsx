@@ -79,7 +79,7 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
                 <CardDescription>Список всех акций, связанных с этой кампанией.</CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-4 md:grid-cols-2">
                     {campaign.actions.map(action => (
                         <Card key={action.id}>
                             <CardHeader>
