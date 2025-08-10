@@ -5,6 +5,14 @@ type StatusBadgeProps = {
   status: CampaignStatus | ActivityStatus;
 };
 
+const statusTranslations: Record<CampaignStatus | ActivityStatus, string> = {
+  active: "Активна",
+  'in-progress': "В процессе",
+  planned: "Запланирована",
+  completed: "Завершена",
+  paused: "Приостановлена",
+}
+
 export function StatusBadge({ status }: StatusBadgeProps) {
   const statusStyles: Record<CampaignStatus | ActivityStatus, string> = {
     active: "bg-green-100 text-green-800 border-green-200 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700/50",
@@ -16,7 +24,7 @@ export function StatusBadge({ status }: StatusBadgeProps) {
 
   return (
     <Badge variant="outline" className={statusStyles[status]}>
-      {status.charAt(0).toUpperCase() + status.slice(1).replace('-', ' ')}
+      {statusTranslations[status]}
     </Badge>
   );
 }

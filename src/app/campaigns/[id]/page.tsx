@@ -16,12 +16,16 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
     notFound();
   }
 
+  const locale = 'ru-RU';
+  const currencyOptions = { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 };
+  const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+
   return (
     <div>
       <PageHeader title={campaign.name}>
         <Button variant="outline">
           <Edit className="mr-2 h-4 w-4" />
-          Edit
+          Редактировать
         </Button>
       </PageHeader>
 
@@ -34,8 +38,8 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
                         <DollarSign className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div>
-                        <p className="text-muted-foreground">Budget</p>
-                        <p className="font-semibold text-lg">${campaign.budget.toLocaleString()}</p>
+                        <p className="text-muted-foreground">Бюджет</p>
+                        <p className="font-semibold text-lg">{new Intl.NumberFormat(locale, currencyOptions).format(campaign.budget)}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -43,8 +47,8 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
                         <CalendarIcon className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div>
-                        <p className="text-muted-foreground">Duration</p>
-                        <p className="font-semibold text-lg">{new Date(campaign.startDate).toLocaleDateString()} - {new Date(campaign.endDate).toLocaleDateString()}</p>
+                        <p className="text-muted-foreground">Длительность</p>
+                        <p className="font-semibold text-lg">{new Date(campaign.startDate).toLocaleDateString(locale, dateOptions)} - {new Date(campaign.endDate).toLocaleDateString(locale, dateOptions)}</p>
                     </div>
                 </div>
                  <div className="flex items-center gap-3">
@@ -52,7 +56,7 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
                         <Target className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div>
-                        <p className="text-muted-foreground">Status</p>
+                        <p className="text-muted-foreground">Статус</p>
                         <div className="font-semibold text-lg"><StatusBadge status={campaign.status} /></div>
                     </div>
                 </div>
@@ -63,7 +67,7 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
         </Card>
 
         <div>
-          <h2 className="text-2xl font-bold font-headline mb-4">Campaign Goals</h2>
+          <h2 className="text-2xl font-bold font-headline mb-4">Цели кампании</h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {campaign.goals.map(goal => (
               <Card key={goal.id}>
@@ -73,7 +77,7 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
                 <CardContent>
                   <Progress value={(goal.current / goal.target) * 100} className="mb-2 h-3 bg-primary/20" indicatorClassName="bg-primary" />
                   <p className="text-sm text-muted-foreground">
-                    <span className="font-bold text-foreground">{goal.current.toLocaleString()}</span> / {goal.target.toLocaleString()} {goal.unit}
+                    <span className="font-bold text-foreground">{goal.current.toLocaleString(locale)}</span> / {goal.target.toLocaleString(locale)} {goal.unit}
                   </p>
                 </CardContent>
               </Card>
@@ -83,10 +87,10 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
 
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold font-headline">Activities</h2>
+            <h2 className="text-2xl font-bold font-headline">Мероприятия</h2>
             <Button variant="outline">
               <PlusCircle className="mr-2 h-4 w-4" />
-              Add Activity
+              Добавить мероприятие
             </Button>
           </div>
           <Card>
@@ -94,11 +98,11 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Start Date</TableHead>
-                    <TableHead>End Date</TableHead>
+                    <TableHead>Название</TableHead>
+                    <TableHead>Тип</TableHead>
+                    <TableHead>Статус</TableHead>
+                    <TableHead>Дата начала</TableHead>
+                    <TableHead>Дата окончания</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -107,14 +111,14 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
                       <TableCell className="font-medium">{activity.name}</TableCell>
                       <TableCell>{activity.type}</TableCell>
                       <TableCell><StatusBadge status={activity.status} /></TableCell>
-                      <TableCell>{new Date(activity.startDate).toLocaleDateString()}</TableCell>
-                      <TableCell>{new Date(activity.endDate).toLocaleDateString()}</TableCell>
+                      <TableCell>{new Date(activity.startDate).toLocaleDateString(locale, dateOptions)}</TableCell>
+                      <TableCell>{new Date(activity.endDate).toLocaleDateString(locale, dateOptions)}</TableCell>
                     </TableRow>
                   ))}
                   {campaign.activities.length === 0 && (
                     <TableRow>
                         <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
-                            No activities added yet.
+                            Мероприятия еще не добавлены.
                         </TableCell>
                     </TableRow>
                   )}

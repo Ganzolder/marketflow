@@ -24,17 +24,17 @@ export function Header() {
                         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                              <Avatar className="h-10 w-10">
                                 <AvatarImage src="https://placehold.co/100x100.png" alt="@user" data-ai-hint="user avatar" />
-                                <AvatarFallback>MF</AvatarFallback>
+                                <AvatarFallback>МФ</AvatarFallback>
                             </Avatar>
                          </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                        <DropdownMenuLabel>Мой аккаунт</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>Settings</DropdownMenuItem>
-                        <DropdownMenuItem>Support</DropdownMenuItem>
+                        <DropdownMenuItem>Настройки</DropdownMenuItem>
+                        <DropdownMenuItem>Поддержка</DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>Logout</DropdownMenuItem>
+                        <DropdownMenuItem>Выйти</DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>

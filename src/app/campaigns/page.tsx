@@ -22,13 +22,16 @@ import { StatusBadge } from '@/components/status-badge';
 
 export default async function CampaignsPage() {
   const campaigns = await getCampaigns();
+  const locale = 'ru-RU';
+  const currencyOptions = { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 };
+  const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
 
   return (
     <div>
-      <PageHeader title="Campaigns" description="Manage and track all your marketing campaigns.">
+      <PageHeader title="Кампании" description="Управляйте и отслеживайте все ваши маркетинговые кампании.">
         <Button>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Create Campaign
+          Создать кампанию
         </Button>
       </PageHeader>
       <Card>
@@ -36,11 +39,11 @@ export default async function CampaignsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Start Date</TableHead>
-                <TableHead>End Date</TableHead>
-                <TableHead className="text-right">Budget</TableHead>
+                <TableHead>Название</TableHead>
+                <TableHead>Статус</TableHead>
+                <TableHead>Дата начала</TableHead>
+                <TableHead>Дата окончания</TableHead>
+                <TableHead className="text-right">Бюджет</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -55,13 +58,13 @@ export default async function CampaignsPage() {
                     <StatusBadge status={campaign.status} />
                   </TableCell>
                   <TableCell>
-                    {new Date(campaign.startDate).toLocaleDateString()}
+                    {new Date(campaign.startDate).toLocaleDateString(locale, dateOptions)}
                   </TableCell>
                   <TableCell>
-                    {new Date(campaign.endDate).toLocaleDateString()}
+                    {new Date(campaign.endDate).toLocaleDateString(locale, dateOptions)}
                   </TableCell>
                   <TableCell className="text-right">
-                    ${campaign.budget.toLocaleString()}
+                    {new Intl.NumberFormat(locale, currencyOptions).format(campaign.budget)}
                   </TableCell>
                 </TableRow>
               ))}

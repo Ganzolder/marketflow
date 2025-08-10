@@ -3,77 +3,77 @@ import type { Campaign, UpcomingActivity } from './types';
 const MOCK_CAMPAIGNS: Campaign[] = [
   {
     id: 'campaign-1',
-    name: 'Summer Sale 2024',
-    description: 'Annual summer sale campaign to boost Q3 revenue and clear inventory.',
+    name: 'Летняя распродажа 2024',
+    description: 'Ежегодная летняя распродажа для увеличения выручки в 3 квартале и освобождения склада.',
     budget: 50000,
     startDate: '2024-06-01',
     endDate: '2024-08-31',
     status: 'active',
     goals: [
-      { id: 'g1-1', name: 'Website Traffic', target: 1000000, current: 650000, unit: 'visits' },
-      { id: 'g1-2', name: 'Online Sales', target: 150000, current: 110000, unit: 'USD' },
-      { id: 'g1-3', name: 'Social Media Mentions', target: 5000, current: 4200, unit: 'mentions' },
+      { id: 'g1-1', name: 'Трафик на сайт', target: 1000000, current: 650000, unit: 'посещений' },
+      { id: 'g1-2', name: 'Онлайн-продажи', target: 150000, current: 110000, unit: 'USD' },
+      { id: 'g1-3', name: 'Упоминания в соцсетях', target: 5000, current: 4200, unit: 'упоминаний' },
     ],
     activities: [
       {
-        id: 'act1-1', name: 'Social Media Ads', type: 'Digital Ad', status: 'in-progress', startDate: '2024-06-01', endDate: '2024-08-31', goals: [
-          { id: 'g1-1-1', name: 'Impressions', target: 5000000, current: 3200000, unit: 'views' }
+        id: 'act1-1', name: 'Реклама в соцсетях', type: 'Цифровая реклама', status: 'in-progress', startDate: '2024-06-01', endDate: '2024-08-31', goals: [
+          { id: 'g1-1-1', name: 'Показы', target: 5000000, current: 3200000, unit: 'просмотров' }
         ]
       },
       {
-        id: 'act1-2', name: 'Email Blast', type: 'Email Marketing', status: 'completed', startDate: '2024-06-15', endDate: '2024-07-30', goals: [
-          { id: 'g1-2-1', name: 'Open Rate', target: 25, current: 28, unit: '%' }
+        id: 'act1-2', name: 'Email-рассылка', type: 'Email-маркетинг', status: 'completed', startDate: '2024-06-15', endDate: '2024-07-30', goals: [
+          { id: 'g1-2-1', name: 'Процент открытий', target: 25, current: 28, unit: '%' }
         ]
       },
       {
-        id: 'act1-3', name: 'Influencer Collab', type: 'Partnership', status: 'planned', startDate: '2024-07-20', endDate: '2024-08-20', goals: [
-          { id: 'g1-3-1', name: 'Engagement', target: 10000, current: 0, unit: 'likes/comments' }
+        id: 'act1-3', name: 'Сотрудничество с инфлюенсерами', type: 'Партнерство', status: 'planned', startDate: '2024-07-20', endDate: '2024-08-20', goals: [
+          { id: 'g1-3-1', name: 'Вовлеченность', target: 10000, current: 0, unit: 'лайков/комментариев' }
         ]
       },
     ],
   },
   {
     id: 'campaign-2',
-    name: 'New Product Launch - "Quantum-Leap" Laptop',
-    description: 'Global launch of our next-generation laptop with AI capabilities.',
+    name: 'Запуск нового продукта - ноутбук "Квантовый скачок"',
+    description: 'Глобальный запуск нашего ноутбука следующего поколения с возможностями ИИ.',
     budget: 250000,
     startDate: '2024-09-01',
     endDate: '2024-11-30',
     status: 'planned',
     goals: [
-      { id: 'g2-1', name: 'Pre-orders', target: 20000, current: 1500, unit: 'units' },
-      { id: 'g2-2', name: 'Media Mentions', target: 100, current: 12, unit: 'articles' },
+      { id: 'g2-1', name: 'Предзаказы', target: 20000, current: 1500, unit: 'штук' },
+      { id: 'g2-2', name: 'Упоминания в СМИ', target: 100, current: 12, unit: 'статей' },
     ],
     activities: [
-      { id: 'act2-1', name: 'Launch Event', type: 'Event', status: 'planned', startDate: '2024-09-01', endDate: '2024-09-01', goals: [] },
-      { id: 'act2-2', name: 'Radio Ads', type: 'Traditional Ad', status: 'planned', startDate: '2024-09-15', endDate: '2024-10-15', goals: [] },
+      { id: 'act2-1', name: 'Мероприятие по запуску', type: 'Событие', status: 'planned', startDate: '2024-09-01', endDate: '2024-09-01', goals: [] },
+      { id: 'act2-2', name: 'Реклама на радио', type: 'Традиционная реклама', status: 'planned', startDate: '2024-09-15', endDate: '2024-10-15', goals: [] },
     ],
   },
   {
     id: 'campaign-3',
-    name: 'Brand Awareness Q1',
-    description: 'Increasing brand recognition in emerging markets.',
+    name: 'Повышение узнаваемости бренда Q1',
+    description: 'Повышение узнаваемости бренда на развивающихся рынках.',
     budget: 75000,
     startDate: '2024-01-01',
     endDate: '2024-03-31',
     status: 'completed',
     goals: [
-      { id: 'g3-1', name: 'Brand Recall', target: 40, current: 45, unit: '%' },
+      { id: 'g3-1', name: 'Узнаваемость бренда', target: 40, current: 45, unit: '%' },
     ],
     activities: [
-      { id: 'act3-1', name: 'Billboard Ads', type: 'Traditional Ad', status: 'completed', startDate: '2024-01-15', endDate: '2024-03-15', goals: [] },
+      { id: 'act3-1', name: 'Реклама на билбордах', type: 'Традиционная реклама', status: 'completed', startDate: '2024-01-15', endDate: '2024-03-15', goals: [] },
     ],
   },
   {
     id: 'campaign-4',
-    name: 'Holiday Season Push',
-    description: 'End-of-year sales push for the holiday season.',
+    name: 'Продвижение в праздничный сезон',
+    description: 'Стимулирование продаж в конце года в праздничный сезон.',
     budget: 120000,
     startDate: '2024-11-01',
     endDate: '2024-12-31',
     status: 'planned',
     goals: [
-        { id: 'g4-1', name: 'Sales Volume', target: 50000, current: 0, unit: 'units' }
+        { id: 'g4-1', name: 'Объем продаж', target: 50000, current: 0, unit: 'штук' }
     ],
     activities: [],
   },

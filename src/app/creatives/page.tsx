@@ -5,8 +5,8 @@ export default function CreativesPage() {
   return (
     <div>
       <PageHeader
-        title="Creatives Generator"
-        description="Leverage AI to generate compelling ad copy for your campaigns. Fill in the details below to get started."
+        title="Генератор креативов"
+        description="Используйте ИИ для создания убедительных рекламных текстов для ваших кампаний. Заполните детали ниже, чтобы начать."
       />
       <CreativesForm />
     </div>

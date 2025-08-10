@@ -23,36 +23,36 @@ export function CalculatorForm() {
         <div className="grid lg:grid-cols-2 gap-8 items-start">
             <Card>
                 <CardHeader>
-                    <CardTitle>Campaign Metrics</CardTitle>
-                    <CardDescription>Enter your campaign data to calculate performance.</CardDescription>
+                    <CardTitle>Метрики кампании</CardTitle>
+                    <CardDescription>Введите данные вашей кампании для расчета эффективности.</CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-4">
                     <div className="grid gap-2">
-                        <Label htmlFor="investment">Total Investment ($)</Label>
+                        <Label htmlFor="investment">Общие инвестиции ($)</Label>
                         <Input 
                             id="investment" 
                             type="number" 
-                            placeholder="e.g. 5000" 
+                            placeholder="например, 5000" 
                             value={investment}
                             onChange={(e) => setInvestment(e.target.value === '' ? '' : parseFloat(e.target.value))}
                         />
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="revenue">Total Revenue ($)</Label>
+                        <Label htmlFor="revenue">Общий доход ($)</Label>
                         <Input 
                             id="revenue" 
                             type="number" 
-                            placeholder="e.g. 20000"
+                            placeholder="например, 20000"
                             value={revenue}
                             onChange={(e) => setRevenue(e.target.value === '' ? '' : parseFloat(e.target.value))}
                         />
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="conversions">Total Conversions (e.g., Sales, Signups)</Label>
+                        <Label htmlFor="conversions">Общие конверсии (например, продажи, регистрации)</Label>
                         <Input 
                             id="conversions" 
                             type="number" 
-                            placeholder="e.g. 150"
+                            placeholder="например, 150"
                             value={conversions}
                             onChange={(e) => setConversions(e.target.value === '' ? '' : parseFloat(e.target.value))}
                         />
@@ -64,7 +64,7 @@ export function CalculatorForm() {
                         setRevenue('');
                         setConversions('');
                     }}>
-                        Reset
+                        Сбросить
                     </Button>
                 </CardFooter>
             </Card>
@@ -72,8 +72,8 @@ export function CalculatorForm() {
             <div className="sticky top-24">
                 <Card className="bg-primary/5 dark:bg-primary/10 border-primary/20">
                     <CardHeader>
-                        <CardTitle>Results</CardTitle>
-                        <CardDescription>Key performance indicators based on your input.</CardDescription>
+                        <CardTitle>Результаты</CardTitle>
+                        <CardDescription>Ключевые показатели эффективности на основе ваших данных.</CardDescription>
                     </CardHeader>
                     <CardContent className="grid gap-6">
                         <div className="flex items-start gap-4">
@@ -81,7 +81,7 @@ export function CalculatorForm() {
                                 <TrendingUp className="w-6 h-6 text-primary" />
                             </div>
                             <div>
-                                <p className="text-sm text-muted-foreground">Return on Investment (ROI)</p>
+                                <p className="text-sm text-muted-foreground">Возврат на инвестиции (ROI)</p>
                                 <p className={`text-3xl font-bold ${roi >= 0 ? 'text-accent' : 'text-destructive'}`}>
                                     {roi.toFixed(2)}%
                                 </p>
@@ -92,7 +92,7 @@ export function CalculatorForm() {
                                 <Users className="w-6 h-6 text-primary" />
                             </div>
                             <div>
-                                <p className="text-sm text-muted-foreground">Cost Per Acquisition (CPA)</p>
+                                <p className="text-sm text-muted-foreground">Стоимость привлечения клиента (CPA)</p>
                                 <p className="text-3xl font-bold">
                                     ${cpa.toFixed(2)}
                                 </p>

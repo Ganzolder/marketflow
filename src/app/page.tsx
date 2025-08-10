@@ -26,45 +26,49 @@ export default async function Dashboard() {
   const totalBudget = campaigns.reduce((sum, campaign) => sum + campaign.budget, 0);
   const activeCampaigns = campaigns.filter(c => c.status === 'active').length;
   const completedActivities = campaigns.flatMap(c => c.activities).filter(a => a.status === 'completed').length;
+  
+  const locale = 'ru-RU';
+  const currencyOptions = { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 };
+  const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
 
   return (
     <div className="container mx-auto px-0">
-      <PageHeader title="Dashboard" description="An overview of your marketing campaigns." />
+      <PageHeader title="Панель управления" description="Обзор ваших маркетинговых кампаний." />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Campaigns</CardTitle>
+            <CardTitle className="text-sm font-medium">Активные кампании</CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{activeCampaigns}</div>
             <p className="text-xs text-muted-foreground">
-              {campaigns.length} total campaigns
+              {campaigns.length} всего кампаний
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Budget</CardTitle>
+            <CardTitle className="text-sm font-medium">Общий бюджет</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalBudget.toLocaleString()}</div>
+            <div className="text-2xl font-bold">{new Intl.NumberFormat(locale, currencyOptions).format(totalBudget)}</div>
             <p className="text-xs text-muted-foreground">
-              Across all campaigns
+              По всем кампаниям
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completed Activities</CardTitle>
+            <CardTitle className="text-sm font-medium">Завершенные мероприятия</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">+{completedActivities}</div>
             <p className="text-xs text-muted-foreground">
-              All-time
+              За все время
             </p>
           </CardContent>
         </Card>
@@ -73,15 +77,15 @@ export default async function Dashboard() {
       <div className="grid gap-8 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Recent Campaigns</CardTitle>
+            <CardTitle>Недавние кампании</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Budget</TableHead>
+                  <TableHead>Название</TableHead>
+                  <TableHead>Статус</TableHead>
+                  <TableHead className="text-right">Бюджет</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -95,7 +99,7 @@ export default async function Dashboard() {
                     <TableCell>
                       <StatusBadge status={campaign.status} />
                     </TableCell>
-                    <TableCell className="text-right">${campaign.budget.toLocaleString()}</TableCell>
+                    <TableCell className="text-right">{new Intl.NumberFormat(locale, currencyOptions).format(campaign.budget)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -105,15 +109,15 @@ export default async function Dashboard() {
         
         <Card>
           <CardHeader>
-            <CardTitle>Upcoming Activities</CardTitle>
+            <CardTitle>Предстоящие мероприятия</CardTitle>
           </CardHeader>
           <CardContent>
              <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Activity</TableHead>
-                  <TableHead>Campaign</TableHead>
-                  <TableHead>Date</TableHead>
+                  <TableHead>Мероприятие</TableHead>
+                  <TableHead>Кампания</TableHead>
+                  <TableHead>Дата</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -121,7 +125,7 @@ export default async function Dashboard() {
                   <TableRow key={activity.id}>
                     <TableCell className="font-medium">{activity.name}</TableCell>
                     <TableCell>{activity.campaignName}</TableCell>
-                    <TableCell>{new Date(activity.startDate).toLocaleDateString()}</TableCell>
+                    <TableCell>{new Date(activity.startDate).toLocaleDateString(locale, dateOptions)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

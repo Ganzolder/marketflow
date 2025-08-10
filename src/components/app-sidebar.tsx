@@ -20,10 +20,10 @@ import {
 import { useSidebar } from './ui/sidebar';
 
 const menuItems = [
-  { href: '/', label: 'Dashboard', icon: LayoutGrid },
-  { href: '/campaigns', label: 'Campaigns', icon: ListChecks },
-  { href: '/creatives', label: 'Creatives', icon: Sparkles },
-  { href: '/calculator', label: 'Calculator', icon: Calculator },
+  { href: '/', label: 'Панель управления', icon: LayoutGrid },
+  { href: '/campaigns', label: 'Кампании', icon: ListChecks },
+  { href: '/creatives', label: 'Креативы', icon: Sparkles },
+  { href: '/calculator', label: 'Калькулятор', icon: Calculator },
 ];
 
 export function AppSidebar() {
@@ -35,7 +35,7 @@ export function AppSidebar() {
       <SidebarHeader>
         <Link href="/" className="flex items-center gap-2 p-2 group-data-[collapsible=icon]:justify-center">
             <Rocket className="w-8 h-8 text-primary shrink-0" />
-            <span className="text-xl font-semibold font-headline group-data-[collapsible=icon]:hidden">MarketFlow</span>
+            <span className="text-xl font-semibold font-headline group-data-[collapsible=icon]:hidden">МаркетФлоу</span>
         </Link>
       </SidebarHeader>
       <SidebarContent>

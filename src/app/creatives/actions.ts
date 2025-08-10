@@ -4,11 +4,11 @@ import { generateAdCopy, type GenerateAdCopyInput } from "@/ai/flows/generate-ad
 import { z } from "zod";
 
 const GenerateAdCopyFormSchema = z.object({
-  productName: z.string().min(3, "Product name must be at least 3 characters."),
-  targetAudience: z.string().min(3, "Target audience must be at least 3 characters."),
-  campaignGoal: z.string().min(3, "Campaign goal must be at least 3 characters."),
+  productName: z.string().min(3, "Название продукта должно содержать не менее 3 символов."),
+  targetAudience: z.string().min(3, "Целевая аудитория должна содержать не менее 3 символов."),
+  campaignGoal: z.string().min(3, "Цель кампании должна содержать не менее 3 символов."),
   tone: z.string(),
-  keywords: z.string().min(3, "Please provide some keywords."),
+  keywords: z.string().min(3, "Пожалуйста, укажите несколько ключевых слов."),
   numberOfVariations: z.coerce.number().min(1).max(5),
 });
 
@@ -29,7 +29,7 @@ export async function submitAdCopyRequest(
   if (!parsed.success) {
     const issues = parsed.error.issues.map((issue) => issue.message);
     return {
-      message: "Invalid form data.",
+      message: "Неверные данные формы.",
       fields: formData as Record<string, string>,
       issues,
     };
@@ -38,13 +38,13 @@ export async function submitAdCopyRequest(
   try {
     const result = await generateAdCopy(parsed.data as GenerateAdCopyInput);
     if (result && result.adCopies) {
-      return { message: "Successfully generated ad copy.", adCopies: result.adCopies };
+      return { message: "Рекламный текст успешно создан.", adCopies: result.adCopies };
     }
-    return { message: "Failed to generate ad copy. The AI returned an empty result." };
+    return { message: "Не удалось создать рекламный текст. ИИ вернул пустой результат." };
   } catch (e) {
-    const errorMessage = e instanceof Error ? e.message : "An unknown error occurred.";
+    const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
     return {
-      message: `Failed to generate ad copy: ${errorMessage}`,
+      message: `Не удалось создать рекламный текст: ${errorMessage}`,
     };
   }
 }

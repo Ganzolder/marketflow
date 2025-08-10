@@ -19,7 +19,7 @@ import {z} from 'genkit';
 const GenerateCampaignIdeasInputSchema = z.object({
   productDescription: z
     .string()
-    .describe('A brief description of the product or service.'),
+    .describe('Краткое описание продукта или услуги.'),
 });
 
 export type GenerateCampaignIdeasInput = z.infer<
@@ -29,7 +29,7 @@ export type GenerateCampaignIdeasInput = z.infer<
 const GenerateCampaignIdeasOutputSchema = z.object({
   campaignIdeas: z
     .array(z.string())
-    .describe('A list of creative marketing campaign ideas.'),
+    .describe('Список креативных идей для маркетинговых кампаний.'),
 });
 
 export type GenerateCampaignIdeasOutput = z.infer<
@@ -46,7 +46,7 @@ const generateCampaignIdeasPrompt = ai.definePrompt({
   name: 'generateCampaignIdeasPrompt',
   input: {schema: GenerateCampaignIdeasInputSchema},
   output: {schema: GenerateCampaignIdeasOutputSchema},
-  prompt: `You are a marketing expert. Generate a list of creative marketing campaign ideas for the following product or service description: {{{productDescription}}}. Return them as an array of strings.
+  prompt: `Вы — эксперт по маркетингу. Создайте список креативных идей для маркетинговых кампаний для следующего описания продукта или услуги: {{{productDescription}}}. Верните их в виде массива строк.
 `,
 });
 

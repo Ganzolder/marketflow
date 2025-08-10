@@ -5,8 +5,8 @@ export default function CalculatorPage() {
   return (
     <div>
       <PageHeader
-        title="Promotions Calculator"
-        description="Quickly calculate key metrics for your marketing campaigns."
+        title="Калькулятор продвижения"
+        description="Быстро рассчитывайте ключевые метрики для ваших маркетинговых кампаний."
       />
       <CalculatorForm />
     </div>

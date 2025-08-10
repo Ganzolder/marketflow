@@ -4,8 +4,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { AppLayout } from '@/components/app-layout';
 
 export const metadata: Metadata = {
-  title: 'MarketFlow',
-  description: 'AI-Powered Marketing Campaign Management',
+  title: 'МаркетФлоу',
+  description: 'Управление маркетинговыми кампаниями с помощью ИИ',
 };
 
 export default function RootLayout({
@@ -14,7 +14,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full">
+    <html lang="ru" className="h-full">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
