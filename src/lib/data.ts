@@ -25,7 +25,8 @@ async function seedDatabase() {
           {
             id: 'act-c1-1',
             name: 'Реклама в соцсетях',
-            type: 'Цифровая реклама',
+            description: 'Продвижение через таргетированную рекламу в VK и Telegram.',
+            targetAudience: 'Молодежь 18-25 лет',
             status: 'in-progress',
             startDate: '2024-06-01',
             endDate: '2024-07-31',
@@ -37,7 +38,8 @@ async function seedDatabase() {
           {
             id: 'act-c1-2',
             name: 'Email-рассылка',
-            type: 'Email-маркетинг',
+            description: 'Информационная рассылка по базе лояльных клиентов.',
+            targetAudience: 'Существующие клиенты',
             status: 'planned',
             startDate: '2024-07-15',
             endDate: '2024-08-15',

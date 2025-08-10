@@ -144,7 +144,7 @@ export default function CampaignDetailPage() {
                                     <span>{action.name}</span>
                                     <EditActionButton action={action} campaignId={campaign.id}/>
                                 </CardTitle>
-                                <CardDescription>{action.type}</CardDescription>
+                                <CardDescription>{action.description}</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-4">

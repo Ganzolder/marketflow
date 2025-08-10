@@ -6,16 +6,19 @@ import { addAction, updateAction } from "./data";
 import { revalidatePath } from "next/cache";
 import type { Action } from "./types";
 
-const AddActionSchema = z.object({
+const ActionSchema = z.object({
   name: z.string().min(3, { message: "Название акции должно содержать не менее 3 символов." }),
-  type: z.string().min(3, { message: "Тип акции должен содержать не менее 3 символов." }),
+  description: z.string().optional(),
+  targetAudience: z.string().optional(),
   startDate: z.string().refine((date) => !isNaN(Date.parse(date)), { message: "Неверный формат даты начала." }),
   endDate: z.string().refine((date) => !isNaN(Date.parse(date)), { message: "Неверный формат даты окончания." }),
   status: z.enum(['planned', 'in-progress', 'completed']),
   campaignId: z.string(),
 });
 
-const EditActionSchema = AddActionSchema.extend({
+const AddActionSchema = ActionSchema;
+
+const EditActionSchema = ActionSchema.extend({
   id: z.string(),
 });
 
@@ -23,7 +26,8 @@ export type ActionFormState = {
   message: string;
   errors?: {
     name?: string[];
-    type?: string[];
+    description?: string[];
+    targetAudience?: string[];
     startDate?: string[];
     endDate?: string[];
     status?: string[];
@@ -39,7 +43,8 @@ export async function addActionToCampaign(
   
   const validatedFields = AddActionSchema.safeParse({
     name: formData.get('action-name'),
-    type: formData.get('action-type'),
+    description: formData.get('description'),
+    targetAudience: formData.get('target-audience'),
     startDate: formData.get('start-date'),
     endDate: formData.get('end-date'),
     status: formData.get('status'),
@@ -74,7 +79,8 @@ export async function editActionInCampaign(
   const validatedFields = EditActionSchema.safeParse({
     id: formData.get('actionId'),
     name: formData.get('action-name'),
-    type: formData.get('action-type'),
+    description: formData.get('description'),
+    targetAudience: formData.get('target-audience'),
     startDate: formData.get('start-date'),
     endDate: formData.get('end-date'),
     status: formData.get('status'),

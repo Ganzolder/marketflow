@@ -11,7 +11,8 @@ export type ActionStatus = 'planned' | 'in-progress' | 'completed';
 export type Action = {
   id: string;
   name: string;
-  type: string;
+  description?: string;
+  targetAudience?: string;
   status: ActionStatus;
   startDate: string;
   endDate: string;

@@ -12,6 +12,7 @@ import { PlusCircle, Loader2 } from "lucide-react";
 import { addActionToCampaign, type ActionFormState } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { Textarea } from '@/components/ui/textarea';
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -74,17 +75,20 @@ export function NewActionButton({ campaignId }: { campaignId: string }) {
                 <form action={dispatch} ref={formRef}>
                     <input type="hidden" name="campaignId" value={campaignId} />
                     <div className="grid gap-6 py-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="action-name">Название акции</Label>
-                                <Input id="action-name" name="action-name" placeholder="например, Весенняя распродажа" />
-                                {state.errors?.name && <p className="text-sm text-destructive">{state.errors.name[0]}</p>}
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="action-type">Тип акции</Label>
-                                <Input id="action-type" name="action-type" placeholder="например, Цифровая реклама" />
-                                {state.errors?.type && <p className="text-sm text-destructive">{state.errors.type[0]}</p>}
-                            </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="action-name">Название акции</Label>
+                            <Input id="action-name" name="action-name" placeholder="например, Весенняя распродажа" />
+                            {state.errors?.name && <p className="text-sm text-destructive">{state.errors.name[0]}</p>}
+                        </div>
+                        <div className="grid gap-2">
+                             <Label htmlFor="description">Описание</Label>
+                             <Textarea id="description" name="description" placeholder="Опишите акцию... (необязательно)"/>
+                             {state.errors?.description && <p className="text-sm text-destructive">{state.errors.description[0]}</p>}
+                        </div>
+                         <div className="grid gap-2">
+                             <Label htmlFor="target-audience">Целевая аудитория</Label>
+                             <Input id="target-audience" name="target-audience" placeholder="например, Студенты, молодые специалисты... (необязательно)"/>
+                             {state.errors?.targetAudience && <p className="text-sm text-destructive">{state.errors.targetAudience[0]}</p>}
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="grid gap-2">
@@ -124,4 +128,3 @@ export function NewActionButton({ campaignId }: { campaignId: string }) {
         </Dialog>
     );
 }
-

@@ -13,6 +13,7 @@ import { editActionInCampaign, type ActionFormState } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import type { Action } from '@/lib/types';
+import { Textarea } from '@/components/ui/textarea';
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -75,17 +76,20 @@ export function EditActionButton({ action, campaignId }: { action: Action, campa
                     <input type="hidden" name="campaignId" value={campaignId} />
                     <input type="hidden" name="actionId" value={action.id} />
                     <div className="grid gap-6 py-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="action-name">Название акции</Label>
-                                <Input id="action-name" name="action-name" defaultValue={action.name} />
-                                {state.errors?.name && <p className="text-sm text-destructive">{state.errors.name[0]}</p>}
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="action-type">Тип акции</Label>
-                                <Input id="action-type" name="action-type" defaultValue={action.type} />
-                                {state.errors?.type && <p className="text-sm text-destructive">{state.errors.type[0]}</p>}
-                            </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="action-name">Название акции</Label>
+                            <Input id="action-name" name="action-name" defaultValue={action.name} />
+                            {state.errors?.name && <p className="text-sm text-destructive">{state.errors.name[0]}</p>}
+                        </div>
+                        <div className="grid gap-2">
+                             <Label htmlFor="description">Описание</Label>
+                             <Textarea id="description" name="description" placeholder="Опишите акцию... (необязательно)" defaultValue={action.description}/>
+                             {state.errors?.description && <p className="text-sm text-destructive">{state.errors.description[0]}</p>}
+                        </div>
+                         <div className="grid gap-2">
+                             <Label htmlFor="target-audience">Целевая аудитория</Label>
+                             <Input id="target-audience" name="target-audience" placeholder="например, Студенты... (необязательно)" defaultValue={action.targetAudience}/>
+                             {state.errors?.targetAudience && <p className="text-sm text-destructive">{state.errors.targetAudience[0]}</p>}
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="grid gap-2">
@@ -125,4 +129,3 @@ export function EditActionButton({ action, campaignId }: { action: Action, campa
         </Dialog>
     );
 }
-
