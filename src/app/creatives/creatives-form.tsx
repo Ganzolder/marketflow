@@ -19,7 +19,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { submitAdCopyRequest, type FormState } from "./actions";
 import { useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -46,7 +45,7 @@ export function CreativesForm() {
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    if (state.message && state.message !== "Successfully generated ad copy.") {
+    if (state.message && state.issues) {
       toast({
         variant: "destructive",
         title: "Error",

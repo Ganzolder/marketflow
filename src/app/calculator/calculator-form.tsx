@@ -8,12 +8,16 @@ import { Button } from '@/components/ui/button';
 import { ArrowDown, BarChart, TrendingUp, Users } from 'lucide-react';
 
 export function CalculatorForm() {
-    const [investment, setInvestment] = useState(0);
-    const [revenue, setRevenue] = useState(0);
-    const [conversions, setConversions] = useState(0);
+    const [investment, setInvestment] = useState<number | ''>('');
+    const [revenue, setRevenue] = useState<number | ''>('');
+    const [conversions, setConversions] = useState<number | ''>('');
 
-    const roi = investment > 0 ? ((revenue - investment) / investment) * 100 : 0;
-    const cpa = conversions > 0 ? investment / conversions : 0;
+    const investmentValue = Number(investment) || 0;
+    const revenueValue = Number(revenue) || 0;
+    const conversionsValue = Number(conversions) || 0;
+
+    const roi = investmentValue > 0 ? ((revenueValue - investmentValue) / investmentValue) * 100 : 0;
+    const cpa = conversionsValue > 0 ? investmentValue / conversionsValue : 0;
 
     return (
         <div className="grid lg:grid-cols-2 gap-8 items-start">
@@ -29,8 +33,8 @@ export function CalculatorForm() {
                             id="investment" 
                             type="number" 
                             placeholder="e.g. 5000" 
-                            value={investment || ''}
-                            onChange={(e) => setInvestment(parseFloat(e.target.value) || 0)}
+                            value={investment}
+                            onChange={(e) => setInvestment(e.target.value === '' ? '' : parseFloat(e.target.value))}
                         />
                     </div>
                     <div className="grid gap-2">
@@ -39,8 +43,8 @@ export function CalculatorForm() {
                             id="revenue" 
                             type="number" 
                             placeholder="e.g. 20000"
-                            value={revenue || ''}
-                            onChange={(e) => setRevenue(parseFloat(e.target.value) || 0)}
+                            value={revenue}
+                            onChange={(e) => setRevenue(e.target.value === '' ? '' : parseFloat(e.target.value))}
                         />
                     </div>
                     <div className="grid gap-2">
@@ -49,16 +53,16 @@ export function CalculatorForm() {
                             id="conversions" 
                             type="number" 
                             placeholder="e.g. 150"
-                            value={conversions || ''}
-                            onChange={(e) => setConversions(parseFloat(e.target.value) || 0)}
+                            value={conversions}
+                            onChange={(e) => setConversions(e.target.value === '' ? '' : parseFloat(e.target.value))}
                         />
                     </div>
                 </CardContent>
                 <CardFooter>
                     <Button variant="outline" onClick={() => {
-                        setInvestment(0);
-                        setRevenue(0);
-                        setConversions(0);
+                        setInvestment('');
+                        setRevenue('');
+                        setConversions('');
                     }}>
                         Reset
                     </Button>
