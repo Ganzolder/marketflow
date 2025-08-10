@@ -2,7 +2,7 @@
 "use server";
 
 import { z } from "zod";
-import { addAction, updateAction, addActivity } from "./data";
+import { addAction, updateAction, addActivity, updateActivity as updateActivityData } from "./data";
 import { revalidatePath } from "next/cache";
 import type { Action, Activity } from "./types";
 
@@ -120,6 +120,10 @@ const ActivitySchema = z.object({
   actionId: z.string(),
 });
 
+const EditActivitySchema = ActivitySchema.extend({
+  id: z.string(),
+});
+
 
 export type ActivityFormState = {
   message: string;
@@ -130,6 +134,7 @@ export type ActivityFormState = {
     budget?: string[];
     startDate?: string[];
     endDate?: string[];
+    id?: string[];
   };
 };
 
@@ -152,6 +157,7 @@ export async function addActivityToAction(
     return {
       message: "Ошибка валидации. Не удалось создать активность.",
       errors: validatedFields.error.flatten().fieldErrors,
+      error: true,
     };
   }
   
@@ -166,4 +172,42 @@ export async function addActivityToAction(
 
   revalidatePath(`/campaigns/${campaignId}/${actionId}`);
   return { message: "Активность успешно добавлена." };
+}
+
+
+export async function updateActivity(
+  prevState: ActivityFormState,
+  formData: FormData
+): Promise<ActivityFormState> {
+
+  const validatedFields = EditActivitySchema.safeParse({
+    name: formData.get('activity-name'),
+    description: formData.get('description'),
+    budget: formData.get('budget'),
+    startDate: formData.get('start-date'),
+    endDate: formData.get('end-date'),
+    campaignId: formData.get('campaignId'),
+    actionId: formData.get('actionId'),
+    id: formData.get('activityId'),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      message: "Ошибка валидации. Не удалось обновить активность.",
+      errors: validatedFields.error.flatten().fieldErrors,
+      error: true,
+    };
+  }
+  
+  const { campaignId, actionId, id, ...activityData } = validatedFields.data;
+
+  try {
+    await updateActivityData(campaignId, actionId, { id, ...activityData } as Activity);
+  } catch (error) {
+     const errorMessage = error instanceof Error ? error.message : "Произошла неизвестная ошибка.";
+    return { message: `Ошибка базы данных: не удалось обновить активность. ${errorMessage}`, error: true };
+  }
+
+  revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+  return { message: "Активность успешно обновлена." };
 }

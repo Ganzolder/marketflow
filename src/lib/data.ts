@@ -152,7 +152,7 @@ export async function addActivity(campaignId: string, actionId: string, activity
 
             const newActivity: Activity = {
                 ...activity,
-                id: `activity-${actionId}-${(Math.random() + 1).toString(36).substring(7)}`,
+                id: `activity-${actionId.substring(0,4)}-${(Math.random() + 1).toString(36).substring(7)}`,
             };
 
             const newActions = [...campaignData.actions];
@@ -169,6 +169,46 @@ export async function addActivity(campaignId: string, actionId: string, activity
     } catch (e) {
         console.error("Transaction failed: ", e);
         throw new Error('Failed to add activity.');
+    }
+}
+
+export async function updateActivity(campaignId: string, actionId: string, updatedActivity: Activity) {
+    const campaignRef = doc(db, 'campaigns', campaignId);
+
+    try {
+        await runTransaction(db, async (transaction) => {
+            const campaignDoc = await transaction.get(campaignRef);
+            if (!campaignDoc.exists()) {
+                throw new Error("Campaign document does not exist!");
+            }
+
+            const campaignData = campaignDoc.data() as Campaign;
+            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
+            
+            if (actionIndex === -1) {
+                throw new Error("Action not found in this campaign!");
+            }
+            
+            const newActions = [...campaignData.actions];
+            const action = newActions[actionIndex];
+            
+            if (!action.activities) {
+                 throw new Error("Activities array does not exist in this action!");
+            }
+
+            const activityIndex = action.activities.findIndex(act => act.id === updatedActivity.id);
+            
+            if (activityIndex === -1) {
+                throw new Error("Activity not found in this action!");
+            }
+
+            action.activities[activityIndex] = { ...action.activities[activityIndex], ...updatedActivity };
+            
+            transaction.update(campaignRef, { actions: newActions });
+        });
+    } catch (e) {
+        console.error("Transaction failed: ", e);
+        throw new Error(`Failed to update activity. ${e instanceof Error ? e.message : ''}`);
     }
 }
 
