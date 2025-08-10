@@ -113,7 +113,7 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                     </DialogDescription>
                 </DialogHeader>
                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 flex-1 flex flex-col min-h-0">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col min-h-0 gap-4">
                        <ScrollArea className="flex-1 -mr-6 pr-6">
                        <div className="grid md:grid-cols-2 gap-8 py-4">
                             {/* Left Column */}
