@@ -6,15 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { DollarSign, Loader2, PlusCircle, UploadCloud } from "lucide-react";
+import { Loader2, PlusCircle } from "lucide-react";
 import { addGeneralExpense, type ExpenseFormState } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { storage } from '@/lib/firebase';
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { Progress } from '@/components/ui/progress';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { Activity } from '@/lib/types';
 
-export function AddGeneralExpenseButton({ campaignId, actionId }: { campaignId: string; actionId: string; }) {
+
+export function AddGeneralExpenseButton({ campaignId, actionId, activities }: { campaignId: string; actionId: string; activities: Activity[] }) {
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
@@ -117,9 +120,9 @@ export function AddGeneralExpenseButton({ campaignId, actionId }: { campaignId: 
             </DialogTrigger>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Добавить общий расход</DialogTitle>
+                    <DialogTitle>Добавить расход</DialogTitle>
                     <DialogDescription>
-                        Заполните информацию об общем расходе для этой акции.
+                        Заполните информацию о расходе. Вы можете привязать его к активности или оставить как общий.
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleFormSubmit} ref={formRef}>
@@ -127,6 +130,20 @@ export function AddGeneralExpenseButton({ campaignId, actionId }: { campaignId: 
                     <input type="hidden" name="actionId" value={actionId} />
                     
                     <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                             <Label htmlFor="activityId">Привязать к активности (необязательно)</Label>
+                             <Select name="activityId">
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Общий расход" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="general">Общий расход</SelectItem>
+                                    {activities.map(activity => (
+                                        <SelectItem key={activity.id} value={activity.id}>{activity.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                             </Select>
+                        </div>
                         <div className="grid gap-2">
                             <Label htmlFor="description">Описание</Label>
                             <Textarea id="description" name="description" placeholder="например, Аренда конференц-зала" />

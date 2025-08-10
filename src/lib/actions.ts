@@ -348,6 +348,7 @@ const ActivityExpenseSchema = AddExpenseSchema.extend({
 const GeneralExpenseSchema = AddExpenseSchema.extend({
   campaignId: z.string(),
   actionId: z.string(),
+  activityId: z.string().optional(), // Can be general or attached to an activity
 });
 
 const UpdateGeneralExpenseSchema = GeneralExpenseSchema.extend({
@@ -401,9 +402,12 @@ export async function addExpense(prevState: ExpenseFormState | null, formData: F
 }
 
 export async function addGeneralExpense(prevState: ExpenseFormState | null, formData: FormData): Promise<ExpenseFormState> {
+    const rawActivityId = formData.get('activityId');
+
     const validatedFields = GeneralExpenseSchema.safeParse({
         campaignId: formData.get('campaignId'),
         actionId: formData.get('actionId'),
+        activityId: rawActivityId === 'general' ? undefined : rawActivityId,
         description: formData.get('description'),
         amount: formData.get('amount'),
         date: formData.get('date'),
@@ -419,17 +423,23 @@ export async function addGeneralExpense(prevState: ExpenseFormState | null, form
         };
     }
 
-    const { campaignId, actionId, ...expenseData } = validatedFields.data;
+    const { campaignId, actionId, activityId, ...expenseData } = validatedFields.data;
 
     try {
-        await addGeneralExpenseToAction(campaignId, actionId, expenseData);
+        if (activityId) {
+             // Add to a specific activity
+            await addExpenseToActivityData(campaignId, actionId, activityId, expenseData);
+        } else {
+            // Add as a general expense
+            await addGeneralExpenseToAction(campaignId, actionId, expenseData);
+        }
     } catch (e) {
         const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
         return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
     }
 
     revalidatePath(`/campaigns/${campaignId}/${actionId}`);
-    return { message: "Общий расход успешно добавлен." };
+    return { message: "Расход успешно добавлен." };
 }
 
 export async function updateGeneralExpense(prevState: ExpenseFormState | null, formData: FormData): Promise<ExpenseFormState> {
