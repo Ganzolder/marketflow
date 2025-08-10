@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useEffect, useRef, useActionState } from 'react';
@@ -80,7 +81,10 @@ export function UpdateMetricsForm({ activity, campaignId, actionId }: { activity
             
             {/* KPI Section */}
             <div>
-                <Label className="text-base font-medium">KPI</Label>
+                <div className="flex justify-between items-center">
+                    <Label className="text-base font-medium">KPI</Label>
+                     <SubmitButton />
+                </div>
                 <div className="space-y-4 mt-2">
                     {activity.kpis && activity.kpis.length > 0 ? (
                         activity.kpis.map(kpi => (
@@ -91,15 +95,14 @@ export function UpdateMetricsForm({ activity, campaignId, actionId }: { activity
                                         {kpi.current.toLocaleString(locale)} / {kpi.target.toLocaleString(locale)} {kpi.unit}
                                     </span>
                                 </div>
-                                <Progress value={kpi.target > 0 ? (kpi.current / kpi.target) * 100 : 0} className="h-2" />
-                                 <div className="grid w-full gap-1.5 mt-3">
-                                    <Label htmlFor={`kpi-${kpi.id}`} className="text-xs">Обновить факт</Label>
-                                    <Input
+                                <div className="flex items-center gap-3">
+                                     <Progress value={kpi.target > 0 ? (kpi.current / kpi.target) * 100 : 0} className="h-2 flex-1" />
+                                     <Input
                                         id={`kpi-${kpi.id}`}
                                         name={`kpi-${kpi.id}`}
                                         type="number"
-                                        placeholder={kpi.current.toString()}
-                                        className="h-9"
+                                        placeholder="Обновить факт"
+                                        className="h-8 w-[120px] text-xs"
                                     />
                                 </div>
                             </div>
@@ -108,10 +111,6 @@ export function UpdateMetricsForm({ activity, campaignId, actionId }: { activity
                          <p className="text-xs text-center text-muted-foreground py-2">KPI не добавлены.</p>
                     )}
                 </div>
-            </div>
-            
-            <div className="flex justify-end pt-2">
-                <SubmitButton />
             </div>
         </form>
     );

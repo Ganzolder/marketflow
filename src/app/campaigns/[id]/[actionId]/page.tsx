@@ -41,6 +41,28 @@ export default async function ActionDetailPage({ params }: ActionDetailPageProps
   const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
   const currencyOptions = { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
+  const aggregatedKpis: Record<string, { current: number; target: number; unit: string }> = {};
+
+  (action.activities || []).forEach(activity => {
+    (activity.kpis || []).forEach(kpi => {
+      if (aggregatedKpis[kpi.name]) {
+        aggregatedKpis[kpi.name].current += kpi.current;
+        aggregatedKpis[kpi.name].target += kpi.target;
+      } else {
+        aggregatedKpis[kpi.name] = {
+          current: kpi.current,
+          target: kpi.target,
+          unit: kpi.unit,
+        };
+      }
+    });
+  });
+
+  const aggregatedKpisArray = Object.entries(aggregatedKpis).map(([name, data]) => ({
+    name,
+    ...data,
+  }));
+
 
   return (
     <div>
@@ -97,14 +119,14 @@ export default async function ActionDetailPage({ params }: ActionDetailPageProps
 
         <Card>
             <CardHeader>
-                <CardTitle>Цели акции</CardTitle>
-                <CardDescription>Отслеживание прогресса по ключевым показателям.</CardDescription>
+                <CardTitle>Общие цели акции</CardTitle>
+                <CardDescription>Суммарный прогресс по всем KPI из активностей.</CardDescription>
             </CardHeader>
             <CardContent>
-                {action.goals && action.goals.length > 0 ? (
-                    <div className="space-y-4">
-                    {action.goals.map(goal => (
-                        <div key={goal.id}>
+                {aggregatedKpisArray.length > 0 ? (
+                    <div className="grid md:grid-cols-2 gap-x-8 gap-y-4">
+                    {aggregatedKpisArray.map(goal => (
+                        <div key={goal.name}>
                             <div className="flex justify-between text-sm mb-1">
                                 <span className="text-muted-foreground">{goal.name}</span>
                                 <span className="font-medium">{goal.target > 0 ? Math.round((goal.current / goal.target) * 100) : 0}%</span>
@@ -117,7 +139,7 @@ export default async function ActionDetailPage({ params }: ActionDetailPageProps
                     ))}
                     </div>
                     ) : (
-                    <p className="text-sm text-muted-foreground text-center py-4">Цели для этой акции еще не определены.</p>
+                    <p className="text-sm text-muted-foreground text-center py-4">KPI для этой акции еще не определены в активностях.</p>
                 )}
             </CardContent>
         </Card>
