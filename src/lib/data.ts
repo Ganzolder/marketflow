@@ -1,4 +1,4 @@
-import type { Campaign, UpcomingActivity } from './types';
+import type { Campaign, UpcomingAction } from './types';
 
 const MOCK_CAMPAIGNS: Campaign[] = [
   {
@@ -14,7 +14,7 @@ const MOCK_CAMPAIGNS: Campaign[] = [
       { id: 'g1-2', name: 'Онлайн-продажи', target: 150000, current: 110000, unit: 'USD' },
       { id: 'g1-3', name: 'Упоминания в соцсетях', target: 5000, current: 4200, unit: 'упоминаний' },
     ],
-    activities: [
+    actions: [
       {
         id: 'act1-1', name: 'Реклама в соцсетях', type: 'Цифровая реклама', status: 'in-progress', startDate: '2024-06-01', endDate: '2024-08-31', goals: [
           { id: 'g1-1-1', name: 'Показы', target: 5000000, current: 3200000, unit: 'просмотров' }
@@ -44,8 +44,8 @@ const MOCK_CAMPAIGNS: Campaign[] = [
       { id: 'g2-1', name: 'Предзаказы', target: 20000, current: 1500, unit: 'штук' },
       { id: 'g2-2', name: 'Упоминания в СМИ', target: 100, current: 12, unit: 'статей' },
     ],
-    activities: [
-      { id: 'act2-1', name: 'Мероприятие по запуску', type: 'Событие', status: 'planned', startDate: '2024-09-01', endDate: '2024-09-01', goals: [] },
+    actions: [
+      { id: 'act2-1', name: 'Акция по запуску', type: 'Событие', status: 'planned', startDate: '2024-09-01', endDate: '2024-09-01', goals: [] },
       { id: 'act2-2', name: 'Реклама на радио', type: 'Традиционная реклама', status: 'planned', startDate: '2024-09-15', endDate: '2024-10-15', goals: [] },
     ],
   },
@@ -60,7 +60,7 @@ const MOCK_CAMPAIGNS: Campaign[] = [
     goals: [
       { id: 'g3-1', name: 'Узнаваемость бренда', target: 40, current: 45, unit: '%' },
     ],
-    activities: [
+    actions: [
       { id: 'act3-1', name: 'Реклама на билбордах', type: 'Традиционная реклама', status: 'completed', startDate: '2024-01-15', endDate: '2024-03-15', goals: [] },
     ],
   },
@@ -75,7 +75,7 @@ const MOCK_CAMPAIGNS: Campaign[] = [
     goals: [
         { id: 'g4-1', name: 'Объем продаж', target: 50000, current: 0, unit: 'штук' }
     ],
-    activities: [],
+    actions: [],
   },
 ];
 
@@ -91,17 +91,17 @@ export async function getCampaignById(id: string): Promise<Campaign | undefined>
   return MOCK_CAMPAIGNS.find(campaign => campaign.id === id);
 }
 
-export async function getUpcomingActivities(): Promise<UpcomingActivity[]> {
+export async function getUpcomingActions(): Promise<UpcomingAction[]> {
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 50));
   const today = new Date();
-  const upcoming: UpcomingActivity[] = [];
+  const upcoming: UpcomingAction[] = [];
 
   MOCK_CAMPAIGNS.forEach(campaign => {
-    campaign.activities.forEach(activity => {
-      if ((activity.status === 'planned' || activity.status === 'in-progress') && new Date(activity.startDate) >= today) {
+    campaign.actions.forEach(action => {
+      if ((action.status === 'planned' || action.status === 'in-progress') && new Date(action.startDate) >= today) {
         upcoming.push({
-          ...activity,
+          ...action,
           campaignName: campaign.name,
           campaignId: campaign.id
         });

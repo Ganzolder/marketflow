@@ -15,17 +15,17 @@ import {
 import { Badge } from "@/components/ui/badge";
 import Link from 'next/link';
 import { PageHeader } from '@/components/page-header';
-import { getCampaigns, getUpcomingActivities } from '@/lib/data';
+import { getCampaigns, getUpcomingActions } from '@/lib/data';
 import { Activity, DollarSign, Target } from "lucide-react";
 import { StatusBadge } from "@/components/status-badge";
 
 export default async function Dashboard() {
   const campaigns = await getCampaigns();
-  const upcomingActivities = await getUpcomingActivities();
+  const upcomingActions = await getUpcomingActions();
 
   const totalBudget = campaigns.reduce((sum, campaign) => sum + campaign.budget, 0);
   const activeCampaigns = campaigns.filter(c => c.status === 'active').length;
-  const completedActivities = campaigns.flatMap(c => c.activities).filter(a => a.status === 'completed').length;
+  const completedActions = campaigns.flatMap(c => c.actions).filter(a => a.status === 'completed').length;
   
   const locale = 'ru-RU';
   const currencyOptions = { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 };
@@ -62,11 +62,11 @@ export default async function Dashboard() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Завершенные мероприятия</CardTitle>
+            <CardTitle className="text-sm font-medium">Завершенные акции</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+{completedActivities}</div>
+            <div className="text-2xl font-bold">+{completedActions}</div>
             <p className="text-xs text-muted-foreground">
               За все время
             </p>
@@ -109,23 +109,23 @@ export default async function Dashboard() {
         
         <Card>
           <CardHeader>
-            <CardTitle>Предстоящие мероприятия</CardTitle>
+            <CardTitle>Предстоящие акции</CardTitle>
           </CardHeader>
           <CardContent>
              <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Мероприятие</TableHead>
+                  <TableHead>Акция</TableHead>
                   <TableHead>Кампания</TableHead>
                   <TableHead>Дата</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {upcomingActivities.slice(0, 5).map((activity) => (
-                  <TableRow key={activity.id}>
-                    <TableCell className="font-medium">{activity.name}</TableCell>
-                    <TableCell>{activity.campaignName}</TableCell>
-                    <TableCell>{new Date(activity.startDate).toLocaleDateString(locale, dateOptions)}</TableCell>
+                {upcomingActions.slice(0, 5).map((action) => (
+                  <TableRow key={action.id}>
+                    <TableCell className="font-medium">{action.name}</TableCell>
+                    <TableCell>{action.campaignName}</TableCell>
+                    <TableCell>{new Date(action.startDate).toLocaleDateString(locale, dateOptions)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/status-badge';
+import Link from 'next/link';
 
 export default async function CampaignDetailPage({ params }: { params: { id: string } }) {
   const campaign = await getCampaignById(params.id);
@@ -87,10 +88,12 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
 
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold font-headline">Мероприятия</h2>
-            <Button variant="outline">
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Добавить мероприятие
+            <h2 className="text-2xl font-bold font-headline">Акции</h2>
+            <Button asChild>
+              <Link href={`/campaigns/${campaign.id}/new-action`}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Добавить акцию
+              </Link>
             </Button>
           </div>
           <Card>
@@ -106,19 +109,19 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {campaign.activities.map(activity => (
-                    <TableRow key={activity.id}>
-                      <TableCell className="font-medium">{activity.name}</TableCell>
-                      <TableCell>{activity.type}</TableCell>
-                      <TableCell><StatusBadge status={activity.status} /></TableCell>
-                      <TableCell>{new Date(activity.startDate).toLocaleDateString(locale, dateOptions)}</TableCell>
-                      <TableCell>{new Date(activity.endDate).toLocaleDateString(locale, dateOptions)}</TableCell>
+                  {campaign.actions.map(action => (
+                    <TableRow key={action.id}>
+                      <TableCell className="font-medium">{action.name}</TableCell>
+                      <TableCell>{action.type}</TableCell>
+                      <TableCell><StatusBadge status={action.status} /></TableCell>
+                      <TableCell>{new Date(action.startDate).toLocaleDateString(locale, dateOptions)}</TableCell>
+                      <TableCell>{new Date(action.endDate).toLocaleDateString(locale, dateOptions)}</TableCell>
                     </TableRow>
                   ))}
-                  {campaign.activities.length === 0 && (
+                  {campaign.actions.length === 0 && (
                     <TableRow>
                         <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
-                            Мероприятия еще не добавлены.
+                            Акции еще не добавлены.
                         </TableCell>
                     </TableRow>
                   )}

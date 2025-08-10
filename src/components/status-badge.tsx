@@ -1,11 +1,11 @@
 import { Badge } from "@/components/ui/badge"
-import type { CampaignStatus, ActivityStatus } from "@/lib/types"
+import type { CampaignStatus, ActionStatus } from "@/lib/types"
 
 type StatusBadgeProps = {
-  status: CampaignStatus | ActivityStatus;
+  status: CampaignStatus | ActionStatus;
 };
 
-const statusTranslations: Record<CampaignStatus | ActivityStatus, string> = {
+const statusTranslations: Record<CampaignStatus | ActionStatus, string> = {
   active: "Активна",
   'in-progress': "В процессе",
   planned: "Запланирована",
@@ -14,7 +14,7 @@ const statusTranslations: Record<CampaignStatus | ActivityStatus, string> = {
 }
 
 export function StatusBadge({ status }: StatusBadgeProps) {
-  const statusStyles: Record<CampaignStatus | ActivityStatus, string> = {
+  const statusStyles: Record<CampaignStatus | ActionStatus, string> = {
     active: "bg-green-100 text-green-800 border-green-200 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700/50",
     'in-progress': "bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700/50",
     planned: "bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-700/50",
