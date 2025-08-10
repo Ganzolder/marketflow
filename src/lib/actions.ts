@@ -2,7 +2,7 @@
 "use server";
 
 import { z } from "zod";
-import { addAction, updateAction, addActivity, updateActivity as updateActivityData } from "./data";
+import { addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData } from "./data";
 import { revalidatePath } from "next/cache";
 import type { Action, Activity } from "./types";
 
@@ -124,6 +124,12 @@ const EditActivitySchema = ActivitySchema.extend({
   id: z.string(),
 });
 
+const DeleteActivitySchema = z.object({
+  campaignId: z.string(),
+  actionId: z.string(),
+  activityId: z.string(),
+});
+
 
 export type ActivityFormState = {
   message: string;
@@ -136,6 +142,11 @@ export type ActivityFormState = {
     endDate?: string[];
     id?: string[];
   };
+};
+
+export type DeleteFormState = {
+    message: string;
+    error?: boolean;
 };
 
 export async function addActivityToAction(
@@ -210,4 +221,31 @@ export async function updateActivity(
 
   revalidatePath(`/campaigns/${campaignId}/${actionId}`);
   return { message: "Активность успешно обновлена." };
+}
+
+export async function deleteActivity(prevState: DeleteFormState, formData: FormData): Promise<DeleteFormState> {
+    const validatedFields = DeleteActivitySchema.safeParse({
+        campaignId: formData.get('campaignId'),
+        actionId: formData.get('actionId'),
+        activityId: formData.get('activityId'),
+    });
+
+    if (!validatedFields.success) {
+        return {
+            message: "Ошибка валидации: не удалось получить необходимые ID.",
+            error: true,
+        };
+    }
+
+    const { campaignId, actionId, activityId } = validatedFields.data;
+
+    try {
+        await deleteActivityData(campaignId, actionId, activityId);
+    } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+        return { message: `Ошибка базы данных: не удалось удалить активность. ${errorMessage}`, error: true };
+    }
+
+    revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+    return { message: "Активность успешно удалена." };
 }

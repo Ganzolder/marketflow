@@ -212,6 +212,40 @@ export async function updateActivity(campaignId: string, actionId: string, updat
     }
 }
 
+export async function deleteActivity(campaignId: string, actionId: string, activityId: string) {
+    const campaignRef = doc(db, 'campaigns', campaignId);
+
+    try {
+        await runTransaction(db, async (transaction) => {
+            const campaignDoc = await transaction.get(campaignRef);
+            if (!campaignDoc.exists()) {
+                throw new Error("Campaign document does not exist!");
+            }
+
+            const campaignData = campaignDoc.data() as Campaign;
+            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
+            
+            if (actionIndex === -1) {
+                throw new Error("Action not found in this campaign!");
+            }
+            
+            const newActions = [...campaignData.actions];
+            const action = newActions[actionIndex];
+            
+            if (!action.activities) {
+                 return; // Nothing to delete
+            }
+
+            action.activities = action.activities.filter(act => act.id !== activityId);
+            
+            transaction.update(campaignRef, { actions: newActions });
+        });
+    } catch (e) {
+        console.error("Transaction failed: ", e);
+        throw new Error(`Failed to delete activity. ${e instanceof Error ? e.message : ''}`);
+    }
+}
+
 
 export async function getCampaigns(): Promise<Campaign[]> {
   const campaignsCollection = collection(db, "campaigns");

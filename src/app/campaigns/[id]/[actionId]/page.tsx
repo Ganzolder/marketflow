@@ -9,6 +9,7 @@ import { Calendar as CalendarIcon, Target, Users, DollarSign } from 'lucide-reac
 import { Progress } from '@/components/ui/progress';
 import { NewActivityButton } from './new-activity-button';
 import { EditActivityButton } from './edit-activity-button';
+import { DeleteActivityButton } from './delete-activity-button';
 
 type ActionDetailPageProps = {
   params: {
@@ -126,7 +127,10 @@ export default async function ActionDetailPage({ params }: ActionDetailPageProps
                                         <CardTitle className="text-lg">{activity.name}</CardTitle>
                                         {activity.description && <CardDescription>{activity.description}</CardDescription>}
                                     </div>
-                                    <EditActivityButton activity={activity} campaignId={campaign.id} actionId={action.id} />
+                                    <div className="flex items-center">
+                                      <EditActivityButton activity={activity} campaignId={campaign.id} actionId={action.id} />
+                                      <DeleteActivityButton activityId={activity.id} campaignId={campaign.id} actionId={action.id} />
+                                    </div>
                                 </CardHeader>
                                 <CardContent className="text-sm text-muted-foreground space-y-2">
                                     <div className="flex items-center gap-2">
