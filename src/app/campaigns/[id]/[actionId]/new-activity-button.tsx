@@ -53,6 +53,8 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
             name: "",
             description: "",
             budget: 0,
+            startDate: "",
+            endDate: "",
             kpis: [],
         },
     });
@@ -112,7 +114,7 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
                  <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 flex-1 flex flex-col min-h-0">
                         <ScrollArea className="flex-1 -mr-6 pr-6">
-                        <div className="grid md:grid-cols-2 gap-8 flex-1 min-h-0 py-4">
+                        <div className="grid md:grid-cols-2 gap-8 py-4">
                             {/* Left Column */}
                             <div className="space-y-4">
                                 <FormField
@@ -175,7 +177,7 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
                             </div>
                             
                             {/* Right Column (KPIs) */}
-                            <div className="flex flex-col min-h-0">
+                            <div className="flex flex-col">
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between">
                                         <h4 className="text-lg font-medium">KPIs</h4>
