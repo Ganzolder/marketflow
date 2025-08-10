@@ -17,6 +17,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useFieldArray } from 'react-hook-form';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { Checkbox } from '@/components/ui/checkbox';
 
 
 const KpiSchema = z.object({
@@ -27,6 +28,7 @@ const KpiSchema = z.object({
     unit: z.string().min(1, "Укажите единицу измерения."),
     multiple: z.coerce.number().min(1, "Кратность должна быть больше 0."),
     parentId: z.string().nullable(),
+    includeInActionGoals: z.boolean().optional(),
 });
 
 const AddActivityFormSchema = z.object({
@@ -181,7 +183,7 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
                                             type="button"
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => append({ id: `kpi-${Date.now()}`, name: '', target: 0, current: 0, unit: '', multiple: 1, parentId: null })}
+                                            onClick={() => append({ id: `kpi-${Date.now()}`, name: '', target: 0, current: 0, unit: '', multiple: 1, parentId: null, includeInActionGoals: true })}
                                         >
                                             <PlusCircle className="mr-2 h-4 w-4" />
                                             Добавить KPI
@@ -272,6 +274,25 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
                                                                 </SelectContent>
                                                             </Select>
                                                             <FormMessage />
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                            </div>
+                                            <div className="flex items-center space-x-2 pt-2">
+                                                <FormField
+                                                    control={form.control}
+                                                    name={`kpis.${index}.includeInActionGoals`}
+                                                    render={({ field }) => (
+                                                        <FormItem className="flex flex-row items-start space-x-2 space-y-0">
+                                                            <FormControl>
+                                                                <Checkbox
+                                                                    checked={field.value}
+                                                                    onCheckedChange={field.onChange}
+                                                                />
+                                                            </FormControl>
+                                                            <FormLabel className="text-sm font-normal text-muted-foreground">
+                                                                Включить в общие цели акции
+                                                            </FormLabel>
                                                         </FormItem>
                                                     )}
                                                 />

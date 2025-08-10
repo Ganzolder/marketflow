@@ -214,6 +214,7 @@ export async function updateActivity(campaignId: string, actionId: string, updat
                     ...uk,
                     current: existingKpi ? existingKpi.current : 0,
                     multiple: uk.multiple || 1,
+                    includeInActionGoals: uk.includeInActionGoals ?? true,
                 };
             });
 
@@ -378,6 +379,7 @@ export async function getCampaignById(id: string): Promise<Campaign | undefined>
                           activity.kpis.forEach(kpi => {
                               if (kpi.multiple === undefined) kpi.multiple = 1;
                               if (kpi.current === undefined) kpi.current = 0;
+                              if (kpi.includeInActionGoals === undefined) kpi.includeInActionGoals = true;
                           });
                       }
                   });

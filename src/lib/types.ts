@@ -18,6 +18,7 @@ export type KPI = {
   unit: string;
   multiple: number;
   parentId: string | null; // ID of the parent KPI for conversion tracking
+  includeInActionGoals?: boolean;
 }
 
 export type Expense = {
@@ -82,4 +83,3 @@ export type ActivityFormState = {
     kpis?: string[];
   };
 };
-

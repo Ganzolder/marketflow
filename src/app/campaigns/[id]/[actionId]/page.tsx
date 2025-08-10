@@ -45,6 +45,11 @@ export default async function ActionDetailPage({ params }: ActionDetailPageProps
 
   (action.activities || []).forEach(activity => {
     (activity.kpis || []).forEach(kpi => {
+      // Only include KPIs that are marked to be included in action goals
+      if (kpi.includeInActionGoals === false) {
+        return;
+      }
+      
       if (aggregatedKpis[kpi.name]) {
         aggregatedKpis[kpi.name].current += kpi.current;
         aggregatedKpis[kpi.name].target += kpi.target;
