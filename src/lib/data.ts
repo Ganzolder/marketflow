@@ -1,5 +1,5 @@
 
-import { Campaign, UpcomingAction, Action } from './types';
+import { Campaign, UpcomingAction, Action, Activity } from './types';
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, addDoc, writeBatch, runTransaction } from "firebase/firestore";
 
@@ -33,7 +33,8 @@ async function seedDatabase() {
             goals: [
               { id: 'g1', name: 'Охват', target: 100000, current: 75000, unit: 'показов' },
               { id: 'g2', name: 'Клики', target: 5000, current: 4200, unit: 'кликов' }
-            ]
+            ],
+            activities: [],
           },
           {
             id: 'act-c1-2',
@@ -43,7 +44,8 @@ async function seedDatabase() {
             status: 'planned',
             startDate: '2024-07-15',
             endDate: '2024-08-15',
-            goals: []
+            goals: [],
+            activities: [],
           }
         ],
       },
@@ -89,23 +91,18 @@ async function seedDatabase() {
 }
 
 
-export async function addAction(campaignId: string, action: Omit<Action, 'id' | 'goals'>) {
+export async function addAction(campaignId: string, action: Omit<Action, 'id' | 'goals' | 'activities'>) {
     const campaignRef = doc(db, "campaigns", campaignId);
-    const campaignDoc = await getDoc(campaignRef);
-
-    if (campaignDoc.exists()) {
-        const campaignData = campaignDoc.data() as Campaign;
-        const newAction: Action = {
-            ...action,
-            id: `act-${campaignId.substring(0,4)}-${(Math.random() + 1).toString(36).substring(7)}`, // more unique ID
-            goals: [] // Start with no goals
-        };
-        await updateDoc(campaignRef, {
-            actions: arrayUnion(newAction)
-        });
-    } else {
-        throw new Error('Campaign not found');
-    }
+    
+    const newAction: Action = {
+        ...action,
+        id: `act-${campaignId.substring(0,4)}-${(Math.random() + 1).toString(36).substring(7)}`, // more unique ID
+        goals: [], // Start with no goals
+        activities: [], // Start with no activities
+    };
+    await updateDoc(campaignRef, {
+        actions: arrayUnion(newAction)
+    });
 }
 
 export async function updateAction(campaignId: string, updatedAction: Action) {
@@ -134,6 +131,39 @@ export async function updateAction(campaignId: string, updatedAction: Action) {
     console.error("Transaction failed: ", e);
     throw new Error('Failed to update action.');
   }
+}
+
+export async function addActivity(campaignId: string, actionId: string, activity: Omit<Activity, 'id'>) {
+    const campaignRef = doc(db, 'campaigns', campaignId);
+
+    try {
+        await runTransaction(db, async (transaction) => {
+            const campaignDoc = await transaction.get(campaignRef);
+            if (!campaignDoc.exists()) {
+                throw "Campaign document does not exist!";
+            }
+
+            const campaignData = campaignDoc.data() as Campaign;
+            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
+            
+            if (actionIndex === -1) {
+                throw "Action not found in this campaign!";
+            }
+
+            const newActivity: Activity = {
+                ...activity,
+                id: `activity-${actionId}-${(Math.random() + 1).toString(36).substring(7)}`,
+            };
+
+            const newActions = [...campaignData.actions];
+            newActions[actionIndex].activities.push(newActivity);
+            
+            transaction.update(campaignRef, { actions: newActions });
+        });
+    } catch (e) {
+        console.error("Transaction failed: ", e);
+        throw new Error('Failed to add activity.');
+    }
 }
 
 

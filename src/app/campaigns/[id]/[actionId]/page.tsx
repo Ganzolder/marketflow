@@ -2,11 +2,12 @@
 import { notFound } from 'next/navigation';
 import { getCampaignById } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/status-badge';
-import { Calendar as CalendarIcon, Target, Users } from 'lucide-react';
+import { Calendar as CalendarIcon, Target, Users, DollarSign } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { NewActivityButton } from './new-activity-button';
 
 type ActionDetailPageProps = {
   params: {
@@ -25,6 +26,8 @@ export default async function ActionDetailPage({ params }: ActionDetailPageProps
 
   const locale = 'ru-RU';
   const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+  const currencyOptions = { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 };
+
 
   return (
     <div>
@@ -105,14 +108,40 @@ export default async function ActionDetailPage({ params }: ActionDetailPageProps
         </Card>
 
         <Card>
-            <CardHeader>
-                <CardTitle>Активности</CardTitle>
-                <CardDescription>Список задач и мероприятий в рамках данной акции.</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                    <CardTitle>Активности</CardTitle>
+                    <CardDescription>Список задач и мероприятий в рамках данной акции.</CardDescription>
+                </div>
+                <NewActivityButton campaignId={campaign.id} actionId={action.id} />
             </CardHeader>
             <CardContent>
-                 <div className="text-center text-sm text-muted-foreground py-10 border-2 border-dashed rounded-lg">
-                    <p>Активности еще не добавлены.</p>
-                </div>
+                 {action.activities && action.activities.length > 0 ? (
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {action.activities.map(activity => (
+                             <Card key={activity.id}>
+                                <CardHeader>
+                                    <CardTitle className="text-lg">{activity.name}</CardTitle>
+                                    {activity.description && <CardDescription>{activity.description}</CardDescription>}
+                                </CardHeader>
+                                <CardContent className="text-sm text-muted-foreground space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <CalendarIcon className="w-4 h-4" />
+                                        <span>{new Date(activity.startDate).toLocaleDateString(locale, {day: '2-digit', month: 'short'})} - {new Date(activity.endDate).toLocaleDateString(locale, {day: '2-digit', month: 'short', year: 'numeric'})}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <DollarSign className="w-4 h-4" />
+                                        <span>{new Intl.NumberFormat(locale, currencyOptions).format(activity.budget)}</span>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                 ) : (
+                     <div className="text-center text-sm text-muted-foreground py-10 border-2 border-dashed rounded-lg">
+                        <p>Активности еще не добавлены.</p>
+                    </div>
+                 )}
             </CardContent>
         </Card>
       </div>

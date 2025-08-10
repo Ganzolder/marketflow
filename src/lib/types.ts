@@ -8,6 +8,15 @@ export type Goal = {
 
 export type ActionStatus = 'planned' | 'in-progress' | 'completed';
 
+export type Activity = {
+  id: string;
+  name: string;
+  description?: string;
+  budget: number;
+  startDate: string;
+  endDate: string;
+};
+
 export type Action = {
   id: string;
   name: string;
@@ -17,6 +26,7 @@ export type Action = {
   startDate: string;
   endDate: string;
   goals: Goal[];
+  activities: Activity[];
 };
 
 export type CampaignStatus = 'active' | 'planned' | 'completed' | 'paused';
