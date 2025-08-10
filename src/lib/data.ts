@@ -201,10 +201,12 @@ export async function updateActivity(campaignId: string, actionId: string, updat
                 throw new Error("Activity not found in this action!");
             }
             
-            // Make sure to preserve fields that are not in the form, like 'current' for KPIs
             const existingActivity = action.activities[activityIndex];
+            // Ensure existingActivity.kpis is an array before calling .find()
+            const existingKpis = existingActivity.kpis || [];
+
             const updatedKpis = updatedActivity.kpis.map(uk => {
-                const existingKpi = existingActivity.kpis.find(ek => ek.id === uk.id);
+                const existingKpi = existingKpis.find(ek => ek.id === uk.id);
                 return {
                     ...uk,
                     current: existingKpi ? existingKpi.current : 0,
