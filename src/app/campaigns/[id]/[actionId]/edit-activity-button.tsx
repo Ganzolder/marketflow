@@ -114,7 +114,7 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                 </DialogHeader>
                  <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col min-h-0 gap-4">
-                       <ScrollArea className="flex-1 pr-6 -mr-6">
+                    <ScrollArea className="flex-1 min-h-0 pr-6 -mr-6">
                        <div className="grid md:grid-cols-2 gap-8 py-4">
                             {/* Left Column */}
                             <div className="space-y-4">
@@ -335,7 +335,7 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                             </div>
                         </div>
                        </ScrollArea>
-                        <DialogFooter className="pt-4 border-t">
+                       <DialogFooter className="shrink-0 pt-4 border-t">
                             <DialogClose asChild>
                                 <Button variant="outline">Отмена</Button>
                             </DialogClose>
