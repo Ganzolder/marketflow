@@ -92,11 +92,12 @@ export function UpdateMetricsForm({ activity, campaignId, actionId }: { activity
                                 <div className="flex justify-between items-center mb-1">
                                     <Label htmlFor={`kpi-${kpi.id}`} className="text-sm font-normal">{kpi.name}</Label>
                                     <span className="text-xs text-muted-foreground">
-                                        {kpi.current.toLocaleString(locale)} / {kpi.target.toLocaleString(locale)} {kpi.unit}
+                                        {kpi.current.toLocaleString(locale)} / {kpi.target.toLocaleString(locale)}
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-3">
                                      <Progress value={kpi.target > 0 ? (kpi.current / kpi.target) * 100 : 0} className="h-2 flex-1" />
+                                     <span className="text-xs text-muted-foreground">/ {kpi.unit}</span>
                                      <Input
                                         id={`kpi-${kpi.id}`}
                                         name={`kpi-${kpi.id}`}
