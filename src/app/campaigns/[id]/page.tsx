@@ -1,62 +1,37 @@
 
-"use client";
-
-import { useState, useEffect } from 'react';
-import type { Campaign, Action } from '@/lib/types';
 import { getCampaignById } from '@/lib/data';
-import { notFound, useParams } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { Edit, Calendar as CalendarIcon, DollarSign, Target, FilePlus, Loader2 } from 'lucide-react';
+import { Edit, Calendar as CalendarIcon, DollarSign, Target, FilePlus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/status-badge';
 import { NewActionButton } from './new-action-button';
 import { EditActionButton } from './edit-action-button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 
 type CampaignDetailPageProps = {
   params: {
     id: string;
+  },
+  searchParams: {
+    startDate?: string;
+    endDate?: string;
   }
 }
 
-export default function CampaignDetailPage({ params }: CampaignDetailPageProps) {
-  const id = params.id;
-  
-  const [campaign, setCampaign] = useState<Campaign | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [startDateFilter, setStartDateFilter] = useState('');
-  const [endDateFilter, setEndDateFilter] = useState('');
-
-  useEffect(() => {
-    if (id) {
-      getCampaignById(id).then(campaignData => {
-        if (!campaignData) {
-          notFound();
-        } else {
-          setCampaign(campaignData);
-        }
-        setLoading(false);
-      });
-    }
-  }, [id]);
-
-  if (loading) {
-    return (
-        <div className="flex items-center justify-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-    );
-  }
+export default async function CampaignDetailPage({ params, searchParams }: CampaignDetailPageProps) {
+  const campaign = await getCampaignById(params.id);
 
   if (!campaign) {
-    return notFound();
+    notFound();
   }
+
+  const startDateFilter = searchParams.startDate || '';
+  const endDateFilter = searchParams.endDate || '';
   
-  const filteredActions = campaign.actions.filter(action => {
+  const filteredActions = (campaign.actions || []).filter(action => {
     const actionStartDate = new Date(action.startDate);
     const actionEndDate = new Date(action.endDate);
     const filterStartDate = startDateFilter ? new Date(startDateFilter) : null;
@@ -121,7 +96,6 @@ export default function CampaignDetailPage({ params }: CampaignDetailPageProps) 
           </CardContent>
         </Card>
 
-        {/* Actions List */}
         <Card>
             <CardHeader>
                 <div className="flex items-center justify-between">
@@ -129,6 +103,8 @@ export default function CampaignDetailPage({ params }: CampaignDetailPageProps) 
                     <NewActionButton campaignId={campaign.id} />
                 </div>
                 <CardDescription>Список всех акций, связанных с этой кампанией.</CardDescription>
+                {/* Note: Filtering will now be handled by page reloads with query params */}
+                 {/*
                  <div className="grid md:grid-cols-2 gap-4 pt-4">
                     <div className="grid gap-2">
                       <Label htmlFor="start-date-filter">Начало акции после</Label>
@@ -139,6 +115,7 @@ export default function CampaignDetailPage({ params }: CampaignDetailPageProps) 
                       <Input id="end-date-filter" type="date" value={endDateFilter} onChange={e => setEndDateFilter(e.target.value)} />
                     </div>
                 </div>
+                */}
             </CardHeader>
             <CardContent>
                 <div className="grid gap-4 md:grid-cols-2">
