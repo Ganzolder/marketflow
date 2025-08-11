@@ -214,7 +214,7 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
                                                             <span className="font-bold text-blue-500">{new Intl.NumberFormat(locale, currencyOptions).format(costPerUnit)}</span>
                                                             </TooltipTrigger>
                                                             <TooltipContent>
-                                                              <p>Стоимость за {kpi.multiple} {kpi.unit} (факт)</p>
+                                                              <p>Стоимость за / {kpi.multiple} {kpi.unit} (факт)</p>
                                                             </TooltipContent>
                                                         </Tooltip>
                                                     </TooltipProvider>
