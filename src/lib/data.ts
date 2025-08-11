@@ -347,7 +347,68 @@ export async function addExpenseToActivity(campaignId: string, actionId: string,
     }
 }
 
-export async function updateExpenseInActivity(campaignId: string, actionId: string, activityId: string, updatedExpense: Expense) {
+export async function updateExpense(campaignId: string, actionId: string, updatedExpense: Expense, originalActivityId: string, newActivityId: string) {
+    if (originalActivityId === newActivityId) {
+        // The expense stays in the same place (either general or the same activity)
+        if (newActivityId === 'general') {
+            await updateGeneralExpenseInAction(campaignId, actionId, updatedExpense);
+        } else {
+            await updateExpenseInActivity(campaignId, actionId, newActivityId, updatedExpense);
+        }
+    } else {
+        // The expense is moving between lists
+        const campaignRef = doc(db, 'campaigns', campaignId);
+        try {
+            await runTransaction(db, async (transaction) => {
+                const campaignDoc = await transaction.get(campaignRef);
+                if (!campaignDoc.exists()) throw new Error("Campaign does not exist!");
+
+                const campaignData = campaignDoc.data() as Campaign;
+                const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
+                if (actionIndex === -1) throw new Error("Action not found!");
+
+                const newActions = [...campaignData.actions];
+                const action = newActions[actionIndex];
+                
+                // 1. Remove from original location
+                if (originalActivityId === 'general') {
+                     if (!action.generalExpenses) throw new Error("Original expense location (general) not found.");
+                     action.generalExpenses = action.generalExpenses.filter(e => e.id !== updatedExpense.id);
+                } else {
+                    const activityIndex = action.activities.findIndex(a => a.id === originalActivityId);
+                    if (activityIndex === -1) throw new Error("Original activity not found.");
+                    const activity = action.activities[activityIndex];
+                    if (!activity.expenses) throw new Error("Original expense location (activity) not found.");
+                    activity.expenses = activity.expenses.filter(e => e.id !== updatedExpense.id);
+                    // Recalculate spent for original activity
+                    activity.spent = activity.expenses.reduce((acc, exp) => acc + exp.amount, 0);
+                }
+
+                // 2. Add to new location
+                if (newActivityId === 'general') {
+                    if (!action.generalExpenses) action.generalExpenses = [];
+                    action.generalExpenses.push(updatedExpense);
+                } else {
+                     const activityIndex = action.activities.findIndex(a => a.id === newActivityId);
+                    if (activityIndex === -1) throw new Error("New activity not found.");
+                    const activity = action.activities[activityIndex];
+                    if (!activity.expenses) activity.expenses = [];
+                    activity.expenses.push(updatedExpense);
+                     // Recalculate spent for new activity
+                    activity.spent = activity.expenses.reduce((acc, exp) => acc + exp.amount, 0);
+                }
+
+                transaction.update(campaignRef, { actions: newActions });
+            });
+        } catch (e) {
+            console.error("Move expense transaction failed: ", e);
+            throw e;
+        }
+    }
+}
+
+
+async function updateExpenseInActivity(campaignId: string, actionId: string, activityId: string, updatedExpense: Expense) {
     const campaignRef = doc(db, 'campaigns', campaignId);
     try {
         await runTransaction(db, async (transaction) => {
@@ -525,7 +586,7 @@ export async function addGeneralExpenseToAction(campaignId: string, actionId: st
     }
 }
 
-export async function updateGeneralExpenseInAction(campaignId: string, actionId: string, updatedExpense: Expense) {
+async function updateGeneralExpenseInAction(campaignId: string, actionId: string, updatedExpense: Expense) {
     const campaignRef = doc(db, 'campaigns', campaignId);
     try {
         await runTransaction(db, async (transaction) => {

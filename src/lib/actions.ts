@@ -2,7 +2,7 @@
 "use server";
 
 import { z } from "zod";
-import { addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpenseInActivity, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction } from "./data";
+import { addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction } from "./data";
 import { revalidatePath } from "next/cache";
 import type { Action, Activity, KPI, Expense } from "./types";
 
@@ -340,15 +340,15 @@ const AddExpenseSchema = z.object({
   photoURL: z.string().url("Неверный URL-адрес фотографии.").or(z.literal('')).optional(),
 });
 
-const ActivityExpenseSchema = AddExpenseSchema.extend({
-  campaignId: z.string(),
-  actionId: z.string(),
-  activityId: z.string(),
+
+const UpdateExpenseSchema = AddExpenseSchema.extend({
+    expenseId: z.string(),
+    campaignId: z.string(),
+    actionId: z.string(),
+    newActivityId: z.string(), // Can be 'general' or an activity ID
+    originalActivityId: z.string(), // Can be 'general' or an activity ID
 });
 
-const UpdateActivityExpenseSchema = ActivityExpenseSchema.extend({
-    expenseId: z.string(),
-});
 
 const DeleteActivityExpenseSchema = z.object({
     campaignId: z.string(),
@@ -361,10 +361,6 @@ const GeneralExpenseSchema = AddExpenseSchema.extend({
   campaignId: z.string(),
   actionId: z.string(),
   activityId: z.string().optional(), // Can be general or attached to an activity
-});
-
-const UpdateGeneralExpenseSchema = GeneralExpenseSchema.extend({
-    expenseId: z.string(),
 });
 
 const DeleteGeneralExpenseSchema = z.object({
@@ -381,10 +377,11 @@ export type ExpenseFormState = {
 };
 
 export async function addExpense(prevState: ExpenseFormState | null, formData: FormData): Promise<ExpenseFormState> {
-    const validatedFields = ActivityExpenseSchema.safeParse({
+    
+    const validatedFields = GeneralExpenseSchema.safeParse({
         campaignId: formData.get('campaignId'),
         actionId: formData.get('actionId'),
-        activityId: formData.get('activityId'),
+        activityId: formData.get('activityId'), // This is from the add-expense-button, not the general one
         description: formData.get('description'),
         amount: formData.get('amount'),
         date: formData.get('date'),
@@ -403,7 +400,7 @@ export async function addExpense(prevState: ExpenseFormState | null, formData: F
     const { campaignId, actionId, activityId, ...expenseData } = validatedFields.data;
 
     try {
-        await addExpenseToActivityData(campaignId, actionId, activityId, expenseData);
+       await addExpenseToActivityData(campaignId, actionId, activityId!, expenseData);
     } catch (e) {
         const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
         return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
@@ -414,11 +411,12 @@ export async function addExpense(prevState: ExpenseFormState | null, formData: F
 }
 
 export async function updateExpense(prevState: ExpenseFormState | null, formData: FormData): Promise<ExpenseFormState> {
-    const validatedFields = UpdateActivityExpenseSchema.safeParse({
+    const validatedFields = UpdateExpenseSchema.safeParse({
         expenseId: formData.get('expenseId'),
         campaignId: formData.get('campaignId'),
         actionId: formData.get('actionId'),
-        activityId: formData.get('activityId'),
+        originalActivityId: formData.get('originalActivityId'),
+        newActivityId: formData.get('activityId'),
         description: formData.get('description'),
         amount: formData.get('amount'),
         date: formData.get('date'),
@@ -434,11 +432,11 @@ export async function updateExpense(prevState: ExpenseFormState | null, formData
         };
     }
     
-    const { campaignId, actionId, activityId, expenseId, ...expenseData } = validatedFields.data;
+    const { campaignId, actionId, expenseId, originalActivityId, newActivityId, ...expenseData } = validatedFields.data;
     const expenseToUpdate: Expense = { id: expenseId, ...expenseData };
 
     try {
-        await updateExpenseInActivity(campaignId, actionId, activityId, expenseToUpdate);
+        await updateExpenseData(campaignId, actionId, expenseToUpdate, originalActivityId, newActivityId);
     } catch (e) {
         const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
         return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
@@ -517,39 +515,6 @@ export async function addGeneralExpense(prevState: ExpenseFormState | null, form
     return { message: "Расход успешно добавлен." };
 }
 
-export async function updateGeneralExpense(prevState: ExpenseFormState | null, formData: FormData): Promise<ExpenseFormState> {
-    const validatedFields = UpdateGeneralExpenseSchema.safeParse({
-        expenseId: formData.get('expenseId'),
-        campaignId: formData.get('campaignId'),
-        actionId: formData.get('actionId'),
-        description: formData.get('description'),
-        amount: formData.get('amount'),
-        date: formData.get('date'),
-        legalEntity: formData.get('legalEntity'),
-        photoURL: formData.get('photoURL'),
-    });
-
-    if (!validatedFields.success) {
-        return {
-            message: "Ошибка валидации.",
-            error: true,
-            errors: validatedFields.error.flatten().fieldErrors,
-        };
-    }
-    
-    const { campaignId, actionId, expenseId, ...expenseData } = validatedFields.data;
-    const expenseToUpdate: Expense = { id: expenseId, ...expenseData };
-
-    try {
-        await updateGeneralExpenseInAction(campaignId, actionId, expenseToUpdate);
-    } catch (e) {
-        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
-        return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
-    }
-
-    revalidatePath(`/campaigns/${campaignId}/${actionId}`);
-    return { message: "Общий расход успешно обновлен." };
-}
 
 export async function deleteGeneralExpense(prevState: DeleteFormState | null, formData: FormData): Promise<DeleteFormState> {
     const validatedFields = DeleteGeneralExpenseSchema.safeParse({

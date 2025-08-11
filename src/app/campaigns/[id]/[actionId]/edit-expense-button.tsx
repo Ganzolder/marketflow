@@ -13,9 +13,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { storage } from '@/lib/firebase';
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { Progress } from '@/components/ui/progress';
-import type { Expense } from '@/lib/types';
+import type { Expense, Activity } from '@/lib/types';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-export function EditExpenseButton({ expense, campaignId, actionId, activityId }: { expense: Expense, campaignId: string; actionId: string; activityId: string; }) {
+export function EditExpenseButton({ expense, campaignId, actionId, activities, originalActivityId }: { expense: Expense, campaignId: string; actionId: string; activities: Activity[], originalActivityId?: string }) {
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
@@ -68,7 +69,7 @@ export function EditExpenseButton({ expense, campaignId, actionId, activityId }:
                 setUploadProgress(0);
                 
                 try {
-                    const storageRef = ref(storage, `expense_proofs/${campaignId}/${activityId}/${Date.now()}_${file.name}`);
+                    const storageRef = ref(storage, `expense_proofs/${campaignId}/${actionId}/${Date.now()}_${file.name}`);
                     const uploadTask = uploadBytesResumable(storageRef, file);
 
                     fileUrl = await new Promise<string>((resolve, reject) => {
@@ -122,10 +123,24 @@ export function EditExpenseButton({ expense, campaignId, actionId, activityId }:
                 <form onSubmit={handleFormSubmit} ref={formRef}>
                     <input type="hidden" name="campaignId" value={campaignId} />
                     <input type="hidden" name="actionId" value={actionId} />
-                    <input type="hidden" name="activityId" value={activityId} />
                     <input type="hidden" name="expenseId" value={expense.id} />
+                    <input type="hidden" name="originalActivityId" value={originalActivityId || 'general'} />
                     
                     <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                             <Label htmlFor="activityId">Привязка к активности</Label>
+                             <Select name="activityId" defaultValue={originalActivityId || 'general'}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Выберите активность" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="general">Общий расход</SelectItem>
+                                    {activities.map(activity => (
+                                        <SelectItem key={activity.id} value={activity.id}>{activity.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                             </Select>
+                        </div>
                         <div className="grid gap-2">
                             <Label htmlFor="description">Описание</Label>
                             <Textarea id="description" name="description" defaultValue={expense.description} />
