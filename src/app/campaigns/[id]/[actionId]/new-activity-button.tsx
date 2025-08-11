@@ -334,7 +334,7 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
                                 </div>
                             </div>
                         </ScrollArea>
-                        <DialogFooter className="pt-4 border-t">
+                        <DialogFooter className="shrink-0 pt-4 border-t">
                             <DialogClose asChild>
                                 <Button type="button" variant="outline">Отмена</Button>
                             </DialogClose>
