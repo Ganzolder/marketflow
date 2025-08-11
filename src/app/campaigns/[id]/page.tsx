@@ -17,9 +17,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 
-export default function CampaignDetailPage() {
-  const params = useParams();
-  const id = params.id as string;
+type CampaignDetailPageProps = {
+  params: {
+    id: string;
+  }
+}
+
+export default function CampaignDetailPage({ params }: CampaignDetailPageProps) {
+  const id = params.id;
   
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);

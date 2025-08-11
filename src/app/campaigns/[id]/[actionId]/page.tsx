@@ -29,7 +29,8 @@ type ActionDetailPageProps = {
   };
 };
 
-export default async function ActionDetailPage({ params }: ActionDetailPageProps) {
+export default async function ActionDetailPage({ params: paramsPromise }: ActionDetailPageProps) {
+  const params = await paramsPromise;
   const campaign = await getCampaignById(params.id);
   const action = campaign?.actions.find((a) => a.id === params.actionId);
 
