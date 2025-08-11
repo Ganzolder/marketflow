@@ -322,7 +322,7 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                                                             <span className="font-bold text-blue-500">{new Intl.NumberFormat(locale, currencyOptions).format(costPerUnit)}</span>
                                                             </TooltipTrigger>
                                                             <TooltipContent>
-                                                            <p>Стоимость за {currentKpi?.multiple || 1} {currentKpi?.unit || 'ед.'}</p>
+                                                            <p>Стоимость за / {currentKpi?.multiple || 1} {currentKpi?.unit || 'ед.'}</p>
                                                             </TooltipContent>
                                                         </Tooltip>
                                                     </TooltipProvider>
@@ -355,4 +355,5 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
     );
 }
 
+    
     
