@@ -347,6 +347,73 @@ export async function addExpenseToActivity(campaignId: string, actionId: string,
     }
 }
 
+export async function updateExpenseInActivity(campaignId: string, actionId: string, activityId: string, updatedExpense: Expense) {
+    const campaignRef = doc(db, 'campaigns', campaignId);
+    try {
+        await runTransaction(db, async (transaction) => {
+            const campaignDoc = await transaction.get(campaignRef);
+            if (!campaignDoc.exists()) throw new Error("Campaign does not exist!");
+
+            const campaignData = campaignDoc.data() as Campaign;
+            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
+            if (actionIndex === -1) throw new Error("Action not found!");
+
+            const newActions = [...campaignData.actions];
+            const action = newActions[actionIndex];
+            if (!action.activities) throw new Error("Activity array not found!");
+            
+            const activityIndex = action.activities.findIndex(act => act.id === activityId);
+            if (activityIndex === -1) throw new Error("Activity not found!");
+            
+            const activity = action.activities[activityIndex];
+            if (!activity.expenses) throw new Error("Expenses not found in activity!");
+
+            const expenseIndex = activity.expenses.findIndex(e => e.id === updatedExpense.id);
+            if (expenseIndex === -1) throw new Error("Expense not found!");
+
+            activity.expenses[expenseIndex] = updatedExpense;
+            activity.spent = activity.expenses.reduce((acc, exp) => acc + exp.amount, 0);
+
+            transaction.update(campaignRef, { actions: newActions });
+        });
+    } catch (e) {
+        console.error("Update expense transaction failed: ", e);
+        throw e;
+    }
+}
+
+export async function deleteExpenseFromActivity(campaignId: string, actionId: string, activityId: string, expenseId: string) {
+    const campaignRef = doc(db, 'campaigns', campaignId);
+    try {
+        await runTransaction(db, async (transaction) => {
+            const campaignDoc = await transaction.get(campaignRef);
+            if (!campaignDoc.exists()) throw new Error("Campaign does not exist!");
+
+            const campaignData = campaignDoc.data() as Campaign;
+            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
+            if (actionIndex === -1) throw new Error("Action not found!");
+
+            const newActions = [...campaignData.actions];
+            const action = newActions[actionIndex];
+            if (!action.activities) return;
+
+            const activityIndex = action.activities.findIndex(act => act.id === activityId);
+            if (activityIndex === -1) return;
+
+            const activity = action.activities[activityIndex];
+            if (!activity.expenses) return;
+
+            activity.expenses = activity.expenses.filter(e => e.id !== expenseId);
+            activity.spent = activity.expenses.reduce((acc, exp) => acc + exp.amount, 0);
+
+            transaction.update(campaignRef, { actions: newActions });
+        });
+    } catch (e) {
+        console.error("Delete expense transaction failed: ", e);
+        throw e;
+    }
+}
+
 
 export async function getCampaigns(): Promise<Campaign[]> {
   const campaignsCollection = collection(db, "campaigns");
@@ -392,6 +459,7 @@ export async function getCampaignById(id: string): Promise<Campaign | undefined>
   if (campaignSnap.exists()) {
     return processCampaignData(campaignSnap);
   } else {
+    // This should ideally not happen in a real app, but for seeding purposes:
     await seedDatabase();
     const campaignSnapAfterSeed = await getDoc(campaignRef);
      if (campaignSnapAfterSeed.exists()) {

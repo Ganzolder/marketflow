@@ -2,7 +2,7 @@
 "use server";
 
 import { z } from "zod";
-import { addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction } from "./data";
+import { addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpenseInActivity, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction } from "./data";
 import { revalidatePath } from "next/cache";
 import type { Action, Activity, KPI, Expense } from "./types";
 
@@ -346,6 +346,17 @@ const ActivityExpenseSchema = AddExpenseSchema.extend({
   activityId: z.string(),
 });
 
+const UpdateActivityExpenseSchema = ActivityExpenseSchema.extend({
+    expenseId: z.string(),
+});
+
+const DeleteActivityExpenseSchema = z.object({
+    campaignId: z.string(),
+    actionId: z.string(),
+    activityId: z.string(),
+    expenseId: z.string(),
+});
+
 const GeneralExpenseSchema = AddExpenseSchema.extend({
   campaignId: z.string(),
   actionId: z.string(),
@@ -400,6 +411,69 @@ export async function addExpense(prevState: ExpenseFormState | null, formData: F
 
     revalidatePath(`/campaigns/${campaignId}/${actionId}`);
     return { message: "Расход успешно добавлен." };
+}
+
+export async function updateExpense(prevState: ExpenseFormState | null, formData: FormData): Promise<ExpenseFormState> {
+    const validatedFields = UpdateActivityExpenseSchema.safeParse({
+        expenseId: formData.get('expenseId'),
+        campaignId: formData.get('campaignId'),
+        actionId: formData.get('actionId'),
+        activityId: formData.get('activityId'),
+        description: formData.get('description'),
+        amount: formData.get('amount'),
+        date: formData.get('date'),
+        legalEntity: formData.get('legalEntity'),
+        photoURL: formData.get('photoURL'),
+    });
+
+    if (!validatedFields.success) {
+        return {
+            message: "Ошибка валидации.",
+            error: true,
+            errors: validatedFields.error.flatten().fieldErrors,
+        };
+    }
+    
+    const { campaignId, actionId, activityId, expenseId, ...expenseData } = validatedFields.data;
+    const expenseToUpdate: Expense = { id: expenseId, ...expenseData };
+
+    try {
+        await updateExpenseInActivity(campaignId, actionId, activityId, expenseToUpdate);
+    } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+        return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
+    }
+
+    revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+    return { message: "Расход успешно обновлен." };
+}
+
+export async function deleteExpense(prevState: DeleteFormState | null, formData: FormData): Promise<DeleteFormState> {
+    const validatedFields = DeleteActivityExpenseSchema.safeParse({
+        campaignId: formData.get('campaignId'),
+        actionId: formData.get('actionId'),
+        activityId: formData.get('activityId'),
+        expenseId: formData.get('expenseId'),
+    });
+    
+    if (!validatedFields.success) {
+        return {
+            message: "Ошибка валидации: не удалось получить необходимые ID.",
+            error: true,
+        };
+    }
+
+    const { campaignId, actionId, activityId, expenseId } = validatedFields.data;
+
+    try {
+        await deleteExpenseFromActivity(campaignId, actionId, activityId, expenseId);
+    } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+        return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
+    }
+
+    revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+    return { message: "Расход успешно удален." };
 }
 
 export async function addGeneralExpense(prevState: ExpenseFormState | null, formData: FormData): Promise<ExpenseFormState> {

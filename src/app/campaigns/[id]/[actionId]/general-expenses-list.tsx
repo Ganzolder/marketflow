@@ -23,9 +23,12 @@ import { FileSymlink } from "lucide-react";
 import { AddGeneralExpenseButton } from "./add-general-expense-button";
 import { EditGeneralExpenseButton } from "./edit-general-expense-button";
 import { DeleteGeneralExpenseButton } from "./delete-general-expense-button";
+import { EditExpenseButton } from "./edit-expense-button";
+import { DeleteExpenseButton } from "./delete-expense-button";
 
 type EnrichedExpense = Expense & {
     activityName?: string;
+    activityId?: string;
 }
 
 export function GeneralExpensesList({ action, campaignId }: { action: Action; campaignId: string }) {
@@ -36,7 +39,7 @@ export function GeneralExpensesList({ action, campaignId }: { action: Action; ca
   const allExpenses: EnrichedExpense[] = [
       ...(action.generalExpenses || []).map(exp => ({ ...exp, activityName: 'Общий расход' })),
       ...(action.activities || []).flatMap(activity => 
-          (activity.expenses || []).map(exp => ({ ...exp, activityName: activity.name }))
+          (activity.expenses || []).map(exp => ({ ...exp, activityName: activity.name, activityId: activity.id }))
       )
   ].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -90,13 +93,17 @@ export function GeneralExpensesList({ action, campaignId }: { action: Action; ca
                   <TableCell className="text-right">{new Intl.NumberFormat(locale, currencyOptions).format(expense.amount)}</TableCell>
                    <TableCell className="text-right">
                        <div className="flex items-center justify-end space-x-1">
-                          {expense.activityName === 'Общий расход' && (
+                          {expense.activityId ? (
+                             <>
+                              <EditExpenseButton expense={expense} campaignId={campaignId} actionId={action.id} activityId={expense.activityId} />
+                              <DeleteExpenseButton expenseId={expense.id} campaignId={campaignId} actionId={action.id} activityId={expense.activityId} />
+                            </>
+                          ) : (
                             <>
                               <EditGeneralExpenseButton expense={expense} campaignId={campaignId} actionId={action.id} />
                               <DeleteGeneralExpenseButton expenseId={expense.id} campaignId={campaignId} actionId={action.id} />
                             </>
                           )}
-                           {/* Editing/deleting activity-specific expenses would be done from the activity card itself to avoid complexity here */}
                        </div>
                    </TableCell>
                 </TableRow>
