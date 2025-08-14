@@ -159,9 +159,10 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
 
                         const plannedRevenue = plannedSales * (action.plannedAverageCheck || 0);
                         const actualRevenue = actualSales * (action.actualAverageCheck || 0);
+                        const plannedProfit = plannedRevenue * ((action.plannedMarginality || 0) / 100);
                         const actualProfit = actualRevenue * ((action.actualMarginality || 0) / 100);
                         const hasRevenueData = action.plannedAverageCheck || action.actualAverageCheck;
-                        const hasProfitData = action.actualMarginality;
+                        const hasProfitData = action.actualMarginality || action.plannedMarginality;
 
 
                         return (
@@ -209,9 +210,10 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                                                     <div className="flex justify-between items-center text-sm mb-1">
                                                         <span className="text-muted-foreground flex items-center"><Landmark className="w-3 h-3 mr-1.5"/>Прибыль</span>
                                                         <span className="font-medium text-accent">
-                                                            {new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(actualProfit)}
+                                                            {new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(actualProfit)} / <span className="text-muted-foreground">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(plannedProfit)}</span>
                                                         </span>
                                                     </div>
+                                                    <Progress value={plannedProfit > 0 ? (actualProfit / plannedProfit) * 100 : 0} className="h-2" indicatorClassName="bg-accent" />
                                                 </div>
                                             )}
                                             {plannedBudget > 0 && (
