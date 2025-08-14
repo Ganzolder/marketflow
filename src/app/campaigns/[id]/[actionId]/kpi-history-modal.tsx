@@ -16,6 +16,24 @@ import {
 } from "@/components/ui/table";
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { stringify } from 'csv-stringify/sync';
+import { Bar, BarChart, CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  ChartContainer,
+  ChartConfig,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+} from "@/components/ui/chart"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs';
+
 
 type KpiHistoryModalProps = {
     activity: Activity;
@@ -37,7 +55,6 @@ export function KpiHistoryModal({ activity }: KpiHistoryModalProps) {
     const runningTotals: Record<string, number> = {};
 
     (activity.kpis || []).forEach(kpi => {
-        // Sort metrics by date for correct running total calculation
         const sortedMetrics = [...(kpi.metrics || [])].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
         
         sortedMetrics.forEach(metric => {
@@ -54,8 +71,33 @@ export function KpiHistoryModal({ activity }: KpiHistoryModalProps) {
         });
     });
 
-    // Sort all logs by date for final display
     flattenedLogs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    // --- Chart Data Preparation ---
+    const chartConfig = (activity.kpis || []).reduce((acc, kpi, index) => {
+        acc[kpi.name] = {
+            label: kpi.name,
+            color: `hsl(var(--chart-${index + 1}))`,
+        };
+        return acc;
+    }, {} as ChartConfig);
+
+    const chartData = (activity.kpis || []).length > 0 ? 
+        Object.values(
+            flattenedLogs.reduce((acc, log) => {
+            const date = new Date(log.date).toLocaleDateString(locale, { day: 'numeric', month: 'short' });
+            if (!acc[date]) {
+                acc[date] = { date };
+            }
+            // Daily value
+            acc[date][log.kpiName] = (acc[date][log.kpiName] || 0) + log.value;
+            // Cumulative value
+            acc[date][`${log.kpiName}_cumulative`] = log.runningTotal;
+            return acc;
+            }, {} as Record<string, any>)
+        ).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        : [];
+    
     
     const handleExport = () => {
         const csvData = stringify(flattenedLogs, {
@@ -90,7 +132,7 @@ export function KpiHistoryModal({ activity }: KpiHistoryModalProps) {
                     История KPI
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[700px]">
+            <DialogContent className="max-w-[90vw] w-full lg:max-w-[70vw]">
                 <DialogHeader>
                     <DialogTitle>История KPI для "{activity.name}"</DialogTitle>
                     <DialogDescription>
@@ -100,28 +142,100 @@ export function KpiHistoryModal({ activity }: KpiHistoryModalProps) {
                 
                 <div className="py-4">
                     {flattenedLogs.length > 0 ? (
-                        <ScrollArea className="h-[400px] border rounded-md">
-                            <Table>
-                                <TableHeader className="sticky top-0 bg-muted/90 backdrop-blur-sm">
-                                    <TableRow>
-                                        <TableHead>Дата</TableHead>
-                                        <TableHead>KPI</TableHead>
-                                        <TableHead className="text-right">Значение</TableHead>
-                                        <TableHead className="text-right">Итог</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {flattenedLogs.map((log, index) => (
-                                        <TableRow key={index}>
-                                            <TableCell>{new Date(log.date).toLocaleDateString(locale, dateOptions)}</TableCell>
-                                            <TableCell className="font-medium">{log.kpiName}</TableCell>
-                                            <TableCell className="text-right">+{log.value.toLocaleString(locale)}</TableCell>
-                                            <TableCell className="text-right font-semibold">{log.runningTotal.toLocaleString(locale)}</TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                         </ScrollArea>
+                        <Tabs defaultValue="daily">
+                            <TabsList className="grid w-full grid-cols-3">
+                                <TabsTrigger value="daily">По дням</TabsTrigger>
+                                <TabsTrigger value="cumulative">Накопительный</TabsTrigger>
+                                <TabsTrigger value="table">Таблица</TabsTrigger>
+                            </TabsList>
+                             <TabsContent value="daily">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Динамика по дням</CardTitle>
+                                        <CardDescription>Изменения KPI за каждый день.</CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <ChartContainer config={chartConfig} className="h-[400px] w-full">
+                                            <BarChart accessibilityLayer data={chartData}>
+                                                <CartesianGrid vertical={false} />
+                                                <XAxis
+                                                    dataKey="date"
+                                                    tickLine={false}
+                                                    tickMargin={10}
+                                                    axisLine={false}
+                                                />
+                                                <YAxis />
+                                                <ChartTooltip content={<ChartTooltipContent />} />
+                                                <ChartLegend content={<ChartLegendContent />} />
+                                                 {(activity.kpis || []).map(kpi => (
+                                                    <Bar dataKey={kpi.name} key={kpi.id} fill={`var(--color-${kpi.name})`} radius={4} />
+                                                 ))}
+                                            </BarChart>
+                                        </ChartContainer>
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+                            <TabsContent value="cumulative">
+                                 <Card>
+                                    <CardHeader>
+                                        <CardTitle>Накопительный итог</CardTitle>
+                                        <CardDescription>Общий рост KPI с течением времени.</CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <ChartContainer config={chartConfig} className="h-[400px] w-full">
+                                            <LineChart accessibilityLayer data={chartData}>
+                                                <CartesianGrid vertical={false} />
+                                                <XAxis
+                                                    dataKey="date"
+                                                    tickLine={false}
+                                                    tickMargin={10}
+                                                    axisLine={false}
+                                                />
+                                                <YAxis />
+                                                <ChartTooltip content={<ChartTooltipContent />} />
+                                                <ChartLegend content={<ChartLegendContent />} />
+                                                 {(activity.kpis || []).map(kpi => (
+                                                    <Line dataKey={`${kpi.name}_cumulative`} name={kpi.name} key={kpi.id} type="monotone" stroke={`var(--color-${kpi.name})`} strokeWidth={2} dot={false} />
+                                                 ))}
+                                            </LineChart>
+                                        </ChartContainer>
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+                            <TabsContent value="table">
+                                 <Card>
+                                    <CardHeader>
+                                        <CardTitle>Детальные данные</CardTitle>
+                                        <CardDescription>Все записи об изменении KPI.</CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <ScrollArea className="h-[400px] border rounded-md">
+                                            <Table>
+                                                <TableHeader className="sticky top-0 bg-muted/90 backdrop-blur-sm">
+                                                    <TableRow>
+                                                        <TableHead>Дата</TableHead>
+                                                        <TableHead>KPI</TableHead>
+                                                        <TableHead className="text-right">Значение</TableHead>
+                                                        <TableHead className="text-right">Итог</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {flattenedLogs.map((log, index) => (
+                                                        <TableRow key={index}>
+                                                            <TableCell>{new Date(log.date).toLocaleDateString(locale, dateOptions)}</TableCell>
+                                                            <TableCell className="font-medium">{log.kpiName}</TableCell>
+                                                            <TableCell className="text-right">+{log.value.toLocaleString(locale)}</TableCell>
+                                                            <TableCell className="text-right font-semibold">{log.runningTotal.toLocaleString(locale)}</TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </ScrollArea>
+                                    </CardContent>
+                                 </Card>
+                            </TabsContent>
+                        </Tabs>
+
                     ) : (
                         <div className="text-center text-sm text-muted-foreground py-10 border-2 border-dashed rounded-lg">
                             <p>История изменений KPI пока пуста.</p>
