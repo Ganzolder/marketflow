@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { History, Download, Filter } from "lucide-react";
-import type { Activity, KPI, KpiMetricLog } from '@/lib/types';
+import type { Activity } from '@/lib/types';
 import { Bar, BarChart, CartesianGrid, Line, LineChart, Tooltip, XAxis, YAxis, Legend, ResponsiveContainer } from "recharts"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Checkbox } from '@/components/ui/checkbox';
@@ -22,13 +22,15 @@ import { stringify } from 'csv-stringify/sync';
 import { EditKpiMetricButton } from './edit-kpi-metric-button';
 import { DeleteKpiMetricButton } from './delete-kpi-metric-button';
 
-type FlattenedLog = {
+type TableLog = {
     logId: string;
     kpiId: string;
     kpiName: string;
     date: string;
     value: number;
     cumulative: number;
+    originalLog: any;
+    originalKpi: any;
 }
 
 export function KpiHistoryModal({ activity, campaignId, actionId }: { activity: Activity, campaignId: string, actionId: string }) {
@@ -37,68 +39,83 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: { activity: 
     const locale = 'ru-RU';
     const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
 
-    const { chartData, flattenedLogs, chartConfig } = useMemo(() => {
-        const allLogs: (KpiMetricLog & { kpiId: string, kpiName: string })[] = [];
+    const { chartData, tableLogs, chartConfig } = useMemo(() => {
+        // 1. Prepare Chart Data (Aggregated by Date)
+        const allLogsForChart: { date: string, kpiId: string, value: number }[] = [];
         activity.kpis.forEach(kpi => {
             kpi.metrics.forEach(metric => {
-                allLogs.push({ ...metric, kpiId: kpi.id, kpiName: kpi.name });
+                allLogsForChart.push({ date: metric.date, kpiId: kpi.id, value: metric.value });
             });
         });
-        
-        allLogs.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-        
+        allLogsForChart.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
         const dataByDate: Record<string, any> = {};
-        const cumulativeTotals: Record<string, number> = {};
-        const allFlattenedLogs: FlattenedLog[] = [];
-        
+        const cumulativeTotalsForChart: Record<string, number> = {};
         activity.kpis.forEach(kpi => {
-            cumulativeTotals[kpi.id] = 0;
+            cumulativeTotalsForChart[kpi.id] = 0;
         });
 
-        allLogs.forEach(log => {
+        allLogsForChart.forEach(log => {
             const dateStr = log.date;
             if (!dataByDate[dateStr]) {
                 dataByDate[dateStr] = { date: dateStr };
-                 activity.kpis.forEach(kpi => {
+                activity.kpis.forEach(kpi => {
                     dataByDate[dateStr][kpi.id] = 0;
-                    dataByDate[dateStr][`${kpi.id}_cumulative`] = cumulativeTotals[kpi.id];
-                 });
+                    dataByDate[dateStr][`${kpi.id}_cumulative`] = cumulativeTotalsForChart[kpi.id];
+                });
             }
-            
             dataByDate[dateStr][log.kpiId] = (dataByDate[dateStr][log.kpiId] || 0) + log.value;
-            cumulativeTotals[log.kpiId] += log.value;
-            
-            allFlattenedLogs.push({
+            cumulativeTotalsForChart[log.kpiId] += log.value;
+            Object.keys(dataByDate).forEach(d => {
+                if (new Date(d) >= new Date(dateStr)) {
+                    dataByDate[d][`${log.kpiId}_cumulative`] = cumulativeTotalsForChart[log.kpiId];
+                }
+            });
+        });
+        const finalChartData = Object.values(dataByDate).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+        // 2. Prepare Table Data (Raw logs with cumulative totals)
+        const finalTableLogs: TableLog[] = [];
+        const cumulativeTotalsForTable: Record<string, number> = {};
+         activity.kpis.forEach(kpi => {
+            cumulativeTotalsForTable[kpi.id] = 0;
+        });
+
+        const allLogsForTable = activity.kpis
+            .flatMap(kpi => kpi.metrics.map(log => ({ ...log, kpiId: kpi.id, kpiName: kpi.name, originalKpi: kpi })))
+            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+        allLogsForTable.forEach(log => {
+            cumulativeTotalsForTable[log.kpiId] += log.value;
+            finalTableLogs.push({
                 logId: log.id,
                 kpiId: log.kpiId,
                 kpiName: log.kpiName,
                 date: log.date,
                 value: log.value,
-                cumulative: cumulativeTotals[log.kpiId],
-            });
-
-            // Update cumulative totals for all dates after this log
-            Object.keys(dataByDate).forEach(d => {
-                if (new Date(d) >= new Date(dateStr)) {
-                    dataByDate[d][`${log.kpiId}_cumulative`] = cumulativeTotals[log.kpiId];
-                }
+                cumulative: cumulativeTotalsForTable[log.kpiId],
+                originalLog: log,
+                originalKpi: log.originalKpi
             });
         });
         
-        const finalChartData = Object.values(dataByDate).sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-        const finalFlattenedLogs = allFlattenedLogs.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
+        finalTableLogs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        
+        // 3. Prepare Chart Config
         const config: any = {};
         activity.kpis.forEach((kpi) => {
-             const kpiIdHash = kpi.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-             const colorIndex = (kpiIdHash % 5) + 1;
-             config[kpi.id] = { label: kpi.name, color: `hsl(var(--chart-${colorIndex}))` };
-             config[`${kpi.id}_cumulative`] = { label: `${kpi.name} (Итог)`, color: `hsl(var(--chart-${colorIndex}))` };
+            const kpiIdHash = kpi.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+            const colorIndex = (kpiIdHash % 5) + 1;
+            const colorVar = `hsl(var(--chart-${colorIndex}))`;
+            config[kpi.id] = { label: kpi.name, color: colorVar };
+            config[`${kpi.id}_cumulative`] = { label: `${kpi.name} (Итог)`, color: colorVar };
         });
 
-        return { chartData: finalChartData, flattenedLogs: finalFlattenedLogs, chartConfig: config };
-
+        return { chartData: finalChartData, tableLogs: finalTableLogs, chartConfig: config };
     }, [activity.kpis]);
+    
+    const filteredTableLogs = tableLogs.filter(log => selectedKpis.includes(log.kpiId));
+
 
     const handleToggleKpi = (kpiId: string) => {
         setSelectedKpis(prev =>
@@ -107,7 +124,7 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: { activity: 
     };
 
     const handleExport = () => {
-        const csvData = stringify(flattenedLogs, {
+        const csvData = stringify(filteredTableLogs, {
             header: true,
             columns: [
                 { key: 'date', header: 'Дата' },
@@ -163,7 +180,7 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: { activity: 
                                         id={`check-${kpi.id}`}
                                         checked={selectedKpis.includes(kpi.id)}
                                         onCheckedChange={() => handleToggleKpi(kpi.id)}
-                                        style={{ color: chartConfig[kpi.id]?.color }}
+                                        style={{ accentColor: chartConfig[kpi.id]?.color }}
                                     />
                                     <Label htmlFor={`check-${kpi.id}`} className="text-sm font-normal">
                                         {kpi.name}
@@ -229,13 +246,8 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: { activity: 
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {flattenedLogs.map((log, index) => {
-                                            const originalKpi = activity.kpis.find(k => k.id === log.kpiId);
-                                            const originalLog = originalKpi?.metrics.find(m => m.id === log.logId);
-                                            if (!originalLog || !originalKpi) return null;
-                                            
-                                            return (
-                                            <TableRow key={`${log.logId}-${index}`}>
+                                        {filteredTableLogs.length > 0 ? filteredTableLogs.map((log) => (
+                                            <TableRow key={log.logId}>
                                                 <TableCell>{new Date(log.date).toLocaleDateString(locale, dateOptions)}</TableCell>
                                                 <TableCell>{log.kpiName}</TableCell>
                                                 <TableCell className="text-right font-medium">+{log.value.toLocaleString(locale)}</TableCell>
@@ -243,8 +255,8 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: { activity: 
                                                 <TableCell>
                                                      <div className="flex items-center justify-end space-x-1">
                                                         <EditKpiMetricButton 
-                                                            log={originalLog}
-                                                            kpiId={originalKpi.id}
+                                                            log={log.originalLog}
+                                                            kpiId={log.kpiId}
                                                             campaignId={campaignId}
                                                             actionId={actionId}
                                                             activityId={activity.id}
@@ -259,7 +271,13 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: { activity: 
                                                     </div>
                                                 </TableCell>
                                             </TableRow>
-                                        )})}
+                                        )) : (
+                                            <TableRow>
+                                                <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
+                                                    Нет записей для выбранных KPI.
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
                                     </TableBody>
                                 </Table>
                              </div>
