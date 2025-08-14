@@ -28,7 +28,7 @@ const KpiSchema = z.object({
     name: z.string().min(1, "Название KPI обязательно."),
     target: z.coerce.number().min(1, "Цель должна быть больше 0."),
     current: z.coerce.number(),
-    metrics: z.array(z.object({ date: z.string(), value: z.number() })),
+    metrics: z.array(z.object({ id: z.string(), date: z.string(), value: z.number() })),
     parentId: z.string().nullable(),
     includeInActionGoals: z.boolean().optional(),
 });
