@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import {
@@ -18,7 +19,7 @@ import {
 import { PageHeader } from '@/components/page-header';
 import { getCampaigns } from '@/lib/data';
 import { PlusCircle } from 'lucide-react';
-import { StatusBadge } from '@/components/status-badge';
+import { UpdateCampaignStatus } from './update-campaign-status';
 
 export default async function CampaignsPage() {
   const campaigns = await getCampaigns();
@@ -55,7 +56,7 @@ export default async function CampaignsPage() {
                     </Link>
                   </TableCell>
                   <TableCell>
-                    <StatusBadge status={campaign.status} />
+                    <UpdateCampaignStatus campaign={campaign} />
                   </TableCell>
                   <TableCell>
                     {new Date(campaign.startDate).toLocaleDateString(locale, dateOptions)}

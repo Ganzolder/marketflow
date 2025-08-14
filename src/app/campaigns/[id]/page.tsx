@@ -11,6 +11,7 @@ import { NewActionButton } from './new-action-button';
 import { EditActionButton } from './edit-action-button';
 import Link from 'next/link';
 import { Progress } from '@/components/ui/progress';
+import { UpdateCampaignStatus } from '../update-campaign-status';
 
 type CampaignDetailPageProps = {
   params: {
@@ -90,7 +91,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                     </div>
                     <div>
                         <p className="text-muted-foreground">Статус</p>
-                        <div className="font-semibold text-lg"><StatusBadge status={campaign.status} /></div>
+                        <div className="font-semibold text-lg"><UpdateCampaignStatus campaign={campaign} /></div>
                     </div>
                 </div>
             </div>

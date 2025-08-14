@@ -2,9 +2,9 @@
 "use server";
 
 import { z } from "zod";
-import { addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData } from "./data";
+import { addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData } from "./data";
 import { revalidatePath } from "next/cache";
-import type { Action, Activity, KPI, Expense, ActionStatus } from "./types";
+import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus } from "./types";
 
 const ActionSchema = z.object({
   name: z.string().min(3, { message: "Название акции должно содержать не менее 3 символов." }),
@@ -686,4 +686,44 @@ export async function updateActionStatus(
   revalidatePath(`/campaigns/${campaignId}`);
   revalidatePath(`/actions`);
   return { message: "Статус акции обновлен." };
+}
+
+const UpdateCampaignStatusSchema = z.object({
+  campaignId: z.string(),
+  status: z.enum(['active', 'planned', 'completed', 'paused']),
+});
+
+export type CampaignStatusFormState = {
+  message: string;
+  error?: boolean;
+};
+
+export async function updateCampaignStatus(
+  prevState: CampaignStatusFormState | null,
+  formData: FormData
+): Promise<CampaignStatusFormState> {
+  const validatedFields = UpdateCampaignStatusSchema.safeParse({
+    campaignId: formData.get('campaignId'),
+    status: formData.get('status'),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      message: "Ошибка валидации.",
+      error: true,
+    };
+  }
+
+  const { campaignId, status } = validatedFields.data;
+
+  try {
+    await updateCampaignStatusData(campaignId, status as CampaignStatus);
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+    return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
+  }
+
+  revalidatePath(`/campaigns`);
+  revalidatePath(`/campaigns/${campaignId}`);
+  return { message: "Статус кампании обновлен." };
 }
