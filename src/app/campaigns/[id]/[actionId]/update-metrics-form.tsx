@@ -11,10 +11,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { Loader2, ChevronDown } from 'lucide-react';
+import { Loader2, ChevronDown, History } from 'lucide-react';
 import { AddExpenseButton } from './add-expense-button';
 import { KpiLogList } from './kpi-log-list';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { KpiHistoryModal } from './kpi-history-modal';
 
 
 function SubmitButton() {
@@ -131,6 +132,7 @@ export function UpdateMetricsForm({ activity, campaignId, actionId }: { activity
                 <div className="flex justify-between items-center">
                     <Label className="text-base font-medium">Добавить данные KPI</Label>
                      <div className="flex items-center gap-2">
+                        <KpiHistoryModal activity={activity} />
                         <SubmitButton />
                     </div>
                 </div>
