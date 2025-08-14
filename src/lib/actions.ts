@@ -112,25 +112,23 @@ export async function editActionInCampaign(
 
 // --- Activity Actions ---
 
-const KpiSchema = z.object({
-    id: z.string(),
-    name: z.string(),
-    target: z.coerce.number(),
-    current: z.coerce.number(),
-    metrics: z.array(z.object({ id: z.string(), date: z.string(), value: z.number() })),
-    parentId: z.string().nullable(),
-    includeInActionGoals: z.boolean().optional(),
-});
-
-const AddKpiSchema = z.object({
+const KpiSchemaBase = z.object({
     id: z.string(),
     name: z.string().min(1, "Название KPI обязательно."),
     target: z.coerce.number().min(1, "Цель должна быть больше 0."),
-    current: z.coerce.number(),
     parentId: z.string().nullable(),
     includeInActionGoals: z.boolean().optional(),
+    multiplicity: z.coerce.number().min(1, "Кратность должна быть больше 0").optional(),
 });
 
+const AddKpiSchema = KpiSchemaBase.extend({
+    current: z.coerce.number(),
+});
+
+const EditKpiSchema = KpiSchemaBase.extend({
+    current: z.coerce.number(),
+    metrics: z.array(z.object({ id: z.string(), date: z.string(), value: z.number() })),
+});
 
 const ActivitySchema = z.object({
   name: z.string().min(3, { message: "Название активности должно содержать не менее 3 символов." }),
@@ -139,13 +137,17 @@ const ActivitySchema = z.object({
   budget: z.coerce.number().min(0, { message: "Бюджет не может быть отрицательным." }),
   startDate: z.string().refine((date) => !isNaN(Date.parse(date)), { message: "Неверный формат даты начала." }),
   endDate: z.string().refine((date) => !isNaN(Date.parse(date)), { message: "Неверный формат даты окончания." }),
-  kpis: z.array(AddKpiSchema).optional(),
   campaignId: z.string(),
   actionId: z.string(),
 });
 
+const AddActivitySchema = ActivitySchema.extend({
+    kpis: z.array(AddKpiSchema).optional(),
+});
+
 const EditActivitySchema = ActivitySchema.extend({
   id: z.string(),
+  kpis: z.array(EditKpiSchema).optional(),
 });
 
 const DeleteActivitySchema = z.object({
@@ -183,14 +185,19 @@ export async function addActivityToAction(
   const kpisString = formData.get('kpis') as string;
   const kpis = kpisString ? JSON.parse(kpisString) : [];
 
-  const validatedFields = ActivitySchema.safeParse({
+  const validatedFields = AddActivitySchema.safeParse({
     name: formData.get('activity-name'),
     description: formData.get('description'),
     trackingMethod: formData.get('trackingMethod'),
     budget: formData.get('budget'),
     startDate: formData.get('start-date'),
     endDate: formData.get('end-date'),
-    kpis: kpis.map((kpi: any) => ({ ...kpi, target: Number(kpi.target), current: 0 })),
+    kpis: kpis.map((kpi: any) => ({ 
+        ...kpi, 
+        target: Number(kpi.target), 
+        current: 0,
+        multiplicity: Number(kpi.multiplicity) || 1,
+    })),
     campaignId: formData.get('campaignId'),
     actionId: formData.get('actionId'),
   });
@@ -209,7 +216,13 @@ export async function addActivityToAction(
       ...activityData,
       spent: 0,
       expenses: [],
-      kpis: activityData.kpis?.map(kpi => ({...kpi, current: 0, metrics: [], includeInActionGoals: kpi.includeInActionGoals ?? true })) || [] 
+      kpis: activityData.kpis?.map(kpi => ({
+          ...kpi, 
+          current: 0, 
+          metrics: [], 
+          includeInActionGoals: kpi.includeInActionGoals ?? true,
+          multiplicity: kpi.multiplicity || 1,
+        })) || [] 
   }
 
   try {
@@ -225,7 +238,7 @@ export async function addActivityToAction(
 
 
 export async function updateActivity(
-  prevState: ActivityFormState | null,
+  prevState: ActivityFormState,
   formData: FormData
 ): Promise<ActivityFormState> {
 
@@ -239,7 +252,13 @@ export async function updateActivity(
     budget: formData.get('budget'),
     startDate: formData.get('start-date'),
     endDate: formData.get('end-date'),
-    kpis: kpis.map((kpi: any) => ({ ...kpi, target: Number(kpi.target), current: Number(kpi.current), includeInActionGoals: kpi.includeInActionGoals ?? true })),
+    kpis: kpis.map((kpi: any) => ({ 
+        ...kpi, 
+        target: Number(kpi.target), 
+        current: Number(kpi.current), 
+        includeInActionGoals: kpi.includeInActionGoals ?? true,
+        multiplicity: Number(kpi.multiplicity) || 1,
+    })),
     campaignId: formData.get('campaignId'),
     actionId: formData.get('actionId'),
     id: formData.get('activityId'),
@@ -257,7 +276,10 @@ export async function updateActivity(
   
   const activityUpdateData = {
       ...activityData,
-      kpis: activityData.kpis || []
+      kpis: activityData.kpis?.map(kpi => ({
+          ...kpi,
+          multiplicity: kpi.multiplicity || 1
+      })) || []
   };
 
   try {

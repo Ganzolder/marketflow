@@ -235,6 +235,7 @@ export async function updateActivity(campaignId: string, actionId: string, updat
                     metrics: existingKpi ? existingKpi.metrics : [],
                     current: existingKpi ? existingKpi.current : 0,
                     includeInActionGoals: uk.includeInActionGoals,
+                    multiplicity: uk.multiplicity || 1, // Ensure multiplicity has a default value
                 };
             });
 
@@ -536,6 +537,7 @@ export async function getCampaignById(id: string): Promise<Campaign | undefined>
                       if (!activity.kpis) activity.kpis = [];
                       activity.kpis.forEach(kpi => {
                           if (!kpi.metrics) kpi.metrics = [];
+                          if (!kpi.multiplicity) kpi.multiplicity = 1;
                           kpi.current = kpi.metrics.reduce((acc, metric) => acc + metric.value, 0);
                           if (kpi.includeInActionGoals === undefined) kpi.includeInActionGoals = true;
                       });
