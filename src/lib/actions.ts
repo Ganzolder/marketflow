@@ -2,7 +2,7 @@
 "use server";
 
 import { z } from "zod";
-import { addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData } from "./data";
+import { addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionAverageChecks as updateActionAverageChecksData } from "./data";
 import { revalidatePath } from "next/cache";
 import type { Action, Activity, KPI, Expense } from "./types";
 
@@ -584,4 +584,50 @@ export async function updateActionSummaryKpis(
     revalidatePath(`/campaigns/${campaignId}/${actionId}`);
     revalidatePath(`/campaigns/${campaignId}`); // Also revalidate the campaign page
     return { message: "Настройки отображения KPI обновлены." };
+}
+
+const UpdateAverageChecksSchema = z.object({
+  campaignId: z.string(),
+  actionId: z.string(),
+  plannedAverageCheck: z.coerce.number().min(0, "Средний чек не может быть отрицательным."),
+  actualAverageCheck: z.coerce.number().min(0, "Средний чек не может быть отрицательным."),
+});
+
+
+export type AverageCheckFormState = {
+  message: string;
+  error?: boolean;
+  errors?: z.ZodError<z.infer<typeof UpdateAverageChecksSchema>>['formErrors']['fieldErrors']
+};
+
+export async function updateActionAverageChecks(
+  prevState: AverageCheckFormState | null,
+  formData: FormData
+): Promise<AverageCheckFormState> {
+  const validatedFields = UpdateAverageChecksSchema.safeParse({
+    campaignId: formData.get('campaignId'),
+    actionId: formData.get('actionId'),
+    plannedAverageCheck: formData.get('plannedAverageCheck'),
+    actualAverageCheck: formData.get('actualAverageCheck'),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      message: "Ошибка валидации.",
+      error: true,
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+
+  const { campaignId, actionId, plannedAverageCheck, actualAverageCheck } = validatedFields.data;
+
+  try {
+    await updateActionAverageChecksData(campaignId, actionId, plannedAverageCheck, actualAverageCheck);
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+    return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
+  }
+
+  revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+  return { message: "Средний чек обновлен." };
 }

@@ -39,6 +39,8 @@ async function seedDatabase() {
             activities: [],
             generalExpenses: [],
             summaryKpis: [],
+            plannedAverageCheck: 0,
+            actualAverageCheck: 0,
           },
           {
             id: 'act-c1-2',
@@ -52,6 +54,8 @@ async function seedDatabase() {
             activities: [],
             generalExpenses: [],
             summaryKpis: [],
+            plannedAverageCheck: 0,
+            actualAverageCheck: 0,
           }
         ],
       },
@@ -107,6 +111,8 @@ export async function addAction(campaignId: string, action: Omit<Action, 'id' | 
         activities: [],
         generalExpenses: [],
         summaryKpis: [],
+        plannedAverageCheck: 0,
+        actualAverageCheck: 0,
     };
     await updateDoc(campaignRef, {
         actions: arrayUnion(newAction)
@@ -502,6 +508,12 @@ export async function getCampaignById(id: string): Promise<Campaign | undefined>
                if (!action.summaryKpis) {
                   action.summaryKpis = [];
               }
+              if (!action.plannedAverageCheck) {
+                  action.plannedAverageCheck = 0;
+              }
+              if (!action.actualAverageCheck) {
+                  action.actualAverageCheck = 0;
+              }
               if (action.activities) {
                   action.activities.forEach(activity => {
                       if (!activity.expenses) {
@@ -715,4 +727,28 @@ export async function getAllActions(): Promise<EnrichedAction[]> {
   });
 
   return allActions.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+}
+
+export async function updateActionAverageChecks(campaignId: string, actionId: string, plannedAverageCheck: number, actualAverageCheck: number) {
+    const campaignRef = doc(db, 'campaigns', campaignId);
+
+    try {
+        await runTransaction(db, async (transaction) => {
+            const campaignDoc = await transaction.get(campaignRef);
+            if (!campaignDoc.exists()) throw new Error("Campaign document does not exist!");
+
+            const campaignData = campaignDoc.data() as Campaign;
+            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
+            if (actionIndex === -1) throw new Error("Action not found!");
+
+            const newActions = [...campaignData.actions];
+            newActions[actionIndex].plannedAverageCheck = plannedAverageCheck;
+            newActions[actionIndex].actualAverageCheck = actualAverageCheck;
+
+            transaction.update(campaignRef, { actions: newActions });
+        });
+    } catch (e) {
+        console.error("Update average checks transaction failed: ", e);
+        throw e;
+    }
 }

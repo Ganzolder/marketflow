@@ -21,6 +21,7 @@ import {
 import { UpdateMetricsForm } from './update-metrics-form';
 import { GeneralExpensesList } from './general-expenses-list';
 import { UpdateActionSummaryKpisForm } from './update-action-summary-kpis';
+import { ActionEffectivenessCard } from './action-effectiveness-card';
 
 type ActionDetailPageProps = {
   params: {
@@ -146,6 +147,8 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
               </div>
           </CardContent>
         </Card>
+
+        <ActionEffectivenessCard action={action} campaignId={campaign.id} locale={locale} currencyOptions={currencyOptions} />
 
         <GeneralExpensesList action={action} campaignId={campaign.id} />
 
