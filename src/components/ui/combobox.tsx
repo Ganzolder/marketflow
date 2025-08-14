@@ -40,37 +40,45 @@ export function Combobox({
   const [open, setOpen] = React.useState(false)
   const [inputValue, setInputValue] = React.useState(value || "")
 
+  // Sync inputValue with external value prop
   React.useEffect(() => {
     setInputValue(value)
   }, [value])
   
   const handleSelect = (currentValue: string) => {
     const newValue = currentValue === value ? "" : currentValue
-    onChange(newValue)
-    setInputValue(newValue)
+    onChange(newValue) // Update form state
+    setInputValue(newValue) // Sync internal input state
     setOpen(false)
   }
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const changedValue = e.target.value;
-    setInputValue(changedValue);
-    // If user types a new value, we should update the form state directly
-    if (!options.some(opt => opt.value.toLowerCase() === changedValue.toLowerCase())) {
-        onChange(changedValue);
+  
+  const handleOpenChange = (isOpen: boolean) => {
+    // When popover closes, ensure the form state is updated with the current input value
+    if (!isOpen) {
+        onChange(inputValue);
+    }
+    setOpen(isOpen);
+  }
+  
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter' && inputValue) {
+        event.preventDefault();
+        onChange(inputValue); // Ensure the latest input is saved
+        setOpen(false);
     }
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between"
+          className="w-full justify-between font-normal"
         >
           {value
-            ? options.find((option) => option.value === value)?.label ?? value
+            ? options.find((option) => option.value.toLowerCase() === value.toLowerCase())?.label ?? value
             : placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -81,6 +89,7 @@ export function Combobox({
             placeholder={searchPlaceholder} 
             value={inputValue}
             onValueChange={setInputValue}
+            onKeyDown={handleKeyDown}
           />
           <CommandList>
             <CommandEmpty>{notFoundText}</CommandEmpty>
@@ -91,12 +100,12 @@ export function Combobox({
                 <CommandItem
                   key={option.value}
                   value={option.value}
-                  onSelect={handleSelect}
+                  onSelect={() => handleSelect(option.value)}
                 >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      value === option.value ? "opacity-100" : "opacity-0"
+                      value && value.toLowerCase() === option.value.toLowerCase() ? "opacity-100" : "opacity-0"
                     )}
                   />
                   {option.label}
