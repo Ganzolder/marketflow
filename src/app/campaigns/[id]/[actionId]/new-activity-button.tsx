@@ -27,7 +27,6 @@ const KpiSchema = z.object({
     name: z.string().min(1, "Название KPI обязательно."),
     target: z.coerce.number().min(1, "Цель должна быть больше 0."),
     current: z.coerce.number(),
-    multiple: z.coerce.number().min(1, "Кратность должна быть больше 0."),
     parentId: z.string().nullable(),
     includeInActionGoals: z.boolean().optional(),
     showOnActionCard: z.boolean().optional(),
@@ -194,7 +193,7 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
                                                 type="button"
                                                 variant="outline"
                                                 size="sm"
-                                                onClick={() => append({ id: `kpi-${Date.now()}`, name: '', target: 0, current: 0, multiple: 1, parentId: null, includeInActionGoals: true, showOnActionCard: false })}
+                                                onClick={() => append({ id: `kpi-${Date.now()}`, name: '', target: 0, current: 0, parentId: null, includeInActionGoals: true, showOnActionCard: false })}
                                             >
                                                 <PlusCircle className="mr-2 h-4 w-4" />
                                                 Добавить KPI
@@ -204,7 +203,7 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
                                             const currentKpi = kpis?.[index];
                                             const parentKpi = kpis?.find(p => p.id === currentKpi?.parentId);
                                             const conversion = parentKpi && parentKpi.target > 0 && currentKpi && currentKpi.target > 0 ? (currentKpi.target / parentKpi.target) * 100 : null;
-                                            const costPerUnit = currentKpi && currentKpi.target > 0 && budget > 0 && currentKpi.multiple > 0 ? budget / (currentKpi.target / currentKpi.multiple) : null;
+                                            const costPerUnit = currentKpi && currentKpi.target > 0 && budget > 0 ? budget / currentKpi.target : null;
                                             
                                             return (
                                             <div key={field.id} className="grid grid-cols-1 gap-4 p-4 border rounded-lg relative">
@@ -246,17 +245,6 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
                                                             <FormItem>
                                                                 <FormLabel>Цель</FormLabel>
                                                                 <FormControl><Input type="number" placeholder="1000" {...field} /></FormControl>
-                                                                <FormMessage />
-                                                            </FormItem>
-                                                        )}
-                                                    />
-                                                     <FormField
-                                                        control={form.control}
-                                                        name={`kpis.${index}.multiple`}
-                                                        render={({ field }) => (
-                                                            <FormItem>
-                                                                <FormLabel>Кратность</FormLabel>
-                                                                <FormControl><Input type="number" placeholder="1" {...field} /></FormControl>
                                                                 <FormMessage />
                                                             </FormItem>
                                                         )}
@@ -343,7 +331,7 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
                                                                 <span className="font-bold text-blue-500">{new Intl.NumberFormat(locale, currencyOptions).format(costPerUnit)}</span>
                                                             </TooltipTrigger>
                                                             <TooltipContent>
-                                                                <p>Стоимость за / {currentKpi?.multiple || 1}</p>
+                                                                <p>Стоимость за ед.</p>
                                                             </TooltipContent>
                                                         </Tooltip>
                                                         </TooltipProvider>

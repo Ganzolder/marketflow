@@ -184,7 +184,7 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
                                         // Conversion uses current values
                                         const conversion = parentKpi && parentKpi.current > 0 && kpi.current > 0 ? (kpi.current / parentKpi.current) * 100 : null;
                                         // Cost uses current SPENT vs current KPI value
-                                        const costPerUnit = kpi.current > 0 && activity.spent > 0 && kpi.multiple > 0 ? activity.spent / (kpi.current / kpi.multiple) : null;
+                                        const costPerUnit = kpi.current > 0 && activity.spent > 0 ? activity.spent / kpi.current : null;
                                         
                                         if (conversion === null && costPerUnit === null) return null;
 
@@ -212,7 +212,7 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
                                                             <span className="font-bold text-blue-500">{new Intl.NumberFormat(locale, currencyOptions).format(costPerUnit)}</span>
                                                             </TooltipTrigger>
                                                             <TooltipContent>
-                                                              <p>Стоимость за / {kpi.multiple} ед. (факт)</p>
+                                                              <p>Стоимость за ед. (факт)</p>
                                                             </TooltipContent>
                                                         </Tooltip>
                                                     </TooltipProvider>
