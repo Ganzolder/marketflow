@@ -106,8 +106,8 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: { activity: 
                                             id={`check-${kpi.id}`}
                                             checked={selectedKpis.includes(kpi.id)}
                                             onCheckedChange={() => handleToggleKpi(kpi.id)}
-                                            style={{ accentColor: chartConfig[kpi.id]?.color }}
                                         />
+                                        <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: chartConfig[kpi.id]?.color }} />
                                         <Label htmlFor={`check-${kpi.id}`} className="text-sm font-normal">
                                             {kpi.name}
                                         </Label>
@@ -127,14 +127,14 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: { activity: 
                                         <Tooltip content={<ChartTooltipContent />} />
                                         <Legend />
                                         {selectedKpis.map(kpiId => (
-                                             <Line key={`${kpiId}-cumulative-line`} dataKey={`${kpiId}_cumulative`} type="monotone" stroke={`var(--color-${kpiId})`} strokeWidth={2} dot={false} name={chartConfig[`${kpiId}_cumulative`]?.label}>
+                                             <Line key={`${kpiId}-cumulative-line`} dataKey={`${kpiId}_cumulative`} type="monotone" stroke={chartConfig[kpiId]?.color} strokeWidth={2} dot={false} name={chartConfig[`${kpiId}_cumulative`]?.label}>
                                                 <LabelList dataKey={`${kpiId}_cumulative`} position="top" offset={10} className="fill-foreground text-xs" formatter={(value: number) => value > 0 ? value.toLocaleString(locale) : ''} />
                                              </Line>
                                         ))}
                                     </LineChart>
                                 </ChartContainer>
                             </div>
-                            <div className="h-[300px]">
+                            <div className="h-[300px] mt-8">
                                 <h4 className="font-semibold mb-2 text-center">Динамика по дням</h4>
                                 <ChartContainer config={chartConfig} className="h-full w-full">
                                     <BarChart data={chartData} margin={chartMargin}>
@@ -144,7 +144,7 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: { activity: 
                                         <Tooltip content={<ChartTooltipContent />} />
                                         <Legend />
                                          {selectedKpis.map(kpiId => (
-                                             <Bar key={`${kpiId}-daily-bar`} dataKey={kpiId} fill={`var(--color-${kpiId})`} radius={4} name={chartConfig[kpiId]?.label}>
+                                             <Bar key={`${kpiId}-daily-bar`} dataKey={kpiId} fill={chartConfig[kpiId]?.color} radius={4} name={chartConfig[kpiId]?.label}>
                                                 <LabelList dataKey={kpiId} position="top" offset={8} className="fill-foreground text-xs" formatter={(value: number) => value > 0 ? value.toLocaleString(locale) : ''}/>
                                              </Bar>
                                         ))}
@@ -166,4 +166,3 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: { activity: 
         </Dialog>
     );
 }
-
