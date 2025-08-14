@@ -17,12 +17,12 @@ const SuggestionSchema = z.object({
   rationale: z.string().describe('The reasoning behind why this suggestion is being made.'),
 });
 
-export const AnalyzeActionPerformanceInputSchema = z.object({
+const AnalyzeActionPerformanceInputSchema = z.object({
   actionContext: z.string().describe('A JSON string representing the full Action object, including its activities, KPIs, expenses, and campaign context.'),
 });
 export type AnalyzeActionPerformanceInput = z.infer<typeof AnalyzeActionPerformanceInputSchema>;
 
-export const AnalyzeActionPerformanceOutputSchema = z.object({
+const AnalyzeActionPerformanceOutputSchema = z.object({
   overallAssessment: z.string().describe('A brief, high-level summary of the action\'s performance so far.'),
   positivePoints: z.array(z.string()).describe('A list of key things that are going well.'),
   areasForImprovement: z.array(z.string()).describe('A list of key areas where performance is lagging or could be better.'),
