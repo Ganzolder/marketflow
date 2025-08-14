@@ -54,6 +54,14 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
   const currencyOptions = { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 };
   const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
 
+  const campaignStartDate = new Date(campaign.startDate);
+  const campaignEndDate = new Date(campaign.endDate);
+  const today = new Date();
+  const totalCampaignDuration = Math.max(1, campaignEndDate.getTime() - campaignStartDate.getTime());
+  const elapsedCampaignDuration = Math.max(0, today.getTime() - campaignStartDate.getTime());
+  let campaignDurationProgress = Math.min(100, (elapsedCampaignDuration / totalCampaignDuration) * 100);
+
+
   return (
     <div>
       <PageHeader title={campaign.name}>
@@ -82,7 +90,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                     </div>
                     <div>
                         <p className="text-muted-foreground">Длительность</p>
-                        <p className="font-semibold text-lg">{new Date(campaign.startDate).toLocaleDateString(locale, dateOptions)} - {new Date(campaign.endDate).toLocaleDateString(locale, dateOptions)}</p>
+                        <p className="font-semibold text-lg">{campaignStartDate.toLocaleDateString(locale, dateOptions)} - {campaignEndDate.toLocaleDateString(locale, dateOptions)}</p>
                     </div>
                 </div>
                  <div className="flex items-center gap-3">
@@ -94,6 +102,14 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                         <div className="font-semibold text-lg"><UpdateCampaignStatus campaign={campaign} /></div>
                     </div>
                 </div>
+            </div>
+            <Separator className="my-6" />
+            <div>
+                <div className="flex justify-between items-center text-sm mb-1">
+                    <span className="text-muted-foreground flex items-center"><CalendarDays className="w-4 h-4 mr-1.5"/>Прогресс кампании</span>
+                    <span className="font-medium">{Math.round(campaignDurationProgress)}%</span>
+                </div>
+                <Progress value={campaignDurationProgress} className="h-2" />
             </div>
             <Separator className="my-6" />
             <p className="text-muted-foreground">{campaign.description}</p>
@@ -167,7 +183,6 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
 
                         const startDate = new Date(action.startDate);
                         const endDate = new Date(action.endDate);
-                        const today = new Date();
                         const totalDuration = Math.max(1, endDate.getTime() - startDate.getTime());
                         const elapsedDuration = Math.max(0, today.getTime() - startDate.getTime());
                         let durationProgress = Math.min(100, (elapsedDuration / totalDuration) * 100);
