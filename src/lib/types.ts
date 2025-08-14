@@ -10,6 +10,7 @@ export type Goal = {
 export type ActionStatus = 'planned' | 'in-progress' | 'completed';
 
 export type KpiMetricLog = {
+    id: string;
     date: string; // ISO string for the date of the entry
     value: number; // The value for that specific entry
 }

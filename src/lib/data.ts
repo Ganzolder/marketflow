@@ -2,7 +2,8 @@
 
 
 
-import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction, ActionStatus, CampaignStatus } from './types';
+
+import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction, ActionStatus, CampaignStatus, KpiMetricLog } from './types';
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, addDoc, writeBatch, runTransaction, deleteDoc } from "firebase/firestore";
 import { Combobox } from '@/components/ui/combobox';
@@ -314,7 +315,12 @@ export async function updateActivityMetrics(campaignId: string, actionId: string
                         if (!kpi.metrics) {
                             kpi.metrics = [];
                         }
-                        kpi.metrics.push({ date: today, value: newValue });
+                        const newLogEntry: KpiMetricLog = {
+                            id: `log-${kpi.id}-${Date.now()}`,
+                            date: today,
+                            value: newValue,
+                        };
+                        kpi.metrics.push(newLogEntry);
                     }
                     return kpi;
                 });
@@ -812,3 +818,59 @@ export async function deleteCampaign(campaignId: string) {
     }
 }
 
+export async function editKpiMetric(campaignId: string, actionId: string, activityId: string, kpiId: string, updatedMetric: KpiMetricLog) {
+    const campaignRef = doc(db, 'campaigns', campaignId);
+    try {
+        await runTransaction(db, async (transaction) => {
+            const campaignDoc = await transaction.get(campaignRef);
+            if (!campaignDoc.exists()) throw new Error("Campaign not found");
+            const campaignData = campaignDoc.data() as Campaign;
+            
+            const action = campaignData.actions.find(a => a.id === actionId);
+            if (!action) throw new Error("Action not found");
+
+            const activity = action.activities.find(a => a.id === activityId);
+            if (!activity) throw new Error("Activity not found");
+
+            const kpi = activity.kpis.find(k => k.id === kpiId);
+            if (!kpi || !kpi.metrics) throw new Error("KPI or its metrics not found");
+
+            const metricIndex = kpi.metrics.findIndex(m => m.id === updatedMetric.id);
+            if (metricIndex === -1) throw new Error("Metric log not found");
+
+            kpi.metrics[metricIndex] = updatedMetric;
+
+            transaction.update(campaignRef, { actions: campaignData.actions });
+        });
+    } catch(e) {
+        console.error("Edit KPI Metric transaction failed: ", e);
+        throw e;
+    }
+}
+
+export async function deleteKpiMetric(campaignId: string, actionId: string, activityId: string, kpiId: string, logId: string) {
+    const campaignRef = doc(db, 'campaigns', campaignId);
+     try {
+        await runTransaction(db, async (transaction) => {
+            const campaignDoc = await transaction.get(campaignRef);
+            if (!campaignDoc.exists()) throw new Error("Campaign not found");
+            const campaignData = campaignDoc.data() as Campaign;
+            
+            const action = campaignData.actions.find(a => a.id === actionId);
+            if (!action) throw new Error("Action not found");
+
+            const activity = action.activities.find(a => a.id === activityId);
+            if (!activity) throw new Error("Activity not found");
+
+            const kpi = activity.kpis.find(k => k.id === kpiId);
+            if (!kpi || !kpi.metrics) throw new Error("KPI or its metrics not found");
+
+            kpi.metrics = kpi.metrics.filter(m => m.id !== logId);
+
+            transaction.update(campaignRef, { actions: campaignData.actions });
+        });
+    } catch(e) {
+        console.error("Delete KPI Metric transaction failed: ", e);
+        throw e;
+    }
+}

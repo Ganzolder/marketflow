@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
-import { History, Download } from "lucide-react";
+import { History, Download, Pencil, Trash2 } from "lucide-react";
 import type { Activity } from '@/lib/types';
 import {
   Table,
@@ -34,20 +34,26 @@ import {
 } from "@/components/ui/chart";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from '@/components/ui/checkbox';
+import { DeleteKpiMetricButton } from './delete-kpi-metric-button';
+import { EditKpiMetricButton } from './edit-kpi-metric-button';
 
 
 type KpiHistoryModalProps = {
     activity: Activity;
+    campaignId: string;
+    actionId: string;
 };
 
 type FlattenedKpiLog = {
+    logId: string;
+    kpiId: string;
     kpiName: string;
     date: string;
     value: number;
     runningTotal: number;
 }
 
-export function KpiHistoryModal({ activity }: KpiHistoryModalProps) {
+export function KpiHistoryModal({ activity, campaignId, actionId }: KpiHistoryModalProps) {
     const [open, setOpen] = useState(false);
     const locale = 'ru-RU';
     const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
@@ -72,6 +78,8 @@ export function KpiHistoryModal({ activity }: KpiHistoryModalProps) {
         sortedMetrics.forEach(metric => {
             runningTotals[kpi.name] += metric.value;
             flattenedLogs.push({
+                logId: metric.id,
+                kpiId: kpi.id,
                 kpiName: kpi.name,
                 date: metric.date,
                 value: metric.value,
@@ -306,15 +314,33 @@ export function KpiHistoryModal({ activity }: KpiHistoryModalProps) {
                                                         <TableHead>KPI</TableHead>
                                                         <TableHead className="text-right">Значение</TableHead>
                                                         <TableHead className="text-right">Итог</TableHead>
+                                                        <TableHead className="text-right w-[100px]">Действия</TableHead>
                                                     </TableRow>
                                                 </TableHeader>
                                                 <TableBody>
-                                                    {flattenedLogs.map((log, index) => (
-                                                        <TableRow key={index}>
+                                                    {flattenedLogs.map((log) => (
+                                                        <TableRow key={log.logId}>
                                                             <TableCell>{new Date(log.date).toLocaleDateString(locale, dateOptions)}</TableCell>
                                                             <TableCell className="font-medium">{log.kpiName}</TableCell>
                                                             <TableCell className="text-right">+{log.value.toLocaleString(locale)}</TableCell>
                                                             <TableCell className="text-right font-semibold">{log.runningTotal.toLocaleString(locale)}</TableCell>
+                                                            <TableCell className="text-right">
+                                                                <div className="flex items-center justify-end space-x-1">
+                                                                    <EditKpiMetricButton 
+                                                                        log={log}
+                                                                        campaignId={campaignId}
+                                                                        actionId={actionId}
+                                                                        activityId={activity.id}
+                                                                    />
+                                                                    <DeleteKpiMetricButton 
+                                                                        logId={log.logId}
+                                                                        kpiId={log.kpiId}
+                                                                        campaignId={campaignId}
+                                                                        actionId={actionId}
+                                                                        activityId={activity.id}
+                                                                    />
+                                                                </div>
+                                                            </TableCell>
                                                         </TableRow>
                                                     ))}
                                                 </TableBody>

@@ -3,9 +3,9 @@
 "use server";
 
 import { z } from "zod";
-import { addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData } from "./data";
+import { addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData } from "./data";
 import { revalidatePath } from "next/cache";
-import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus } from "./types";
+import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog } from "./types";
 import { redirect } from "next/navigation";
 
 const ActionSchema = z.object({
@@ -117,7 +117,7 @@ const KpiSchema = z.object({
     name: z.string(),
     target: z.coerce.number(),
     current: z.coerce.number(),
-    metrics: z.array(z.object({ date: z.string(), value: z.number() })),
+    metrics: z.array(z.object({ id: z.string(), date: z.string(), value: z.number() })),
     parentId: z.string().nullable(),
     includeInActionGoals: z.boolean().optional(),
 });
@@ -820,4 +820,74 @@ export async function deleteCampaign(formData: FormData): Promise<DeleteFormStat
     redirect('/campaigns');
 }
 
+// --- KPI Metric Log Actions ---
+const EditKpiMetricSchema = z.object({
+  campaignId: z.string(),
+  actionId: z.string(),
+  activityId: z.string(),
+  kpiId: z.string(),
+  logId: z.string(),
+  date: z.string().refine((date) => !isNaN(Date.parse(date)), "Неверный формат даты."),
+  value: z.coerce.number().min(0, "Значение не может быть отрицательным."),
+});
+
+export type KpiMetricFormState = {
+  message: string;
+  error?: boolean;
+  errors?: z.ZodError<z.infer<typeof EditKpiMetricSchema>>['formErrors']['fieldErrors'];
+};
+
+export async function editKpiMetric(prevState: KpiMetricFormState, formData: FormData): Promise<KpiMetricFormState> {
+    const validatedFields = EditKpiMetricSchema.safeParse({
+        campaignId: formData.get('campaignId'),
+        actionId: formData.get('actionId'),
+        activityId: formData.get('activityId'),
+        kpiId: formData.get('kpiId'),
+        logId: formData.get('logId'),
+        date: formData.get('date'),
+        value: formData.get('value'),
+    });
+
+    if (!validatedFields.success) {
+        return {
+            message: "Ошибка валидации.",
+            error: true,
+            errors: validatedFields.error.flatten().fieldErrors,
+        };
+    }
+
+    const { campaignId, actionId, activityId, kpiId, logId, date, value } = validatedFields.data;
+    
+    try {
+        await editKpiMetricData(campaignId, actionId, activityId, kpiId, { id: logId, date, value });
+    } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+        return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
+    }
+
+    revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+    return { message: "Запись KPI успешно обновлена." };
+}
+
+export async function deleteKpiMetric(prevState: DeleteFormState, formData: FormData): Promise<DeleteFormState> {
+    const campaignId = formData.get('campaignId') as string;
+    const actionId = formData.get('actionId') as string;
+    const activityId = formData.get('activityId') as string;
+    const kpiId = formData.get('kpiId') as string;
+    const logId = formData.get('logId') as string;
+
+    if (!campaignId || !actionId || !activityId || !kpiId || !logId) {
+        return { message: "Отсутствуют необходимые идентификаторы.", error: true };
+    }
+
+    try {
+        await deleteKpiMetricData(campaignId, actionId, activityId, kpiId, logId);
+    } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+        return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
+    }
+
+    revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+    return { message: "Запись KPI успешно удалена." };
+}
     
