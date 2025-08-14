@@ -8,18 +8,11 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/status-badge';
 import Link from 'next/link';
 import { Progress } from '@/components/ui/progress';
-import { Eye, FilePlus } from 'lucide-react';
+import { Eye, FilePlus, DollarSign, TrendingUp, Landmark } from 'lucide-react';
 import { CampaignFilter } from './campaign-filter';
 
 type ActionsPageProps = {
@@ -39,11 +32,6 @@ export default async function ActionsPage({ searchParams: searchParamsPromise }:
     : allActions;
 
   const locale = 'ru-RU';
-  const dateOptions: Intl.DateTimeFormatOptions = {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  };
 
   return (
     <div>
@@ -77,6 +65,30 @@ export default async function ActionsPage({ searchParams: searchParamsPromise }:
           const summaryKpisToShow = Object.entries(summaryKpis)
             .filter(([name]) => action.summaryKpis?.includes(name))
             .map(([name, data]) => ({ name, ...data }));
+
+          const plannedBudget = action.activities?.reduce((sum, activity) => sum + activity.budget, 0) || 0;
+          const totalSpent = (action.activities?.reduce((sum, activity) => sum + activity.spent, 0) || 0) + (action.generalExpenses?.reduce((sum, expense) => sum + expense.amount, 0) || 0);
+          const budgetProgress = plannedBudget > 0 ? (totalSpent / plannedBudget) * 100 : 0;
+          
+          const salesKpiName = "Продажи";
+          let plannedSales = 0;
+          let actualSales = 0;
+
+          action.activities?.forEach(activity => {
+              activity.kpis?.forEach(kpi => {
+                  if (kpi.name === salesKpiName) {
+                      plannedSales += kpi.target;
+                      actualSales += kpi.current;
+                  }
+              });
+          });
+
+          const plannedRevenue = plannedSales * (action.plannedAverageCheck || 0);
+          const actualRevenue = actualSales * (action.actualAverageCheck || 0);
+          const plannedProfit = plannedRevenue * ((action.plannedMarginality || 0) / 100);
+          const actualProfit = actualRevenue * ((action.actualMarginality || 0) / 100);
+          const hasRevenueData = action.plannedAverageCheck || action.actualAverageCheck;
+          const hasProfitData = action.actualMarginality || action.plannedMarginality;
 
           return (
             <Link
@@ -125,8 +137,46 @@ export default async function ActionsPage({ searchParams: searchParamsPromise }:
                         ))}
                       </div>
                     )}
-                    {summaryKpisToShow.length > 0 && <Separator />}
-                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    
+                    {(summaryKpisToShow.length > 0 || plannedBudget > 0 || hasRevenueData) && <Separator />}
+
+                    <div className="space-y-3">
+                        {hasRevenueData && (
+                            <div>
+                                <div className="flex justify-between items-center text-sm mb-1">
+                                    <span className="text-muted-foreground flex items-center"><TrendingUp className="w-3 h-3 mr-1.5"/>Выручка</span>
+                                    <span className="font-medium text-accent">
+                                        {new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(actualRevenue)} / <span className="text-muted-foreground">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(plannedRevenue)}</span>
+                                    </span>
+                                </div>
+                                <Progress value={plannedRevenue > 0 ? (actualRevenue / plannedRevenue) * 100 : 0} className="h-2" indicatorClassName="bg-accent" />
+                            </div>
+                        )}
+                        {hasProfitData && (
+                            <div>
+                                <div className="flex justify-between items-center text-sm mb-1">
+                                    <span className="text-muted-foreground flex items-center"><Landmark className="w-3 h-3 mr-1.5"/>Прибыль</span>
+                                    <span className="font-medium text-accent">
+                                        {new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(actualProfit)} / <span className="text-muted-foreground">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(plannedProfit)}</span>
+                                    </span>
+                                </div>
+                                <Progress value={plannedProfit > 0 ? (actualProfit / plannedProfit) * 100 : 0} className="h-2" indicatorClassName="bg-accent" />
+                            </div>
+                        )}
+                        {plannedBudget > 0 && (
+                            <div>
+                                <div className="flex justify-between items-center text-sm mb-1">
+                                    <span className="text-muted-foreground flex items-center"><DollarSign className="w-3 h-3 mr-1.5"/>Бюджет</span>
+                                    <span className="font-medium">
+                                        {new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(totalSpent)} / {new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(plannedBudget)}
+                                    </span>
+                                </div>
+                                <Progress value={budgetProgress} className="h-2" indicatorClassName={budgetProgress > 100 ? 'bg-destructive' : ''} />
+                            </div>
+                        )}
+                    </div>
+                    
+                    <div className="flex items-center justify-between text-sm text-muted-foreground pt-2">
                       <StatusBadge status={action.status} />
                       <span>
                         {new Date(action.startDate).toLocaleDateString(locale, {
