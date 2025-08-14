@@ -5,8 +5,8 @@ import { useEffect, useActionState, useRef } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Loader2, Save, ShoppingCart, Banknote } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { updateActionAverageChecks, type AverageCheckFormState } from '@/lib/actions';
@@ -97,6 +97,7 @@ export function ActionEffectivenessCard({ action, campaignId, locale, currencyOp
                                 id="plannedAverageCheck" 
                                 name="plannedAverageCheck" 
                                 type="number" 
+                                step="any"
                                 defaultValue={action.plannedAverageCheck || ''} 
                                 placeholder="150"
                             />
@@ -107,7 +108,8 @@ export function ActionEffectivenessCard({ action, campaignId, locale, currencyOp
                             <Input 
                                 id="actualAverageCheck" 
                                 name="actualAverageCheck" 
-                                type="number" 
+                                type="number"
+                                step="any"
                                 defaultValue={action.actualAverageCheck || ''}
                                 placeholder="165"
                              />

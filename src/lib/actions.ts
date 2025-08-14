@@ -589,8 +589,8 @@ export async function updateActionSummaryKpis(
 const UpdateAverageChecksSchema = z.object({
   campaignId: z.string(),
   actionId: z.string(),
-  plannedAverageCheck: z.coerce.number().min(0, "Средний чек не может быть отрицательным."),
-  actualAverageCheck: z.coerce.number().min(0, "Средний чек не может быть отрицательным."),
+  plannedAverageCheck: z.coerce.number().min(0, "Средний чек не может быть отрицательным.").optional().or(z.literal('')),
+  actualAverageCheck: z.coerce.number().min(0, "Средний чек не может быть отрицательным.").optional().or(z.literal('')),
 });
 
 
@@ -622,7 +622,7 @@ export async function updateActionAverageChecks(
   const { campaignId, actionId, plannedAverageCheck, actualAverageCheck } = validatedFields.data;
 
   try {
-    await updateActionAverageChecksData(campaignId, actionId, plannedAverageCheck, actualAverageCheck);
+    await updateActionAverageChecksData(campaignId, actionId, Number(plannedAverageCheck) || 0, Number(actualAverageCheck) || 0);
   } catch (e) {
     const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
     return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
