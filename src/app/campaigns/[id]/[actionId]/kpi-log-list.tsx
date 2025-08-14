@@ -39,7 +39,7 @@ export function KpiLogList({ kpi, activityId, actionId, campaignId }: KpiLogList
                 </TableHeader>
                 <TableBody>
                     {sortedLogs.map((log) => (
-                        <TableRow key={log.id}>
+                        <TableRow key={`${kpi.id}-${log.id}-${log.date}`}>
                             <TableCell className="py-1.5">{new Date(log.date).toLocaleDateString(locale, dateOptions)}</TableCell>
                             <TableCell className="py-1.5 text-right font-medium">+{log.value.toLocaleString(locale)}</TableCell>
                             <TableCell className="py-1.5 text-right">
