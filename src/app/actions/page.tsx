@@ -12,7 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/status-badge';
 import Link from 'next/link';
 import { Progress } from '@/components/ui/progress';
-import { Eye, FilePlus, DollarSign, TrendingUp, Landmark } from 'lucide-react';
+import { Eye, FilePlus, Ruble, TrendingUp, Landmark } from 'lucide-react';
 import { CampaignFilter } from './campaign-filter';
 import { StatusFilter } from './status-filter';
 import type { ActionStatus } from '@/lib/types';
@@ -159,7 +159,7 @@ export default async function ActionsPage({ searchParams: searchParamsPromise }:
                                 <div className="flex justify-between items-center text-sm mb-1">
                                     <span className="text-muted-foreground flex items-center"><TrendingUp className="w-3 h-3 mr-1.5"/>Выручка</span>
                                     <span className="font-medium text-accent">
-                                        {new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(actualRevenue)} / <span className="text-muted-foreground">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(plannedRevenue)}</span>
+                                        {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualRevenue)} / <span className="text-muted-foreground">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(plannedRevenue)}</span>
                                     </span>
                                 </div>
                                 <Progress value={plannedRevenue > 0 ? (actualRevenue / plannedRevenue) * 100 : 0} className="h-2" indicatorClassName="bg-accent" />
@@ -170,7 +170,7 @@ export default async function ActionsPage({ searchParams: searchParamsPromise }:
                                 <div className="flex justify-between items-center text-sm mb-1">
                                     <span className="text-muted-foreground flex items-center"><Landmark className="w-3 h-3 mr-1.5"/>Прибыль</span>
                                     <span className="font-medium text-accent">
-                                        {new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(actualProfit)} / <span className="text-muted-foreground">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(plannedProfit)}</span>
+                                        {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualProfit)} / <span className="text-muted-foreground">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(plannedProfit)}</span>
                                     </span>
                                 </div>
                                 <Progress value={plannedProfit > 0 ? (actualProfit / plannedProfit) * 100 : 0} className="h-2" indicatorClassName="bg-accent" />
@@ -179,9 +179,9 @@ export default async function ActionsPage({ searchParams: searchParamsPromise }:
                         {plannedBudget > 0 && (
                             <div>
                                 <div className="flex justify-between items-center text-sm mb-1">
-                                    <span className="text-muted-foreground flex items-center"><DollarSign className="w-3 h-3 mr-1.5"/>Бюджет</span>
+                                    <span className="text-muted-foreground flex items-center"><Ruble className="w-3 h-3 mr-1.5"/>Бюджет</span>
                                     <span className="font-medium">
-                                        {new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(totalSpent)} / {new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(plannedBudget)}
+                                        {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(totalSpent)} / {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(plannedBudget)}
                                     </span>
                                 </div>
                                 <Progress value={budgetProgress} className="h-2" indicatorClassName={budgetProgress > 100 ? 'bg-destructive' : ''} />

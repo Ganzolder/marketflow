@@ -32,7 +32,7 @@ type EnrichedExpense = Expense & {
 
 export function GeneralExpensesList({ action, campaignId }: { action: Action; campaignId: string }) {
   const locale = 'ru-RU';
-  const currencyOptions = { style: 'currency', currency: 'USD' };
+  const currencyOptions = { style: 'currency', currency: 'RUB' };
   const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
   
   const allExpenses: EnrichedExpense[] = [

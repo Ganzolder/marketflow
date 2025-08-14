@@ -28,7 +28,7 @@ export function CalculatorForm() {
                 </CardHeader>
                 <CardContent className="grid gap-4">
                     <div className="grid gap-2">
-                        <Label htmlFor="investment">Общие инвестиции ($)</Label>
+                        <Label htmlFor="investment">Общие инвестиции (₽)</Label>
                         <Input 
                             id="investment" 
                             type="number" 
@@ -38,7 +38,7 @@ export function CalculatorForm() {
                         />
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="revenue">Общий доход ($)</Label>
+                        <Label htmlFor="revenue">Общий доход (₽)</Label>
                         <Input 
                             id="revenue" 
                             type="number" 
@@ -94,7 +94,7 @@ export function CalculatorForm() {
                             <div>
                                 <p className="text-sm text-muted-foreground">Стоимость привлечения клиента (CPA)</p>
                                 <p className="text-3xl font-bold">
-                                    ${cpa.toFixed(2)}
+                                    ₽{cpa.toFixed(2)}
                                 </p>
                             </div>
                         </div>

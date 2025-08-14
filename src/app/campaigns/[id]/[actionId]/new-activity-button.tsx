@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from '@/components/ui/textarea';
-import { PlusCircle, Loader2, Trash2, TrendingUp, CircleDollarSign, Info } from "lucide-react";
+import { PlusCircle, Loader2, Trash2, TrendingUp, Ruble, Info } from "lucide-react";
 import { addActivityToAction } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -47,7 +47,7 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
     const locale = 'ru-RU';
-    const currencyOptions = { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 };
+    const currencyOptions = { style: 'currency', currency: 'RUB', minimumFractionDigits: 2, maximumFractionDigits: 2 };
     const [kpiOptions, setKpiOptions] = useState<{value: string, label: string}[]>([]);
 
     useEffect(() => {
@@ -191,7 +191,7 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
                                         name="budget"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Бюджет ($)</FormLabel>
+                                                <FormLabel>Бюджет (₽)</FormLabel>
                                                 <FormControl><Input type="number" placeholder="500" {...field} /></FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -350,7 +350,7 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
                                                             <TooltipProvider>
                                                             <Tooltip>
                                                                 <TooltipTrigger className="flex items-center gap-1">
-                                                                    <CircleDollarSign className="w-4 h-4 text-blue-500" />
+                                                                    <Ruble className="w-4 h-4 text-blue-500" />
                                                                     <span className="font-bold text-blue-500">{new Intl.NumberFormat(locale, currencyOptions).format(costPerUnit)}</span>
                                                                 </TooltipTrigger>
                                                                 <TooltipContent>

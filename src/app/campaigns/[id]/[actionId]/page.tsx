@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/status-badge';
-import { Calendar as CalendarIcon, Target, Users, DollarSign, ArrowRight, TrendingUp, CircleDollarSign, Landmark, CalendarDays, LocateFixed, History } from 'lucide-react';
+import { Calendar as CalendarIcon, Target, Users, Landmark, ArrowRight, TrendingUp, CalendarDays, LocateFixed, History, Ruble } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { NewActivityButton } from './new-activity-button';
 import { EditActivityButton } from './edit-activity-button';
@@ -43,8 +43,8 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
 
   const locale = 'ru-RU';
   const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
-  const currencyOptions = { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 };
-  const shortCurrencyOptions = { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 };
+  const currencyOptions = { style: 'currency', currency: 'RUB', minimumFractionDigits: 2, maximumFractionDigits: 2 };
+  const shortCurrencyOptions = { style: 'currency', currency: 'RUB', minimumFractionDigits: 0, maximumFractionDigits: 0 };
 
 
   const aggregatedKpis: Record<string, { current: number; target: number; }> = {};
@@ -264,7 +264,7 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
                                                         <TooltipProvider>
                                                             <Tooltip>
                                                                 <TooltipTrigger className="flex items-center gap-1">
-                                                                <CircleDollarSign className="w-4 h-4 text-blue-500" />
+                                                                <Ruble className="w-4 h-4 text-blue-500" />
                                                                 <span className="font-bold text-blue-500">{new Intl.NumberFormat(locale, currencyOptions).format(costPerUnit)}</span>
                                                                 </TooltipTrigger>
                                                                 <TooltipContent>

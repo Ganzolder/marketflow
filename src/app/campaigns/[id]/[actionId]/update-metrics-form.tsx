@@ -81,7 +81,7 @@ export function UpdateMetricsForm({ activity, campaignId, actionId }: { activity
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
     const locale = 'ru-RU';
-    const currencyOptions = { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 };
+    const currencyOptions = { style: 'currency', currency: 'RUB', minimumFractionDigits: 0, maximumFractionDigits: 0 };
     
     const initialState: MetricsFormState = { message: "" };
     const [state, dispatch] = useActionState(updateActivityMetrics, initialState);

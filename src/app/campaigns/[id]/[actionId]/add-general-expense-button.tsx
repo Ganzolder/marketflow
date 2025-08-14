@@ -151,7 +151,7 @@ export function AddGeneralExpenseButton({ campaignId, actionId, activities }: { 
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2">
-                                <Label htmlFor="amount">Сумма ($)</Label>
+                                <Label htmlFor="amount">Сумма (₽)</Label>
                                 <Input id="amount" name="amount" type="number" placeholder="500.00" />
                                 {state?.errors?.amount && <p className="text-sm text-destructive">{state.errors.amount[0]}</p>}
                             </div>

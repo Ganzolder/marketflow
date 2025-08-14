@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from 'next/link';
 import { PageHeader } from '@/components/page-header';
 import { getCampaigns, getUpcomingActions } from '@/lib/data';
-import { Activity, DollarSign, Target } from "lucide-react";
+import { Activity, Landmark, Target } from "lucide-react";
 import { StatusBadge } from "@/components/status-badge";
 
 export default async function Dashboard() {
@@ -28,7 +28,7 @@ export default async function Dashboard() {
   const completedActions = campaigns.flatMap(c => c.actions).filter(a => a.status === 'completed').length;
   
   const locale = 'ru-RU';
-  const currencyOptions = { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 };
+  const currencyOptions = { style: 'currency', currency: 'RUB', minimumFractionDigits: 0, maximumFractionDigits: 0 };
   const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
 
   return (
@@ -51,7 +51,7 @@ export default async function Dashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Общий бюджет</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <Landmark className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{new Intl.NumberFormat(locale, currencyOptions).format(totalBudget)}</div>

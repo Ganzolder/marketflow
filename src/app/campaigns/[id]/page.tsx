@@ -4,7 +4,7 @@ import { getCampaignById } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { Edit, Calendar as CalendarIcon, DollarSign, Target, FilePlus, Eye, TrendingUp, Landmark, CalendarDays } from 'lucide-react';
+import { Edit, Calendar as CalendarIcon, Ruble, Target, FilePlus, Eye, TrendingUp, Landmark, CalendarDays } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/status-badge';
@@ -53,7 +53,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
   });
 
   const locale = 'ru-RU';
-  const currencyOptions = { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 };
+  const currencyOptions = { style: 'currency', currency: 'RUB', minimumFractionDigits: 0, maximumFractionDigits: 0 };
   const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
 
   const campaignStartDate = new Date(campaign.startDate);
@@ -76,7 +76,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
             <div className="grid md:grid-cols-3 gap-4 text-sm">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-muted rounded-md">
-                        <DollarSign className="h-5 w-5 text-muted-foreground" />
+                        <Ruble className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div>
                         <p className="text-muted-foreground">Бюджет</p>
@@ -220,7 +220,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                                                     <div className="flex justify-between items-center text-sm mb-1">
                                                         <span className="text-muted-foreground flex items-center"><TrendingUp className="w-3 h-3 mr-1.5"/>Выручка</span>
                                                         <span className="font-medium text-accent">
-                                                            {new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(actualRevenue)} / <span className="text-muted-foreground">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(plannedRevenue)}</span>
+                                                            {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualRevenue)} / <span className="text-muted-foreground">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(plannedRevenue)}</span>
                                                         </span>
                                                     </div>
                                                     <Progress value={plannedRevenue > 0 ? (actualRevenue / plannedRevenue) * 100 : 0} className="h-2" indicatorClassName="bg-accent" />
@@ -231,7 +231,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                                                     <div className="flex justify-between items-center text-sm mb-1">
                                                         <span className="text-muted-foreground flex items-center"><Landmark className="w-3 h-3 mr-1.5"/>Прибыль</span>
                                                         <span className="font-medium text-accent">
-                                                            {new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(actualProfit)} / <span className="text-muted-foreground">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(plannedProfit)}</span>
+                                                            {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualProfit)} / <span className="text-muted-foreground">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(plannedProfit)}</span>
                                                         </span>
                                                     </div>
                                                     <Progress value={plannedProfit > 0 ? (actualProfit / plannedProfit) * 100 : 0} className="h-2" indicatorClassName="bg-accent" />
@@ -240,9 +240,9 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                                             {plannedBudget > 0 && (
                                                 <div>
                                                     <div className="flex justify-between items-center text-sm mb-1">
-                                                        <span className="text-muted-foreground flex items-center"><DollarSign className="w-3 h-3 mr-1.5"/>Бюджет</span>
+                                                        <span className="text-muted-foreground flex items-center"><Ruble className="w-3 h-3 mr-1.5"/>Бюджет</span>
                                                         <span className="font-medium">
-                                                            {new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(totalSpent)} / {new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(plannedBudget)}
+                                                            {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(totalSpent)} / {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(plannedBudget)}
                                                         </span>
                                                     </div>
                                                     <Progress value={budgetProgress} className="h-2" indicatorClassName={budgetProgress > 100 ? 'bg-destructive' : ''} />

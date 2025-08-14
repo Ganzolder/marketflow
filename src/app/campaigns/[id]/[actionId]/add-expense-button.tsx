@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { DollarSign, Loader2, UploadCloud, CheckCircle2 } from "lucide-react";
+import { Ruble, Loader2, UploadCloud, CheckCircle2 } from "lucide-react";
 import { addExpense, type ExpenseFormState } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
@@ -111,7 +111,7 @@ export function AddExpenseButton({ activityId, campaignId, actionId }: { activit
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 <Button variant="outline" size="sm">
-                    <DollarSign className="mr-2 h-4 w-4" />
+                    <Ruble className="mr-2 h-4 w-4" />
                     Добавить трату
                 </Button>
             </DialogTrigger>
@@ -135,7 +135,7 @@ export function AddExpenseButton({ activityId, campaignId, actionId }: { activit
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2">
-                                <Label htmlFor="amount">Сумма ($)</Label>
+                                <Label htmlFor="amount">Сумма (₽)</Label>
                                 <Input id="amount" name="amount" type="number" placeholder="150.00" />
                                 {state?.errors?.amount && <p className="text-sm text-destructive">{state.errors.amount[0]}</p>}
                             </div>

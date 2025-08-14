@@ -98,7 +98,7 @@ export function ActionEffectivenessCard({ action, campaignId, locale, currencyOp
                     
                     <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
                          <div className="grid gap-2">
-                            <Label htmlFor="plannedAverageCheck">Планируемый средний чек ($)</Label>
+                            <Label htmlFor="plannedAverageCheck">Планируемый средний чек (₽)</Label>
                             <Input 
                                 id="plannedAverageCheck" 
                                 name="plannedAverageCheck" 
@@ -110,7 +110,7 @@ export function ActionEffectivenessCard({ action, campaignId, locale, currencyOp
                             {state.errors?.plannedAverageCheck && <p className="text-sm text-destructive">{state.errors.plannedAverageCheck[0]}</p>}
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="actualAverageCheck">Фактический средний чек ($)</Label>
+                            <Label htmlFor="actualAverageCheck">Фактический средний чек (₽)</Label>
                             <Input 
                                 id="actualAverageCheck" 
                                 name="actualAverageCheck" 

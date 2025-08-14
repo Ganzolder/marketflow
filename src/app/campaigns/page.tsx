@@ -37,7 +37,7 @@ export default async function CampaignsPage({ searchParams }: CampaignsPageProps
     : campaigns;
 
   const locale = 'ru-RU';
-  const currencyOptions = { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 };
+  const currencyOptions = { style: 'currency', currency: 'RUB', minimumFractionDigits: 0, maximumFractionDigits: 0 };
   const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
   const today = new Date();
 
