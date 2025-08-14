@@ -75,7 +75,7 @@ export function EditCampaignButton({ campaign, asIcon = false }: { campaign: Cam
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="grid gap-2">
-                                <Label htmlFor="budget">Бюджет (₽)</Label>
+                                <Label htmlFor="budget">Бюджет (р.)</Label>
                                 <Input id="budget" name="budget" type="number" defaultValue={campaign.budget} />
                                 {state.errors?.budget && <p className="text-sm text-destructive">{state.errors.budget[0]}</p>}
                             </div>

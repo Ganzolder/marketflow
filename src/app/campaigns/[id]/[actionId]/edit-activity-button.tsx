@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Edit2, PlusCircle, Trash2, TrendingUp, Ruble, Info } from "lucide-react";
+import { Loader2, Edit2, PlusCircle, Trash2, TrendingUp, Info } from "lucide-react";
 import { updateActivity } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import type { Activity, KPI } from '@/lib/types';
@@ -192,7 +192,7 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                                     name="budget"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Бюджет (₽)</FormLabel>
+                                            <FormLabel>Бюджет (р.)</FormLabel>
                                             <FormControl><Input type="number" {...field} /></FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -351,8 +351,7 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                                                         <TooltipProvider>
                                                             <Tooltip>
                                                                 <TooltipTrigger className="flex items-center gap-1">
-                                                                <Ruble className="w-4 h-4 text-blue-500" />
-                                                                <span className="font-bold text-blue-500">{new Intl.NumberFormat(locale, currencyOptions).format(costPerUnit)}</span>
+                                                                    <span className="font-bold text-blue-500">{new Intl.NumberFormat(locale, currencyOptions).format(costPerUnit)}</span>
                                                                 </TooltipTrigger>
                                                                 <TooltipContent>
                                                                 <p>Плановая стоимость за ед.</p>

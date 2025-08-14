@@ -264,7 +264,6 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
                                                         <TooltipProvider>
                                                             <Tooltip>
                                                                 <TooltipTrigger className="flex items-center gap-1">
-                                                                <Landmark className="w-4 h-4 text-blue-500" />
                                                                 <span className="font-bold text-blue-500">{new Intl.NumberFormat(locale, currencyOptions).format(costPerUnit)}</span>
                                                                 </TooltipTrigger>
                                                                 <TooltipContent>
