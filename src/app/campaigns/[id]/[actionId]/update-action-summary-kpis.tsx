@@ -15,7 +15,7 @@ import { Label } from '@/components/ui/label';
 function SubmitButton() {
     const { pending } = useFormStatus();
     return (
-        <Button type="submit" size="sm" disabled={pending} className="absolute top-0 right-0">
+        <Button type="submit" size="sm" disabled={pending}>
             {pending ? (
                 <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -69,9 +69,12 @@ export function UpdateActionSummaryKpisForm({ kpis, action, campaignId, locale }
     const defaultCheckedKpis = action.summaryKpis || [];
 
     return (
-        <form action={dispatch} ref={formRef} className="relative">
+        <form action={dispatch} ref={formRef} className="space-y-4">
             <input type="hidden" name="campaignId" value={campaignId} />
             <input type="hidden" name="actionId" value={action.id} />
+             <div className="flex justify-end">
+                <SubmitButton />
+            </div>
             <div className="grid md:grid-cols-2 gap-x-8 gap-y-4">
                 {kpis.map(goal => (
                     <div key={goal.name}>
@@ -92,9 +95,6 @@ export function UpdateActionSummaryKpisForm({ kpis, action, campaignId, locale }
                         </p>
                     </div>
                 ))}
-            </div>
-             <div className="mt-6 flex justify-end">
-                <SubmitButton />
             </div>
         </form>
     );
