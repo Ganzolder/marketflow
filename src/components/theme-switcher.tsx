@@ -37,8 +37,8 @@ export function ThemeSwitcher() {
     ? "flex flex-col gap-1"
     : "grid grid-cols-3 gap-1 border rounded-lg p-1";
 
-  const buttonSize = sidebarState === 'collapsed' ? "icon" : "sm";
-  const buttonClasses = sidebarState === 'collapsed' ? "h-8 w-8" : "h-7";
+  const buttonSize = sidebarState === 'collapsed' ? "icon" : "icon";
+  const buttonClasses = sidebarState === 'collapsed' ? "h-8 w-8" : "h-7 w-full";
 
 
   return (
@@ -50,8 +50,7 @@ export function ThemeSwitcher() {
             onClick={() => handleThemeChange("light")}
             aria-label="Light theme"
         >
-            <Sun className={sidebarState === 'collapsed' ? "" : "mr-2"} />
-            {sidebarState !== 'collapsed' && <span>Светлая</span>}
+            <Sun />
         </Button>
         <Button
             variant={theme === 'dark' ? "secondary" : "ghost"}
@@ -60,8 +59,7 @@ export function ThemeSwitcher() {
             onClick={() => handleThemeChange("dark")}
             aria-label="Dark theme"
         >
-            <Moon className={sidebarState === 'collapsed' ? "" : "mr-2"} />
-            {sidebarState !== 'collapsed' && <span>Темная</span>}
+            <Moon />
         </Button>
         <Button
             variant={theme === 'system' ? "secondary" : "ghost"}
@@ -70,10 +68,8 @@ export function ThemeSwitcher() {
             onClick={() => handleThemeChange("system")}
             aria-label="System theme"
         >
-            <Monitor className={sidebarState === 'collapsed' ? "" : "mr-2"} />
-            {sidebarState !== 'collapsed' && <span>Система</span>}
+            <Monitor />
         </Button>
     </div>
   );
 }
-
