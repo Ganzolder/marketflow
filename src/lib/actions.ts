@@ -118,6 +118,7 @@ const KpiSchema = z.object({
     multiple: z.coerce.number().min(1),
     parentId: z.string().nullable(),
     includeInActionGoals: z.boolean().optional(),
+    showOnActionCard: z.boolean().optional(),
 });
 
 const ActivitySchema = z.object({
@@ -194,7 +195,7 @@ export async function addActivityToAction(
       ...activityData,
       spent: 0,
       expenses: [],
-      kpis: activityData.kpis.map(kpi => ({...kpi, current: 0, includeInActionGoals: kpi.includeInActionGoals ?? true })) 
+      kpis: activityData.kpis.map(kpi => ({...kpi, current: 0, includeInActionGoals: kpi.includeInActionGoals ?? true, showOnActionCard: kpi.showOnActionCard ?? false })) 
   }
 
   try {
@@ -223,7 +224,7 @@ export async function updateActivity(
     budget: formData.get('budget'),
     startDate: formData.get('start-date'),
     endDate: formData.get('end-date'),
-    kpis: kpis.map((kpi: any) => ({ ...kpi, target: Number(kpi.target), current: Number(kpi.current), multiple: Number(kpi.multiple) || 1, includeInActionGoals: kpi.includeInActionGoals ?? true })),
+    kpis: kpis.map((kpi: any) => ({ ...kpi, target: Number(kpi.target), current: Number(kpi.current), multiple: Number(kpi.multiple) || 1, includeInActionGoals: kpi.includeInActionGoals ?? true, showOnActionCard: kpi.showOnActionCard ?? false })),
     campaignId: formData.get('campaignId'),
     actionId: formData.get('actionId'),
     id: formData.get('activityId'),

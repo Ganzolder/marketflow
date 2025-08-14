@@ -3,13 +3,14 @@ import { getCampaignById } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { Edit, Calendar as CalendarIcon, DollarSign, Target, FilePlus } from 'lucide-react';
+import { Edit, Calendar as CalendarIcon, DollarSign, Target, FilePlus, Eye } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/status-badge';
 import { NewActionButton } from './new-action-button';
 import { EditActionButton } from './edit-action-button';
 import Link from 'next/link';
+import { Progress } from '@/components/ui/progress';
 
 type CampaignDetailPageProps = {
   params: {
@@ -121,9 +122,13 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
             </CardHeader>
             <CardContent>
                 <div className="grid gap-4 md:grid-cols-2">
-                    {filteredActions.map(action => (
+                    {filteredActions.map(action => {
+                        const allKpis = action.activities?.flatMap(a => a.kpis || []) || [];
+                        const summaryKpis = allKpis.filter(kpi => kpi.showOnActionCard);
+                        
+                        return (
                         <Link key={action.id} href={`/campaigns/${campaign.id}/${action.id}`} className="block hover:shadow-lg transition-shadow rounded-lg">
-                            <Card className="h-full">
+                            <Card className="h-full flex flex-col">
                                 <CardHeader>
                                     <CardTitle className="text-lg flex justify-between items-start">
                                         <span>{action.name}</span>
@@ -131,8 +136,22 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                                     </CardTitle>
                                     <CardDescription>{action.description}</CardDescription>
                                 </CardHeader>
-                                <CardContent>
+                                <CardContent className="flex-1 space-y-4">
                                     <div className="space-y-4">
+                                        {summaryKpis.length > 0 && (
+                                            <div className="space-y-3">
+                                                {summaryKpis.map(kpi => (
+                                                    <div key={kpi.id}>
+                                                        <div className="flex justify-between items-center text-sm mb-1">
+                                                          <span className="text-muted-foreground flex items-center"><Eye className="w-3 h-3 mr-1.5"/>{kpi.name}</span>
+                                                          <span className="font-medium">{kpi.target > 0 ? Math.round((kpi.current / kpi.target) * 100) : 0}%</span>
+                                                        </div>
+                                                        <Progress value={kpi.target > 0 ? (kpi.current / kpi.target) * 100 : 0} className="h-2" />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {summaryKpis.length > 0 && <Separator />}
                                         <div className="flex items-center justify-between text-sm text-muted-foreground">
                                             <StatusBadge status={action.status} />
                                             <span>{new Date(action.startDate).toLocaleDateString(locale, {month: 'short', day: 'numeric'})} - {new Date(action.endDate).toLocaleDateString(locale, {month: 'short', day: 'numeric'})}</span>
@@ -141,7 +160,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                                 </CardContent>
                             </Card>
                         </Link>
-                    ))}
+                    )})}
                 </div>
                  {filteredActions.length === 0 && (
                         <div className="text-center text-sm text-muted-foreground py-10">
