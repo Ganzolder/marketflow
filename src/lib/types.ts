@@ -4,7 +4,6 @@ export type Goal = {
   name: string;
   target: number;
   current: number;
-  unit: string;
 };
 
 export type ActionStatus = 'planned' | 'in-progress' | 'completed';

@@ -19,8 +19,8 @@ async function seedDatabase() {
         endDate: '2024-08-31',
         status: 'active',
         goals: [
-          { id: 'goal-1', name: 'Увеличение продаж', target: 50000, current: 35000, unit: 'USD' },
-          { id: 'goal-2', name: 'Привлечение новых клиентов', target: 1000, current: 650, unit: 'клиентов' },
+          { id: 'goal-1', name: 'Увеличение продаж', target: 50000, current: 35000 },
+          { id: 'goal-2', name: 'Привлечение новых клиентов', target: 1000, current: 650 },
         ],
         actions: [
           {
@@ -32,8 +32,8 @@ async function seedDatabase() {
             startDate: '2024-06-01',
             endDate: '2024-07-31',
             goals: [
-              { id: 'g1', name: 'Охват', target: 100000, current: 75000, unit: 'показов' },
-              { id: 'g2', name: 'Клики', target: 5000, current: 4200, unit: 'кликов' }
+              { id: 'g1', name: 'Охват', target: 100000, current: 75000 },
+              { id: 'g2', name: 'Клики', target: 5000, current: 4200 }
             ],
             activities: [],
             generalExpenses: [],
@@ -60,7 +60,7 @@ async function seedDatabase() {
         endDate: '2024-11-30',
         status: 'planned',
         goals: [
-            { id: 'goal-3', name: 'Предзаказы', target: 2000, current: 150, unit: 'единиц' },
+            { id: 'goal-3', name: 'Предзаказы', target: 2000, current: 150 },
         ],
         actions: [],
       },
@@ -72,7 +72,7 @@ async function seedDatabase() {
         endDate: '2024-03-31',
         status: 'completed',
         goals: [
-             { id: 'goal-4', name: 'Упоминания в СМИ', target: 50, current: 62, unit: 'упоминаний' },
+             { id: 'goal-4', name: 'Упоминания в СМИ', target: 50, current: 62 },
         ],
         actions: [],
       }
@@ -638,4 +638,21 @@ export async function deleteGeneralExpenseFromAction(campaignId: string, actionI
         console.error("Delete general expense transaction failed: ", e);
         throw e;
     }
+}
+
+export async function getUniqueKpiNames(): Promise<string[]> {
+  const campaigns = await getCampaigns();
+  const kpiNames = new Set<string>();
+
+  campaigns.forEach(campaign => {
+    campaign.actions?.forEach(action => {
+      action.activities?.forEach(activity => {
+        activity.kpis?.forEach(kpi => {
+          kpiNames.add(kpi.name);
+        });
+      });
+    });
+  });
+
+  return Array.from(kpiNames).sort();
 }
