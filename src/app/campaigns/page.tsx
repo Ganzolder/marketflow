@@ -48,7 +48,7 @@ export default async function CampaignsPage({ searchParams }: CampaignsPageProps
         </div>
       </PageHeader>
       
-      <div className="grid gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredCampaigns.map((campaign) => {
           const startDate = new Date(campaign.startDate);
           const endDate = new Date(campaign.endDate);
@@ -57,7 +57,7 @@ export default async function CampaignsPage({ searchParams }: CampaignsPageProps
           let durationProgress = Math.min(100, (elapsedDuration / totalDuration) * 100);
 
           return (
-            <Card key={campaign.id}>
+            <Card key={campaign.id} className="flex flex-col">
               <CardHeader>
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                   <div className="flex-1">
@@ -74,8 +74,8 @@ export default async function CampaignsPage({ searchParams }: CampaignsPageProps
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid sm:grid-cols-3 gap-4 text-sm">
+              <CardContent className="space-y-4 flex-1">
+                <div className="grid sm:grid-cols-1 gap-4 text-sm">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-muted rounded-md">
                             <Landmark className="h-5 w-5 text-muted-foreground" />
@@ -114,7 +114,7 @@ export default async function CampaignsPage({ searchParams }: CampaignsPageProps
         })}
         
         {filteredCampaigns.length === 0 && (
-            <Card>
+            <Card className="md:col-span-2 lg:col-span-3">
                 <CardContent className="text-center h-48 flex flex-col items-center justify-center text-muted-foreground">
                     <p>
                         {selectedStatus ? 'Нет кампаний, соответствующих вашим фильтрам.' : 'Кампании еще не созданы.'}
