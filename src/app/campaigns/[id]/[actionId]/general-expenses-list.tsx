@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileSymlink } from "lucide-react";
+import { FileSymlink, Landmark } from "lucide-react";
 import { AddGeneralExpenseButton } from "./add-general-expense-button";
 import { DeleteGeneralExpenseButton } from "./delete-general-expense-button";
 import { EditExpenseButton } from "./edit-expense-button";

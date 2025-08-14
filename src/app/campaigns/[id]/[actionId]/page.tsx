@@ -204,7 +204,7 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
             </CardHeader>
             <CardContent>
                  {action.activities && action.activities.length > 0 ? (
-                    <div className="grid lg:grid-cols-2 gap-6 items-start">
+                    <div className="grid md:grid-cols-2 gap-6 items-start">
                         {action.activities.map(activity => {
                             const kpis = activity.kpis || [];
                             const footerKpis = kpis.filter(kpi => {
@@ -264,7 +264,7 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
                                                         <TooltipProvider>
                                                             <Tooltip>
                                                                 <TooltipTrigger className="flex items-center gap-1">
-                                                                    <span className="font-bold text-blue-500">{new Intl.NumberFormat(locale, currencyOptions).format(costPerUnit)}</span>
+                                                                    <span className="font-bold text-blue-500">{new Intl.NumberFormat(locale, currencyOptions).format(costPerUnit)} р.</span>
                                                                 </TooltipTrigger>
                                                                 <TooltipContent>
                                                                 <p>Стоимость за ед. (факт)</p>

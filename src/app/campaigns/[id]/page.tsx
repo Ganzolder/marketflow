@@ -137,7 +137,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                 */}
             </CardHeader>
             <CardContent>
-                <div className="grid gap-4 lg:grid-cols-2">
+                <div className="grid gap-4 md:grid-cols-2">
                     {filteredActions.map(action => {
                         const allKpis = action.activities?.flatMap(a => a.kpis?.filter(k => k.includeInActionGoals !== false) || []) || [];
                         const summaryKpis: Record<string, { current: number, target: number }> = {};

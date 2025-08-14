@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useEffect, useRef, useActionState, useState } from 'react';
@@ -11,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { Loader2, ChevronDown, History } from 'lucide-react';
+import { Loader2, ChevronDown, History, Landmark } from 'lucide-react';
 import { AddExpenseButton } from './add-expense-button';
 import { KpiLogList } from './kpi-log-list';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -113,7 +114,7 @@ export function UpdateMetricsForm({ activity, campaignId, actionId }: { activity
             <input type="hidden" name="activityId" value={activity.id} />
 
             {/* Budget Section */}
-            <div>
+            <div className="space-y-2">
                 <div className='flex justify-between items-center'>
                     <Label className="text-base font-medium">Бюджет</Label>
                     <AddExpenseButton activityId={activity.id} campaignId={campaignId} actionId={actionId}/>
@@ -128,7 +129,7 @@ export function UpdateMetricsForm({ activity, campaignId, actionId }: { activity
             <Separator />
             
             {/* KPI Section */}
-            <div>
+            <div className="space-y-2">
                 <div className="flex justify-between items-center">
                     <Label className="text-base font-medium">Добавить данные KPI</Label>
                      <div className="flex items-center gap-2">
@@ -136,7 +137,7 @@ export function UpdateMetricsForm({ activity, campaignId, actionId }: { activity
                         <SubmitButton />
                     </div>
                 </div>
-                <div className="space-y-4 mt-2">
+                <div className="space-y-4 pt-2">
                     {activity.kpis && activity.kpis.length > 0 ? (
                         activity.kpis.map(kpi => (
                            <KpiItem 
