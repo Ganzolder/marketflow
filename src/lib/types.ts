@@ -9,11 +9,17 @@ export type Goal = {
 
 export type ActionStatus = 'planned' | 'in-progress' | 'completed';
 
+export type KpiMetricLog = {
+    date: string; // ISO string for the date of the entry
+    value: number; // The value for that specific entry
+}
+
 export type KPI = {
   id: string;
   name: string;
   target: number;
-  current: number; 
+  current: number; // This will be calculated on the fly, but kept for simplicity in display components
+  metrics: KpiMetricLog[]; // History of metric entries
   parentId: string | null; // ID of the parent KPI for conversion tracking
   includeInActionGoals?: boolean;
 }

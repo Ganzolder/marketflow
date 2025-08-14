@@ -117,9 +117,20 @@ const KpiSchema = z.object({
     name: z.string(),
     target: z.coerce.number(),
     current: z.coerce.number(),
+    metrics: z.array(z.object({ date: z.string(), value: z.number() })),
     parentId: z.string().nullable(),
     includeInActionGoals: z.boolean().optional(),
 });
+
+const AddKpiSchema = z.object({
+    id: z.string(),
+    name: z.string().min(1, "Название KPI обязательно."),
+    target: z.coerce.number().min(1, "Цель должна быть больше 0."),
+    current: z.coerce.number(),
+    parentId: z.string().nullable(),
+    includeInActionGoals: z.boolean().optional(),
+});
+
 
 const ActivitySchema = z.object({
   name: z.string().min(3, { message: "Название активности должно содержать не менее 3 символов." }),
@@ -128,7 +139,7 @@ const ActivitySchema = z.object({
   budget: z.coerce.number().min(0, { message: "Бюджет не может быть отрицательным." }),
   startDate: z.string().refine((date) => !isNaN(Date.parse(date)), { message: "Неверный формат даты начала." }),
   endDate: z.string().refine((date) => !isNaN(Date.parse(date)), { message: "Неверный формат даты окончания." }),
-  kpis: z.array(KpiSchema),
+  kpis: z.array(AddKpiSchema).optional(),
   campaignId: z.string(),
   actionId: z.string(),
 });
@@ -198,7 +209,7 @@ export async function addActivityToAction(
       ...activityData,
       spent: 0,
       expenses: [],
-      kpis: activityData.kpis.map(kpi => ({...kpi, current: 0, includeInActionGoals: kpi.includeInActionGoals ?? true })) 
+      kpis: activityData.kpis?.map(kpi => ({...kpi, current: 0, metrics: [], includeInActionGoals: kpi.includeInActionGoals ?? true })) || [] 
   }
 
   try {
@@ -243,9 +254,14 @@ export async function updateActivity(
   }
   
   const { campaignId, actionId, id, ...activityData } = validatedFields.data;
+  
+  const activityUpdateData = {
+      ...activityData,
+      kpis: activityData.kpis || []
+  };
 
   try {
-    await updateActivityData(campaignId, actionId, { id, ...activityData } as Activity);
+    await updateActivityData(campaignId, actionId, { id, ...activityUpdateData } as Activity);
   } catch (error) {
      const errorMessage = error instanceof Error ? error.message : "Произошла неизвестная ошибка.";
     return { message: `Ошибка базы данных: не удалось обновить активность. ${errorMessage}`, error: true };
@@ -303,11 +319,16 @@ export async function updateActivityMetrics(
     for (const [key, value] of formData.entries()) {
         if (key.startsWith('kpi-')) {
             const kpiId = key.replace('kpi-', '');
-            if (value) { // only include if value is provided
+            if (value && parseFloat(value as string) > 0) { // only include if value is provided and positive
                 kpiUpdates[kpiId] = parseFloat(value as string);
             }
         }
     }
+    
+    if (Object.keys(kpiUpdates).length === 0) {
+        return { message: "Данные для обновления не предоставлены.", error: true };
+    }
+
 
     const validatedFields = UpdateMetricsSchema.safeParse({
         campaignId: formData.get('campaignId'),

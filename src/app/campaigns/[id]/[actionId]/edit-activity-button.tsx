@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Edit2, PlusCircle, Trash2, TrendingUp, CircleDollarSign, Info } from "lucide-react";
 import { updateActivity } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
-import type { Activity } from '@/lib/types';
+import type { Activity, KPI } from '@/lib/types';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useFieldArray } from 'react-hook-form';
@@ -27,7 +27,8 @@ const KpiSchema = z.object({
     id: z.string(),
     name: z.string().min(1, "Название KPI обязательно."),
     target: z.coerce.number().min(1, "Цель должна быть больше 0."),
-    current: z.coerce.number(), // Not editable in this form, but needed for type consistency
+    current: z.coerce.number(),
+    metrics: z.array(z.object({ date: z.string(), value: z.number() })),
     parentId: z.string().nullable(),
     includeInActionGoals: z.boolean().optional(),
 });
@@ -232,7 +233,7 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                                             type="button"
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => append({ id: `kpi-${Date.now()}`, name: '', target: 0, current: 0, parentId: null, includeInActionGoals: true })}
+                                            onClick={() => append({ id: `kpi-${Date.now()}`, name: '', target: 0, current: 0, metrics: [], parentId: null, includeInActionGoals: true })}
                                         >
                                             <PlusCircle className="mr-2 h-4 w-4" />
                                             Добавить KPI

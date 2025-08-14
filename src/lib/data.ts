@@ -1,6 +1,7 @@
 
 
 
+
 import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction, ActionStatus, CampaignStatus } from './types';
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, addDoc, writeBatch, runTransaction, deleteDoc } from "firebase/firestore";
@@ -229,6 +230,7 @@ export async function updateActivity(campaignId: string, actionId: string, updat
                 const existingKpi = existingKpis.find(ek => ek.id === uk.id);
                 return {
                     ...uk,
+                    metrics: existingKpi ? existingKpi.metrics : [],
                     current: existingKpi ? existingKpi.current : 0,
                     includeInActionGoals: uk.includeInActionGoals,
                 };
@@ -304,11 +306,15 @@ export async function updateActivityMetrics(campaignId: string, actionId: string
 
             const activity = action.activities[activityIndex];
             
-            // Update KPIs
             if (activity.kpis && activity.kpis.length > 0) {
+                const today = new Date().toISOString().split('T')[0];
                 activity.kpis = activity.kpis.map(kpi => {
-                    if (kpiUpdates.hasOwnProperty(kpi.id)) {
-                        return { ...kpi, current: kpiUpdates[kpi.id] };
+                    const newValue = kpiUpdates[kpi.id];
+                    if (newValue) { // only update if a new value was provided
+                        if (!kpi.metrics) {
+                            kpi.metrics = [];
+                        }
+                        kpi.metrics.push({ date: today, value: newValue });
                     }
                     return kpi;
                 });
@@ -509,37 +515,23 @@ export async function getCampaignById(id: string): Promise<Campaign | undefined>
     const campaignData = snap.data() as Omit<Campaign, 'id'>;
       if (campaignData.actions) {
           campaignData.actions.forEach(action => {
-              if (!action.generalExpenses) {
-                  action.generalExpenses = [];
-              }
-               if (!action.summaryKpis) {
-                  action.summaryKpis = [];
-              }
-              if (!action.plannedAverageCheck) {
-                  action.plannedAverageCheck = 0;
-              }
-              if (!action.actualAverageCheck) {
-                  action.actualAverageCheck = 0;
-              }
-              if (!action.plannedMarginality) {
-                action.plannedMarginality = 0;
-              }
-              if (!action.actualMarginality) {
-                  action.actualMarginality = 0;
-              }
+              if (!action.generalExpenses) action.generalExpenses = [];
+              if (!action.summaryKpis) action.summaryKpis = [];
+              if (!action.plannedAverageCheck) action.plannedAverageCheck = 0;
+              if (!action.actualAverageCheck) action.actualAverageCheck = 0;
+              if (!action.plannedMarginality) action.plannedMarginality = 0;
+              if (!action.actualMarginality) action.actualMarginality = 0;
               if (action.activities) {
                   action.activities.forEach(activity => {
-                      if (!activity.expenses) {
-                          activity.expenses = [];
-                      }
+                      if (!activity.expenses) activity.expenses = [];
                       activity.spent = activity.expenses.reduce((acc, expense) => acc + expense.amount, 0);
 
-                      if (activity.kpis) {
-                          activity.kpis.forEach(kpi => {
-                              if (kpi.current === undefined) kpi.current = 0;
-                              if (kpi.includeInActionGoals === undefined) kpi.includeInActionGoals = true;
-                          });
-                      }
+                      if (!activity.kpis) activity.kpis = [];
+                      activity.kpis.forEach(kpi => {
+                          if (!kpi.metrics) kpi.metrics = [];
+                          kpi.current = kpi.metrics.reduce((acc, metric) => acc + metric.value, 0);
+                          if (kpi.includeInActionGoals === undefined) kpi.includeInActionGoals = true;
+                      });
                   });
               }
           });
@@ -819,3 +811,4 @@ export async function deleteCampaign(campaignId: string) {
         throw e;
     }
 }
+

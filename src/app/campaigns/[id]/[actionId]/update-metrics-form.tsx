@@ -13,6 +13,7 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Loader2 } from 'lucide-react';
 import { AddExpenseButton } from './add-expense-button';
+import { KpiHistoryModal } from './kpi-history-modal';
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -81,8 +82,11 @@ export function UpdateMetricsForm({ activity, campaignId, actionId }: { activity
             {/* KPI Section */}
             <div>
                 <div className="flex justify-between items-center">
-                    <Label className="text-base font-medium">KPI</Label>
+                    <Label className="text-base font-medium">Добавить данные KPI</Label>
                      <SubmitButton />
+                </div>
+                 <div className="flex justify-end mt-2">
+                    <KpiHistoryModal activity={activity} />
                 </div>
                 <div className="space-y-4 mt-2">
                     {activity.kpis && activity.kpis.length > 0 ? (
@@ -101,8 +105,8 @@ export function UpdateMetricsForm({ activity, campaignId, actionId }: { activity
                                         id={`kpi-${kpi.id}`}
                                         name={`kpi-${kpi.id}`}
                                         type="number"
-                                        placeholder="Обновить факт"
-                                        className="h-8 w-[120px] text-xs"
+                                        placeholder="Добавить значение"
+                                        className="h-8 w-[140px] text-xs"
                                     />
                                 </div>
                             </div>
