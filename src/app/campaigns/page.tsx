@@ -56,10 +56,10 @@ export default async function CampaignsPage({ searchParams }: CampaignsPageProps
               <TableRow>
                 <TableHead>Название</TableHead>
                 <TableHead>Статус</TableHead>
-                <TableHead className="hidden md:table-cell">Длительность</TableHead>
+                <TableHead className="hidden lg:table-cell">Длительность</TableHead>
                 <TableHead className="hidden lg:table-cell w-[150px]">Прогресс</TableHead>
-                <TableHead className="text-right hidden sm:table-cell">Бюджет</TableHead>
-                <TableHead className="w-[100px] text-right">Действия</TableHead>
+                <TableHead className="text-right hidden md:table-cell">Бюджет</TableHead>
+                <TableHead className="text-right">Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -73,20 +73,20 @@ export default async function CampaignsPage({ searchParams }: CampaignsPageProps
                 return (
                   <TableRow key={campaign.id}>
                     <TableCell>
-                      <Link href={`/campaigns/${campaign.id}`} className="font-medium hover:text-primary hover:underline">
+                      <Link href={`/campaigns/${campaign.id}`} className="font-medium hover:text-primary hover:underline break-words">
                         {campaign.name}
                       </Link>
                     </TableCell>
                     <TableCell>
                       <UpdateCampaignStatus campaign={campaign} />
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">
+                    <TableCell className="hidden lg:table-cell">
                       {startDate.toLocaleDateString(locale, {month: 'short', day: 'numeric'})} - {endDate.toLocaleDateString(locale, {month: 'short', day: 'numeric', year: 'numeric'})}
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
                       <Progress value={durationProgress} />
                     </TableCell>
-                    <TableCell className="text-right hidden sm:table-cell">
+                    <TableCell className="text-right hidden md:table-cell">
                       {new Intl.NumberFormat(locale, currencyOptions).format(campaign.budget)}
                     </TableCell>
                     <TableCell className="text-right">
