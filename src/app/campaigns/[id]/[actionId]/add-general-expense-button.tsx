@@ -119,7 +119,7 @@ export function AddGeneralExpenseButton({ campaignId, actionId, activities }: { 
                     Добавить расход
                 </Button>
             </DialogTrigger>
-            <DialogContent className="max-h-[70vh] flex flex-col">
+            <DialogContent className="h-[90vh] flex flex-col sm:h-auto sm:max-h-[85vh]">
                 <DialogHeader>
                     <DialogTitle>Добавить расход</DialogTitle>
                     <DialogDescription>

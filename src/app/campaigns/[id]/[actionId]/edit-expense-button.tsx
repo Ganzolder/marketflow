@@ -117,7 +117,7 @@ export function EditExpenseButton({ expense, campaignId, actionId, activities, o
                     <Edit className="h-4 w-4" />
                 </Button>
             </DialogTrigger>
-            <DialogContent onClick={stopPropagation} className="max-h-[70vh] flex flex-col">
+            <DialogContent onClick={stopPropagation} className="h-[90vh] flex flex-col sm:h-auto sm:max-h-[85vh]">
                 <DialogHeader>
                     <DialogTitle>Редактировать расход</DialogTitle>
                 </DialogHeader>
