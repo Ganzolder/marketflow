@@ -3,7 +3,7 @@
 "use server";
 
 import { z } from "zod";
-import { addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData } from "./data";
+import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, exportKpiHistoryToCsv as exportKpiHistoryToCsvData } from "./data";
 import { revalidatePath } from "next/cache";
 import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog } from "./types";
 import { redirect } from "next/navigation";
@@ -769,6 +769,34 @@ export type CampaignFormState = {
   errors?: z.ZodError<z.infer<typeof CampaignSchema>>['formErrors']['fieldErrors']
 }
 
+export async function createCampaign(prevState: CampaignFormState, formData: FormData): Promise<CampaignFormState> {
+    const validatedFields = CampaignSchema.safeParse({
+        name: formData.get('name'),
+        description: formData.get('description'),
+        budget: formData.get('budget'),
+        startDate: formData.get('startDate'),
+        endDate: formData.get('endDate'),
+    });
+
+    if (!validatedFields.success) {
+        return {
+            message: "Ошибка валидации.",
+            error: true,
+            errors: validatedFields.error.flatten().fieldErrors,
+        };
+    }
+
+    try {
+        await createCampaignData(validatedFields.data);
+    } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+        return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
+    }
+
+    revalidatePath(`/campaigns`);
+    return { message: "Кампания успешно создана." };
+}
+
 export async function editCampaign(prevState: CampaignFormState, formData: FormData): Promise<CampaignFormState> {
     const campaignId = formData.get('campaignId') as string;
     if (!campaignId) {
@@ -890,4 +918,30 @@ export async function deleteKpiMetric(prevState: DeleteFormState, formData: Form
     revalidatePath(`/campaigns/${campaignId}/${actionId}`);
     return { message: "Запись KPI успешно удалена." };
 }
+
+export type ExportState = {
+    csv?: string;
+    error?: string;
+    message?: string;
+};
+
+export async function exportKpiHistory(
+    prevState: ExportState,
+    formData: FormData
+): Promise<ExportState> {
+    const activityId = formData.get('activityId') as string;
+    const campaignId = formData.get('campaignId') as string;
+    const actionId = formData.get('actionId') as string;
     
+    if (!activityId || !campaignId || !actionId) {
+        return { error: 'Необходимые ID отсутствуют.' };
+    }
+
+    try {
+        const csvString = await exportKpiHistoryToCsvData(campaignId, actionId, activityId);
+        return { csv: csvString, message: 'Данные готовы для скачивания.' };
+    } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+        return { error: `Не удалось экспортировать данные: ${errorMessage}` };
+    }
+}

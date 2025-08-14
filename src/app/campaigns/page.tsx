@@ -1,6 +1,5 @@
 
 import Link from 'next/link';
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -15,13 +14,13 @@ import {
 } from "@/components/ui/table";
 import { PageHeader } from '@/components/page-header';
 import { getCampaigns } from '@/lib/data';
-import { PlusCircle } from 'lucide-react';
 import { UpdateCampaignStatus } from './update-campaign-status';
 import { Progress } from '@/components/ui/progress';
 import { CampaignStatusFilter } from './campaign-status-filter';
 import type { CampaignStatus } from '@/lib/types';
 import { EditCampaignButton } from './edit-campaign-button';
 import { DeleteCampaignButton } from './delete-campaign-button';
+import { NewCampaignButton } from './new-campaign-button';
 
 type CampaignsPageProps = {
   searchParams: {
@@ -45,11 +44,10 @@ export default async function CampaignsPage({ searchParams }: CampaignsPageProps
   return (
     <div>
       <PageHeader title="Кампании" description="Управляйте и отслеживайте все ваши маркетинговые кампании.">
-        <CampaignStatusFilter />
-        <Button>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Создать кампанию
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+          <CampaignStatusFilter />
+          <NewCampaignButton />
+        </div>
       </PageHeader>
       <Card>
         <CardContent className="pt-6">
@@ -58,10 +56,10 @@ export default async function CampaignsPage({ searchParams }: CampaignsPageProps
               <TableRow>
                 <TableHead>Название</TableHead>
                 <TableHead>Статус</TableHead>
-                <TableHead>Длительность</TableHead>
-                <TableHead className="w-[150px]">Прогресс</TableHead>
-                <TableHead className="text-right">Бюджет</TableHead>
-                <TableHead className="w-[120px] text-right">Действия</TableHead>
+                <TableHead className="hidden md:table-cell">Длительность</TableHead>
+                <TableHead className="hidden lg:table-cell w-[150px]">Прогресс</TableHead>
+                <TableHead className="text-right hidden sm:table-cell">Бюджет</TableHead>
+                <TableHead className="w-[100px] text-right">Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -82,13 +80,13 @@ export default async function CampaignsPage({ searchParams }: CampaignsPageProps
                     <TableCell>
                       <UpdateCampaignStatus campaign={campaign} />
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">
                       {startDate.toLocaleDateString(locale, {month: 'short', day: 'numeric'})} - {endDate.toLocaleDateString(locale, {month: 'short', day: 'numeric', year: 'numeric'})}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden lg:table-cell">
                       <Progress value={durationProgress} />
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right hidden sm:table-cell">
                       {new Intl.NumberFormat(locale, currencyOptions).format(campaign.budget)}
                     </TableCell>
                     <TableCell className="text-right">

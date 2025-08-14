@@ -108,5 +108,3 @@ export type CampaignFormState = {
     endDate?: string[];
   };
 };
-
-    

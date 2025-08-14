@@ -32,7 +32,7 @@ export default async function Dashboard() {
   const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
 
   return (
-    <div className="container mx-auto px-0">
+    <div>
       <PageHeader title="Панель управления" description="Обзор ваших маркетинговых кампаний." />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
@@ -74,7 +74,7 @@ export default async function Dashboard() {
         </Card>
       </div>
 
-      <div className="grid gap-8 md:grid-cols-2">
+      <div className="grid gap-8 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Недавние кампании</CardTitle>
@@ -85,7 +85,7 @@ export default async function Dashboard() {
                 <TableRow>
                   <TableHead>Название</TableHead>
                   <TableHead>Статус</TableHead>
-                  <TableHead className="text-right">Бюджет</TableHead>
+                  <TableHead className="text-right hidden sm:table-cell">Бюджет</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -99,7 +99,7 @@ export default async function Dashboard() {
                     <TableCell>
                       <StatusBadge status={campaign.status} />
                     </TableCell>
-                    <TableCell className="text-right">{new Intl.NumberFormat(locale, currencyOptions).format(campaign.budget)}</TableCell>
+                    <TableCell className="text-right hidden sm:table-cell">{new Intl.NumberFormat(locale, currencyOptions).format(campaign.budget)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -116,7 +116,7 @@ export default async function Dashboard() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Акция</TableHead>
-                  <TableHead>Кампания</TableHead>
+                  <TableHead className="hidden sm:table-cell">Кампания</TableHead>
                   <TableHead>Дата</TableHead>
                 </TableRow>
               </TableHeader>
@@ -124,8 +124,8 @@ export default async function Dashboard() {
                 {upcomingActions.slice(0, 5).map((action) => (
                   <TableRow key={action.id}>
                     <TableCell className="font-medium">{action.name}</TableCell>
-                    <TableCell>{action.campaignName}</TableCell>
-                    <TableCell>{new Date(action.startDate).toLocaleDateString(locale, dateOptions)}</TableCell>
+                    <TableCell className="hidden sm:table-cell">{action.campaignName}</TableCell>
+                    <TableCell>{new Date(action.startDate).toLocaleDateString(locale, {month: 'short', day: 'numeric'})}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
