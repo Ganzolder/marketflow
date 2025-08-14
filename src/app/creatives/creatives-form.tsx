@@ -1,6 +1,8 @@
+
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import {
   Card,
   CardContent,
@@ -40,7 +42,7 @@ function SubmitButton() {
 
 export function CreativesForm() {
   const initialState: FormState = { message: "" };
-  const [state, formAction] = useFormState(submitAdCopyRequest, initialState);
+  const [state, formAction] = useActionState(submitAdCopyRequest, initialState);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
 
