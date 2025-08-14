@@ -372,4 +372,5 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: KpiHistoryMo
             </DialogContent>
         </Dialog>
     );
-}
+
+    
