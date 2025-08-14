@@ -3,7 +3,7 @@ import { getCampaignById } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { Edit, Calendar as CalendarIcon, DollarSign, Target, FilePlus, Eye, TrendingUp, Landmark } from 'lucide-react';
+import { Edit, Calendar as CalendarIcon, DollarSign, Target, FilePlus, Eye, TrendingUp, Landmark, CalendarDays } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/status-badge';
@@ -165,6 +165,12 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                         const hasRevenueData = action.plannedAverageCheck || action.actualAverageCheck;
                         const hasProfitData = action.actualMarginality || action.plannedMarginality;
 
+                        const startDate = new Date(action.startDate);
+                        const endDate = new Date(action.endDate);
+                        const today = new Date();
+                        const totalDuration = Math.max(1, endDate.getTime() - startDate.getTime());
+                        const elapsedDuration = Math.max(0, today.getTime() - startDate.getTime());
+                        let durationProgress = Math.min(100, (elapsedDuration / totalDuration) * 100);
 
                         return (
                         <Link key={action.id} href={`/campaigns/${campaign.id}/${action.id}`} className="block hover:shadow-lg transition-shadow rounded-lg">
@@ -230,9 +236,20 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                                             )}
                                         </div>
                                         
-                                        <div className="flex items-center justify-between text-sm text-muted-foreground pt-2">
-                                            <StatusBadge status={action.status} />
-                                            <span>{new Date(action.startDate).toLocaleDateString(locale, {month: 'short', day: 'numeric'})} - {new Date(action.endDate).toLocaleDateString(locale, {month: 'short', day: 'numeric'})}</span>
+                                        <Separator />
+                                        
+                                        <div className="space-y-3">
+                                            <div>
+                                                <div className="flex justify-between items-center text-sm mb-1">
+                                                    <span className="text-muted-foreground flex items-center"><CalendarDays className="w-3 h-3 mr-1.5"/>Прогресс акции</span>
+                                                    <span className="font-medium">{Math.round(durationProgress)}%</span>
+                                                </div>
+                                                <Progress value={durationProgress} className="h-2" />
+                                            </div>
+                                            <div className="flex items-center justify-between text-sm text-muted-foreground">
+                                                <StatusBadge status={action.status} />
+                                                <span>{startDate.toLocaleDateString(locale, {month: 'short', day: 'numeric'})} - {endDate.toLocaleDateString(locale, {month: 'short', day: 'numeric'})}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </CardContent>

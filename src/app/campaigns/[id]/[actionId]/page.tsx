@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/status-badge';
-import { Calendar as CalendarIcon, Target, Users, DollarSign, ArrowRight, TrendingUp, CircleDollarSign, Landmark } from 'lucide-react';
+import { Calendar as CalendarIcon, Target, Users, DollarSign, ArrowRight, TrendingUp, CircleDollarSign, Landmark, CalendarDays } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { NewActivityButton } from './new-activity-button';
 import { EditActivityButton } from './edit-activity-button';
@@ -75,6 +75,14 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
   const totalBudget = action.activities?.reduce((sum, activity) => sum + (activity.budget || 0), 0) || 0;
   const totalSpent = (action.activities?.reduce((sum, activity) => sum + (activity.spent || 0), 0) || 0) + (action.generalExpenses?.reduce((sum, expense) => sum + (expense.amount || 0), 0) || 0);
   const budgetProgress = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
+  
+  const startDate = new Date(action.startDate);
+  const endDate = new Date(action.endDate);
+  const today = new Date();
+  const totalDuration = Math.max(1, endDate.getTime() - startDate.getTime());
+  const elapsedDuration = Math.max(0, today.getTime() - startDate.getTime());
+  let durationProgress = Math.min(100, (elapsedDuration / totalDuration) * 100);
+
 
   return (
     <div>
@@ -93,7 +101,7 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
                     </div>
                     <div>
                         <p className="text-muted-foreground">Длительность</p>
-                        <p className="font-semibold text-lg">{new Date(action.startDate).toLocaleDateString(locale, dateOptions)} - {new Date(action.endDate).toLocaleDateString(locale, dateOptions)}</p>
+                        <p className="font-semibold text-lg">{startDate.toLocaleDateString(locale, dateOptions)} - {endDate.toLocaleDateString(locale, dateOptions)}</p>
                     </div>
                 </div>
                  <div className="flex items-center gap-3">
@@ -117,9 +125,20 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
                     </div>
                 </div>
             </div>
+            
+            <Separator className="my-6" />
+
+             <div>
+                <div className="flex justify-between items-center text-sm mb-1">
+                    <span className="text-muted-foreground flex items-center"><CalendarDays className="w-4 h-4 mr-1.5"/>Прогресс акции</span>
+                    <span className="font-medium">{Math.round(durationProgress)}%</span>
+                </div>
+                <Progress value={durationProgress} className="h-2" />
+            </div>
+
             {action.description && (
                 <>
-                    <Separator className="my-4" />
+                    <Separator className="my-6" />
                     <div>
                         <h4 className="font-semibold mb-2">Описание</h4>
                         <p className="text-muted-foreground">{action.description}</p>
