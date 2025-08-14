@@ -44,7 +44,7 @@ export default async function CampaignsPage({ searchParams }: CampaignsPageProps
   return (
     <div>
       <PageHeader title="Кампании" description="Управляйте и отслеживайте все ваши маркетинговые кампании.">
-        <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+        <div className="flex flex-wrap gap-2 w-full md:w-auto">
           <CampaignStatusFilter />
           <NewCampaignButton />
         </div>
