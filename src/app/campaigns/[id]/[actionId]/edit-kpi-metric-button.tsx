@@ -27,18 +27,14 @@ function SubmitButton() {
 }
 
 type EditKpiMetricButtonProps = {
-    log: {
-        logId: string;
-        kpiId: string;
-        date: string;
-        value: number;
-    };
+    log: KpiMetricLog;
+    kpiId: string;
     activityId: string;
     actionId: string;
     campaignId: string;
 }
 
-export function EditKpiMetricButton({ log, activityId, actionId, campaignId }: EditKpiMetricButtonProps) {
+export function EditKpiMetricButton({ log, kpiId, activityId, actionId, campaignId }: EditKpiMetricButtonProps) {
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
@@ -85,8 +81,8 @@ export function EditKpiMetricButton({ log, activityId, actionId, campaignId }: E
                     <input type="hidden" name="campaignId" value={campaignId} />
                     <input type="hidden" name="actionId" value={actionId} />
                     <input type="hidden" name="activityId" value={activityId} />
-                    <input type="hidden" name="kpiId" value={log.kpiId} />
-                    <input type="hidden" name="logId" value={log.logId} />
+                    <input type="hidden" name="kpiId" value={kpiId} />
+                    <input type="hidden" name="logId" value={log.id} />
 
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-2 gap-4">
