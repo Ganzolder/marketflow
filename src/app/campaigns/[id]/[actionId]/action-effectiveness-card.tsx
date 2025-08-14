@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Save, ShoppingCart, Banknote, Landmark, PiggyBank, BarChart } from 'lucide-react';
+import { Loader2, Save, ShoppingCart, Banknote, Landmark, PiggyBank, BarChart, Ruble } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { updateActionEffectiveness, type EffectivenessFormState } from '@/lib/actions';
 import type { Action } from '@/lib/types';
@@ -96,7 +96,7 @@ export function ActionEffectivenessCard({ action, campaignId, locale, currencyOp
                     <input type="hidden" name="campaignId" value={campaignId} />
                     <input type="hidden" name="actionId" value={action.id} />
                     
-                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
+                    <div className="grid lg:grid-cols-4 gap-6 items-end">
                          <div className="grid gap-2">
                             <Label htmlFor="plannedAverageCheck">Планируемый средний чек (р.)</Label>
                             <Input 
@@ -156,7 +156,7 @@ export function ActionEffectivenessCard({ action, campaignId, locale, currencyOp
 
                 <Separator className="my-6" />
 
-                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid lg:grid-cols-4 gap-6">
                     <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
                         <div className="p-3 bg-primary/10 rounded-lg">
                             <ShoppingCart className="w-6 h-6 text-primary" />
@@ -217,7 +217,7 @@ export function ActionEffectivenessCard({ action, campaignId, locale, currencyOp
                 
                 <Separator className="my-6" />
 
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid lg:grid-cols-2 gap-6">
                      <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
                         <div className="p-3 bg-accent/10 rounded-lg">
                             <PiggyBank className="w-6 h-6 text-accent" />

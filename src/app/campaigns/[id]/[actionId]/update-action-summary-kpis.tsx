@@ -75,7 +75,7 @@ export function UpdateActionSummaryKpisForm({ kpis, action, campaignId, locale }
              <div className="flex justify-end">
                 <SubmitButton />
             </div>
-            <div className="grid md:grid-cols-2 gap-x-8 gap-y-4">
+            <div className="grid lg:grid-cols-2 gap-x-8 gap-y-4">
                 {kpis.map(goal => (
                     <div key={goal.name}>
                         <div className="flex justify-between items-center text-sm mb-1">
