@@ -94,8 +94,9 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: KpiHistoryMo
 
 
     // --- Chart Data Preparation ---
-    const chartConfig = useMemo(() => kpis.reduce((acc, kpi, index) => {
-        const colorName = `chart-${(index % 5) + 1}`;
+    const chartConfig = useMemo(() => kpis.reduce((acc, kpi) => {
+        const idHash = kpi.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const colorName = `chart-${(idHash % 5) + 1}`;
         acc[kpi.name] = {
             label: kpi.name,
             color: `hsl(var(--${colorName}))`,
@@ -312,7 +313,7 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: KpiHistoryMo
                                                         <TableHead>Дата</TableHead>
                                                         <TableHead>KPI</TableHead>
                                                         <TableHead className="text-right">Значение</TableHead>
-                                                        <TableHead className="text-right">Итог</TableHead>
+                                                        <TableHead className="text-right">Итого</TableHead>
                                                         <TableHead className="text-right w-[100px]">Действия</TableHead>
                                                     </TableRow>
                                                 </TableHeader>
