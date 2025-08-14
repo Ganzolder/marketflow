@@ -33,6 +33,7 @@ import {
   ChartLegendContent,
 } from "@/components/ui/chart";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from '@/components/ui/checkbox';
 
 
 type KpiHistoryModalProps = {
@@ -51,10 +52,20 @@ export function KpiHistoryModal({ activity }: KpiHistoryModalProps) {
     const locale = 'ru-RU';
     const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
 
+    const kpis = activity.kpis || [];
+
+    const [visibleKpis, setVisibleKpis] = useState<Record<string, boolean>>(() => {
+        const initialState: Record<string, boolean> = {};
+        kpis.forEach(kpi => {
+            initialState[kpi.name] = true;
+        });
+        return initialState;
+    });
+
     const flattenedLogs: FlattenedKpiLog[] = [];
     const runningTotals: Record<string, number> = {};
 
-    (activity.kpis || []).forEach(kpi => {
+    kpis.forEach(kpi => {
         const sortedMetrics = [...(kpi.metrics || [])].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
         
         runningTotals[kpi.name] = 0; // Reset running total for each KPI
@@ -72,7 +83,7 @@ export function KpiHistoryModal({ activity }: KpiHistoryModalProps) {
     flattenedLogs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     // --- Chart Data Preparation ---
-    const chartConfig = (activity.kpis || []).reduce((acc, kpi, index) => {
+    const chartConfig = kpis.reduce((acc, kpi, index) => {
         acc[kpi.name] = {
             label: kpi.name,
             color: `hsl(var(--chart-${index + 1}))`,
@@ -80,13 +91,13 @@ export function KpiHistoryModal({ activity }: KpiHistoryModalProps) {
         return acc;
     }, {} as ChartConfig);
 
-    const chartData = (activity.kpis || []).length > 0 ? 
+    const chartData = kpis.length > 0 ? 
         Object.values(
             flattenedLogs.reduce((acc, log) => {
             const date = new Date(log.date).toLocaleDateString(locale, { day: 'numeric', month: 'short' });
             if (!acc[date]) {
                 acc[date] = { date };
-                 (activity.kpis || []).forEach(kpi => {
+                 kpis.forEach(kpi => {
                     acc[date][kpi.name] = 0;
                 });
             }
@@ -102,13 +113,13 @@ export function KpiHistoryModal({ activity }: KpiHistoryModalProps) {
         })
         : [];
         
-    const cumulativeChartData = (activity.kpis || []).length > 0 ?
+    const cumulativeChartData = kpis.length > 0 ?
         (() => {
             const dataMap: Record<string, any> = {};
             const cumulativeTotals: Record<string, number> = {};
 
             // Initialize cumulative totals
-            (activity.kpis || []).forEach(kpi => {
+            kpis.forEach(kpi => {
                 cumulativeTotals[kpi.name] = 0;
             });
             
@@ -182,7 +193,7 @@ export function KpiHistoryModal({ activity }: KpiHistoryModalProps) {
                                 <Card>
                                     <CardHeader>
                                         <CardTitle>Динамика по дням</CardTitle>
-                                        <CardDescription>Изменения KPI за каждый день.</CardDescription>
+                                        <CardDescription>Изменения KPI за каждый день. Используйте фильтры для выбора нужных показателей.</CardDescription>
                                     </CardHeader>
                                     <CardContent>
                                         <ChartContainer config={chartConfig} className="h-[400px] w-full">
@@ -197,11 +208,35 @@ export function KpiHistoryModal({ activity }: KpiHistoryModalProps) {
                                                 <YAxis />
                                                 <ChartTooltip content={<ChartTooltipContent />} />
                                                 <ChartLegend content={<ChartLegendContent />} />
-                                                 {(activity.kpis || []).map((kpi, index) => (
+                                                 {kpis.filter(kpi => visibleKpis[kpi.name]).map((kpi) => (
                                                     <Bar dataKey={kpi.name} key={kpi.id} fill={`var(--color-${kpi.name})`} stackId="a" radius={4} />
                                                  ))}
                                             </BarChart>
                                         </ChartContainer>
+                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-4 p-2 border rounded-lg">
+                                            {kpis.map((kpi, index) => (
+                                                <div key={kpi.id} className="flex items-center space-x-2">
+                                                    <Checkbox
+                                                        id={`kpi-toggle-${kpi.id}`}
+                                                        checked={visibleKpis[kpi.name]}
+                                                        onCheckedChange={(checked) => {
+                                                            setVisibleKpis(prev => ({
+                                                                ...prev,
+                                                                [kpi.name]: !!checked
+                                                            }));
+                                                        }}
+                                                        style={{ color: `hsl(var(--chart-${index + 1}))` }}
+                                                        className="border-current data-[state=checked]:bg-current"
+                                                    />
+                                                    <label
+                                                        htmlFor={`kpi-toggle-${kpi.id}`}
+                                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                                    >
+                                                        {kpi.name}
+                                                    </label>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </CardContent>
                                 </Card>
                             </TabsContent>
@@ -209,7 +244,7 @@ export function KpiHistoryModal({ activity }: KpiHistoryModalProps) {
                                  <Card>
                                     <CardHeader>
                                         <CardTitle>Накопительный итог</CardTitle>
-                                        <CardDescription>Общий рост KPI с течением времени.</CardDescription>
+                                        <CardDescription>Общий рост KPI с течением времени. Используйте фильтры для выбора нужных показателей.</CardDescription>
                                     </CardHeader>
                                     <CardContent>
                                         <ChartContainer config={chartConfig} className="h-[400px] w-full">
@@ -224,11 +259,35 @@ export function KpiHistoryModal({ activity }: KpiHistoryModalProps) {
                                                 <YAxis />
                                                 <ChartTooltip content={<ChartTooltipContent />} />
                                                 <ChartLegend content={<ChartLegendContent />} />
-                                                 {(activity.kpis || []).map((kpi, index) => (
+                                                 {kpis.filter(kpi => visibleKpis[kpi.name]).map((kpi) => (
                                                     <Line dataKey={kpi.name} name={kpi.name} key={kpi.id} type="monotone" stroke={`var(--color-${kpi.name})`} strokeWidth={2} dot={false} />
                                                  ))}
                                             </LineChart>
                                         </ChartContainer>
+                                          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-4 p-2 border rounded-lg">
+                                            {kpis.map((kpi, index) => (
+                                                <div key={`cum-kpi-toggle-${kpi.id}`} className="flex items-center space-x-2">
+                                                    <Checkbox
+                                                        id={`cum-kpi-toggle-${kpi.id}`}
+                                                        checked={visibleKpis[kpi.name]}
+                                                        onCheckedChange={(checked) => {
+                                                            setVisibleKpis(prev => ({
+                                                                ...prev,
+                                                                [kpi.name]: !!checked
+                                                            }));
+                                                        }}
+                                                        style={{ color: `hsl(var(--chart-${index + 1}))` }}
+                                                        className="border-current data-[state=checked]:bg-current"
+                                                    />
+                                                    <label
+                                                        htmlFor={`cum-kpi-toggle-${kpi.id}`}
+                                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                                    >
+                                                        {kpi.name}
+                                                    </label>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </CardContent>
                                 </Card>
                             </TabsContent>
