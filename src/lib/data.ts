@@ -1,5 +1,5 @@
 
-import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction, ActionStatus, CampaignStatus, KpiMetricLog } from './types';
+import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction, ActionStatus, CampaignStatus, KpiMetricLog, EnrichedActivity } from './types';
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, addDoc, writeBatch, runTransaction, deleteDoc } from "firebase/firestore";
 import { Combobox } from '@/components/ui/combobox';
@@ -611,6 +611,43 @@ export async function getAllActions(): Promise<EnrichedAction[]> {
   });
 
   return allActions.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+}
+
+export async function getAllActivities(): Promise<EnrichedActivity[]> {
+  const campaigns = await getCampaigns();
+  const allActivities: EnrichedActivity[] = [];
+
+  campaigns.forEach(campaign => {
+    (campaign.actions || []).forEach(action => {
+      (action.activities || []).forEach(activity => {
+        
+        // Enrich activity with parent info
+        const enrichedActivity: EnrichedActivity = {
+          ...activity,
+          actionName: action.name,
+          actionId: action.id,
+          campaignName: campaign.name,
+          campaignId: campaign.id,
+        };
+
+        // Ensure data consistency for the activity
+        if (!enrichedActivity.expenses) enrichedActivity.expenses = [];
+        enrichedActivity.spent = enrichedActivity.expenses.reduce((acc, expense) => acc + expense.amount, 0);
+        if (!enrichedActivity.kpis) enrichedActivity.kpis = [];
+        enrichedActivity.kpis.forEach(kpi => {
+          if (!kpi.metrics) kpi.metrics = [];
+          kpi.current = kpi.metrics.reduce((acc, metric) => acc + metric.value, 0);
+          if (kpi.includeInActionGoals === undefined) kpi.includeInActionGoals = true;
+          if (kpi.parentId === undefined) kpi.parentId = null;
+          if (kpi.multiplicity === undefined) kpi.multiplicity = 1;
+        });
+
+        allActivities.push(enrichedActivity);
+      });
+    });
+  });
+
+  return allActivities.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
 }
 
 
