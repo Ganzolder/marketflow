@@ -116,7 +116,7 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                     <span className="sr-only">Редактировать активность</span>
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[800px] h-[85vh] flex flex-col overflow-hidden">
+            <DialogContent className="sm:max-w-[720px] h-[85vh] flex flex-col overflow-hidden">
                 <DialogHeader className="shrink-0">
                     <DialogTitle>Редактировать активность</DialogTitle>
                     <DialogDescription>
