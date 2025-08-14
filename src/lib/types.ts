@@ -31,6 +31,7 @@ export type Activity = {
   id: string;
   name: string;
   description?: string;
+  trackingMethod?: string;
   budget: number;
   spent: number;
   startDate: string;
@@ -85,6 +86,7 @@ export type ActivityFormState = {
     startDate?: string[];
     endDate?: string[];
     kpis?: string[];
+    trackingMethod?: string[];
   };
 };
 
@@ -100,3 +102,4 @@ export type CampaignFormState = {
   };
 };
 
+    

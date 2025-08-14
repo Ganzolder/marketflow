@@ -124,6 +124,7 @@ const KpiSchema = z.object({
 const ActivitySchema = z.object({
   name: z.string().min(3, { message: "Название активности должно содержать не менее 3 символов." }),
   description: z.string().optional(),
+  trackingMethod: z.string().optional(),
   budget: z.coerce.number().min(0, { message: "Бюджет не может быть отрицательным." }),
   startDate: z.string().refine((date) => !isNaN(Date.parse(date)), { message: "Неверный формат даты начала." }),
   endDate: z.string().refine((date) => !isNaN(Date.parse(date)), { message: "Неверный формат даты окончания." }),
@@ -149,6 +150,7 @@ export type ActivityFormState = {
   errors?: {
     name?: string[];
     description?: string[];
+    trackingMethod?: string[];
     budget?: string[];
     startDate?: string[];
     endDate?: string[];
@@ -173,6 +175,7 @@ export async function addActivityToAction(
   const validatedFields = ActivitySchema.safeParse({
     name: formData.get('activity-name'),
     description: formData.get('description'),
+    trackingMethod: formData.get('trackingMethod'),
     budget: formData.get('budget'),
     startDate: formData.get('start-date'),
     endDate: formData.get('end-date'),
@@ -221,6 +224,7 @@ export async function updateActivity(
   const validatedFields = EditActivitySchema.safeParse({
     name: formData.get('activity-name'),
     description: formData.get('description'),
+    trackingMethod: formData.get('trackingMethod'),
     budget: formData.get('budget'),
     startDate: formData.get('start-date'),
     endDate: formData.get('end-date'),
@@ -659,7 +663,7 @@ export type StatusFormState = {
 };
 
 export async function updateActionStatus(
-  prevState: StatusFormState | null,
+  prevState: StatusFormState,
   formData: FormData
 ): Promise<StatusFormState> {
   const validatedFields = UpdateActionStatusSchema.safeParse({
@@ -701,7 +705,7 @@ export type CampaignStatusFormState = {
 };
 
 export async function updateCampaignStatus(
-  prevState: CampaignStatusFormState | null,
+  prevState: CampaignStatusFormState,
   formData: FormData
 ): Promise<CampaignStatusFormState> {
   const validatedFields = UpdateCampaignStatusSchema.safeParse({
@@ -794,3 +798,5 @@ export async function deleteCampaign(formData: FormData): Promise<DeleteFormStat
     // Redirect after deletion
     redirect('/campaigns');
 }
+
+    

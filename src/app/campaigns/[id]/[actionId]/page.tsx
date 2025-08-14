@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/status-badge';
-import { Calendar as CalendarIcon, Target, Users, DollarSign, ArrowRight, TrendingUp, CircleDollarSign, Landmark, CalendarDays } from 'lucide-react';
+import { Calendar as CalendarIcon, Target, Users, DollarSign, ArrowRight, TrendingUp, CircleDollarSign, Landmark, CalendarDays, LocateFixed } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { NewActivityButton } from './new-activity-button';
 import { EditActivityButton } from './edit-activity-button';
@@ -219,6 +219,12 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
                                             <DeleteActivityButton activityId={activity.id} campaignId={campaign.id} actionId={action.id} />
                                         </div>
                                     </div>
+                                    {activity.trackingMethod && (
+                                        <div className="flex items-center text-xs text-muted-foreground pt-2 gap-2">
+                                            <LocateFixed className="w-3.5 h-3.5" />
+                                            <span>{activity.trackingMethod}</span>
+                                        </div>
+                                    )}
                                 </CardHeader>
                                 <CardContent className="text-sm text-muted-foreground flex-1">
                                     <UpdateMetricsForm activity={activity} campaignId={campaign.id} actionId={action.id} />
@@ -280,3 +286,5 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
     </div>
   );
 }
+
+    

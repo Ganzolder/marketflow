@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Edit2, PlusCircle, Trash2, TrendingUp, CircleDollarSign } from "lucide-react";
+import { Loader2, Edit2, PlusCircle, Trash2, TrendingUp, CircleDollarSign, Info } from "lucide-react";
 import { updateActivity } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import type { Activity } from '@/lib/types';
@@ -35,6 +35,7 @@ const KpiSchema = z.object({
 const EditActivityFormSchema = z.object({
     name: z.string().min(3, "Название активности должно содержать не менее 3 символов."),
     description: z.string().optional(),
+    trackingMethod: z.string().optional(),
     budget: z.coerce.number().min(0, "Бюджет не может быть отрицательным."),
     startDate: z.string().refine((date) => !isNaN(Date.parse(date)), "Неверный формат даты."),
     endDate: z.string().refine((date) => !isNaN(Date.parse(date)), "Неверный формат даты."),
@@ -60,6 +61,7 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
         defaultValues: {
             name: activity.name,
             description: activity.description || "",
+            trackingMethod: activity.trackingMethod || "",
             budget: activity.budget,
             startDate: activity.startDate.split('T')[0],
             endDate: activity.endDate.split('T')[0],
@@ -82,6 +84,7 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
         formData.append('activityId', activity.id);
         formData.append('activity-name', values.name);
         formData.append('description', values.description || '');
+        formData.append('trackingMethod', values.trackingMethod || '');
         formData.append('budget', values.budget.toString());
         formData.append('start-date', values.startDate);
         formData.append('end-date', values.endDate);
@@ -143,6 +146,37 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                                         <FormItem>
                                             <FormLabel>Описание (необязательно)</FormLabel>
                                             <FormControl><Textarea {...field} /></FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                 <FormField
+                                    control={form.control}
+                                    name="trackingMethod"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="flex items-center gap-2">
+                                                Способ отслеживания
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger type="button">
+                                                            <Info className="w-4 h-4 text-muted-foreground" />
+                                                        </TooltipTrigger>
+                                                        <TooltipContent className="max-w-xs text-left">
+                                                            <p className="font-bold">Примеры способов отслеживания:</p>
+                                                            <ul className="list-disc list-inside mt-1 text-xs text-muted-foreground">
+                                                                <li>Промокоды или купоны</li>
+                                                                <li>UTM-метки для URL</li>
+                                                                <li>Коллтрекинг (подменные номера)</li>
+                                                                <li>QR-коды</li>
+                                                                <li>Опросы клиентов ("Откуда вы о нас узнали?")</li>
+                                                                <li>Специальные лендинги</li>
+                                                            </ul>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            </FormLabel>
+                                            <FormControl><Input placeholder="например, Промокоды" {...field} /></FormControl>
                                             <FormMessage />
                                         </FormItem>
                                     )}
@@ -346,3 +380,5 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
         </Dialog>
     );
 }
+
+    

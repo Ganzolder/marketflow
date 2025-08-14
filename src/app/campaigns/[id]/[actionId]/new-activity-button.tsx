@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from '@/components/ui/textarea';
-import { PlusCircle, Loader2, Trash2, TrendingUp, CircleDollarSign } from "lucide-react";
+import { PlusCircle, Loader2, Trash2, TrendingUp, CircleDollarSign, Info } from "lucide-react";
 import { addActivityToAction } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -34,6 +34,7 @@ const KpiSchema = z.object({
 const AddActivityFormSchema = z.object({
     name: z.string().min(3, "Название активности должно содержать не менее 3 символов."),
     description: z.string().optional(),
+    trackingMethod: z.string().optional(),
     budget: z.coerce.number().min(0, "Бюджет не может быть отрицательным."),
     startDate: z.string().refine((date) => !isNaN(Date.parse(date)), "Неверный формат даты начала."),
     endDate: z.string().refine((date) => !isNaN(Date.parse(date)), "Неверный формат даты окончания."),
@@ -59,6 +60,7 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
         defaultValues: {
             name: "",
             description: "",
+            trackingMethod: "",
             budget: 0,
             startDate: "",
             endDate: "",
@@ -80,6 +82,7 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
         formData.append('actionId', actionId);
         formData.append('activity-name', values.name);
         formData.append('description', values.description || '');
+        formData.append('trackingMethod', values.trackingMethod || '');
         formData.append('budget', values.budget.toString());
         formData.append('start-date', values.startDate);
         formData.append('end-date', values.endDate);
@@ -142,6 +145,37 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
                                             <FormItem>
                                                 <FormLabel>Описание (необязательно)</FormLabel>
                                                 <FormControl><Textarea placeholder="Опишите детали активности..." {...field} /></FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                     <FormField
+                                        control={form.control}
+                                        name="trackingMethod"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="flex items-center gap-2">
+                                                    Способ отслеживания
+                                                    <TooltipProvider>
+                                                        <Tooltip>
+                                                            <TooltipTrigger type="button">
+                                                                <Info className="w-4 h-4 text-muted-foreground" />
+                                                            </TooltipTrigger>
+                                                            <TooltipContent className="max-w-xs text-left">
+                                                                <p className="font-bold">Примеры способов отслеживания:</p>
+                                                                <ul className="list-disc list-inside mt-1 text-xs text-muted-foreground">
+                                                                    <li>Промокоды или купоны</li>
+                                                                    <li>UTM-метки для URL</li>
+                                                                    <li>Коллтрекинг (подменные номера)</li>
+                                                                    <li>QR-коды</li>
+                                                                    <li>Опросы клиентов ("Откуда вы о нас узнали?")</li>
+                                                                    <li>Специальные лендинги</li>
+                                                                </ul>
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
+                                                </FormLabel>
+                                                <FormControl><Input placeholder="например, Промокоды" {...field} /></FormControl>
                                                 <FormMessage />
                                             </FormItem>
                                         )}
@@ -345,3 +379,5 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
         </Dialog>
     );
 }
+
+    
