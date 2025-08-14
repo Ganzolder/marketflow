@@ -148,6 +148,8 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
           </CardContent>
         </Card>
 
+        <ActionEffectivenessCard action={action} campaignId={campaign.id} locale={locale} currencyOptions={currencyOptions} totalSpent={totalSpent} />
+        
         <Card>
           <CardHeader>
               <CardTitle>Бюджет акции</CardTitle>
@@ -169,8 +171,6 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
               </div>
           </CardContent>
         </Card>
-
-        <ActionEffectivenessCard action={action} campaignId={campaign.id} locale={locale} currencyOptions={currencyOptions} totalSpent={totalSpent} />
 
         <GeneralExpensesList action={action} campaignId={campaign.id} />
 
