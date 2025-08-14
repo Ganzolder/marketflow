@@ -104,8 +104,8 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
                     Добавить активность
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[800px] max-h-[90vh] flex flex-col">
-                <DialogHeader>
+            <DialogContent className="sm:max-w-[800px] h-[85vh] flex flex-col overflow-hidden">
+                <DialogHeader className="shrink-0">
                     <DialogTitle>Создать новую активность</DialogTitle>
                     <DialogDescription>
                         Заполните информацию о новой активности для вашей акции.
@@ -353,3 +353,5 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
         </Dialog>
     );
 }
+
+    
