@@ -215,12 +215,7 @@ export async function updateActivity(campaignId: string, actionId: string, updat
             const updatedKpis = (updatedActivity.kpis || []).map(uk => {
                 const existingKpi = (existingActivity.kpis || []).find(ek => ek.id === uk.id);
                 return {
-                    id: uk.id,
-                    name: uk.name,
-                    target: uk.target,
-                    parentId: uk.parentId,
-                    includeInActionGoals: uk.includeInActionGoals,
-                    multiplicity: uk.multiplicity || 1,
+                    ...uk,
                     // Preserve existing metrics and current value
                     metrics: existingKpi?.metrics || [],
                     current: existingKpi?.current || 0,
@@ -569,6 +564,53 @@ export async function getUpcomingActions(): Promise<UpcomingAction[]> {
   });
 
   return upcoming.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+}
+
+
+export async function getAllActions(): Promise<EnrichedAction[]> {
+  const campaigns = await getCampaigns();
+  const allActions: EnrichedAction[] = [];
+
+  campaigns.forEach(campaign => {
+    (campaign.actions || []).forEach(action => {
+      // Enrich each action with campaign info
+      const enrichedAction = {
+        ...action,
+        campaignName: campaign.name,
+        campaignId: campaign.id,
+      };
+
+      // Process activities within the action to ensure data consistency
+      if (enrichedAction.activities) {
+        enrichedAction.activities.forEach(activity => {
+          if (!activity.expenses) activity.expenses = [];
+          activity.spent = activity.expenses.reduce((acc, expense) => acc + expense.amount, 0);
+
+          if (!activity.kpis) activity.kpis = [];
+          activity.kpis.forEach(kpi => {
+            if (!kpi.metrics) kpi.metrics = [];
+            kpi.current = kpi.metrics.reduce((acc, metric) => acc + metric.value, 0);
+            if (kpi.includeInActionGoals === undefined) kpi.includeInActionGoals = true;
+            if (kpi.parentId === undefined) kpi.parentId = null;
+            if (kpi.multiplicity === undefined) kpi.multiplicity = 1;
+          });
+        });
+      } else {
+        enrichedAction.activities = [];
+      }
+      
+      if (!enrichedAction.generalExpenses) enrichedAction.generalExpenses = [];
+      if (!enrichedAction.summaryKpis) enrichedAction.summaryKpis = [];
+      if (!enrichedAction.plannedAverageCheck) enrichedAction.plannedAverageCheck = 0;
+      if (!enrichedAction.actualAverageCheck) enrichedAction.actualAverageCheck = 0;
+      if (!enrichedAction.plannedMarginality) enrichedAction.plannedMarginality = 0;
+      if (!enrichedAction.actualMarginality) enrichedAction.actualMarginality = 0;
+      
+      allActions.push(enrichedAction);
+    });
+  });
+
+  return allActions.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
 }
 
 
