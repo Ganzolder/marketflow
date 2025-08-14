@@ -3,6 +3,7 @@
 
 
 
+
 import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction, ActionStatus, CampaignStatus, KpiMetricLog } from './types';
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, addDoc, writeBatch, runTransaction, deleteDoc } from "firebase/firestore";
@@ -94,7 +95,7 @@ async function seedDatabase() {
 
     const batch = writeBatch(db);
     initialCampaigns.forEach(campaignData => {
-      const docRef = doc(collection(db, "campaigns"));
+      const docRef = doc(collection(db, "campaigns")); // Correctly generate a new document reference
       batch.set(docRef, campaignData);
     });
     await batch.commit();
