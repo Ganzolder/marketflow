@@ -44,7 +44,7 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: { activity: 
             cumulativeTotalsForChart[log.kpiId] += log.value;
             Object.keys(dataByDate).forEach(d => {
                 if (new Date(d) >= new Date(dateStr)) {
-                    dataByDate[d][`${kpi.id}_cumulative`] = cumulativeTotalsForChart[log.kpiId];
+                    dataByDate[d][`${log.kpiId}_cumulative`] = cumulativeTotalsForChart[log.kpiId];
                 }
             });
         });
@@ -117,7 +117,7 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: { activity: 
                     <div className="lg:col-span-3 flex flex-col gap-6 min-h-0">
                         {/* Charts */}
                         <div className="grid grid-cols-1 flex-1 gap-6">
-                             <div>
+                             <div className="h-[350px]">
                                 <h4 className="font-semibold mb-2 text-center">Накопительный итог</h4>
                                 <ChartContainer config={chartConfig} className="h-[300px] w-full">
                                     <LineChart data={chartData} margin={chartMargin}>
@@ -134,7 +134,7 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: { activity: 
                                     </LineChart>
                                 </ChartContainer>
                             </div>
-                            <div>
+                            <div className="h-[350px]">
                                 <h4 className="font-semibold mb-2 text-center">Динамика по дням</h4>
                                 <ChartContainer config={chartConfig} className="h-[300px] w-full">
                                     <BarChart data={chartData} margin={chartMargin}>
