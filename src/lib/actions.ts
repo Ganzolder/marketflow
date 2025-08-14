@@ -2,7 +2,7 @@
 "use server";
 
 import { z } from "zod";
-import { addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction } from "./data";
+import { addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData } from "./data";
 import { revalidatePath } from "next/cache";
 import type { Action, Activity, KPI, Expense } from "./types";
 
@@ -115,10 +115,8 @@ const KpiSchema = z.object({
     name: z.string(),
     target: z.coerce.number(),
     current: z.coerce.number(),
-    multiple: z.coerce.number().min(1),
     parentId: z.string().nullable(),
     includeInActionGoals: z.boolean().optional(),
-    showOnActionCard: z.boolean().optional(),
 });
 
 const ActivitySchema = z.object({
@@ -176,7 +174,7 @@ export async function addActivityToAction(
     budget: formData.get('budget'),
     startDate: formData.get('start-date'),
     endDate: formData.get('end-date'),
-    kpis: kpis.map((kpi: any) => ({ ...kpi, target: Number(kpi.target), multiple: Number(kpi.multiple) || 1, current: 0 })),
+    kpis: kpis.map((kpi: any) => ({ ...kpi, target: Number(kpi.target), current: 0 })),
     campaignId: formData.get('campaignId'),
     actionId: formData.get('actionId'),
   });
@@ -195,7 +193,7 @@ export async function addActivityToAction(
       ...activityData,
       spent: 0,
       expenses: [],
-      kpis: activityData.kpis.map(kpi => ({...kpi, current: 0, includeInActionGoals: kpi.includeInActionGoals ?? true, showOnActionCard: kpi.showOnActionCard ?? false })) 
+      kpis: activityData.kpis.map(kpi => ({...kpi, current: 0, includeInActionGoals: kpi.includeInActionGoals ?? true })) 
   }
 
   try {
@@ -224,7 +222,7 @@ export async function updateActivity(
     budget: formData.get('budget'),
     startDate: formData.get('start-date'),
     endDate: formData.get('end-date'),
-    kpis: kpis.map((kpi: any) => ({ ...kpi, target: Number(kpi.target), current: Number(kpi.current), multiple: Number(kpi.multiple) || 1, includeInActionGoals: kpi.includeInActionGoals ?? true, showOnActionCard: kpi.showOnActionCard ?? false })),
+    kpis: kpis.map((kpi: any) => ({ ...kpi, target: Number(kpi.target), current: Number(kpi.current), includeInActionGoals: kpi.includeInActionGoals ?? true })),
     campaignId: formData.get('campaignId'),
     actionId: formData.get('actionId'),
     id: formData.get('activityId'),
@@ -541,4 +539,49 @@ export async function deleteGeneralExpense(prevState: DeleteFormState | null, fo
 
     revalidatePath(`/campaigns/${campaignId}/${actionId}`);
     return { message: "Общий расход успешно удален." };
+}
+
+
+const UpdateSummaryKpisSchema = z.object({
+  campaignId: z.string(),
+  actionId: z.string(),
+  summaryKpis: z.array(z.string()).optional(),
+});
+
+export type SummaryKpiFormState = {
+  message: string;
+  error?: boolean;
+};
+
+export async function updateActionSummaryKpis(
+  prevState: SummaryKpiFormState | null,
+  formData: FormData
+): Promise<SummaryKpiFormState> {
+    const kpiNames = Array.from(formData.keys()).filter(key => key !== 'campaignId' && key !== 'actionId');
+    
+    const validatedFields = UpdateSummaryKpisSchema.safeParse({
+        campaignId: formData.get('campaignId'),
+        actionId: formData.get('actionId'),
+        summaryKpis: kpiNames,
+    });
+
+    if (!validatedFields.success) {
+        return {
+            message: "Ошибка валидации.",
+            error: true,
+        };
+    }
+
+    const { campaignId, actionId, summaryKpis } = validatedFields.data;
+
+    try {
+        await updateActionSummaryKpisData(campaignId, actionId, summaryKpis || []);
+    } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+        return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
+    }
+
+    revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+    revalidatePath(`/campaigns/${campaignId}`); // Also revalidate the campaign page
+    return { message: "Настройки отображения KPI обновлены." };
 }

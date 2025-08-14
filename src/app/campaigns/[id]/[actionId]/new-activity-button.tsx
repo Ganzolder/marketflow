@@ -29,7 +29,6 @@ const KpiSchema = z.object({
     current: z.coerce.number(),
     parentId: z.string().nullable(),
     includeInActionGoals: z.boolean().optional(),
-    showOnActionCard: z.boolean().optional(),
 });
 
 const AddActivityFormSchema = z.object({
@@ -84,7 +83,7 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
         formData.append('budget', values.budget.toString());
         formData.append('start-date', values.startDate);
         formData.append('end-date', values.endDate);
-        formData.append('kpis', JSON.stringify(values.kpis?.map(kpi => ({...kpi, current: 0, includeInActionGoals: kpi.includeInActionGoals ?? true, showOnActionCard: kpi.showOnActionCard ?? false })) || []));
+        formData.append('kpis', JSON.stringify(values.kpis?.map(kpi => ({...kpi, current: 0, includeInActionGoals: kpi.includeInActionGoals ?? true })) || []));
 
         const result = await addActivityToAction(null, formData);
 
@@ -193,7 +192,7 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
                                                 type="button"
                                                 variant="outline"
                                                 size="sm"
-                                                onClick={() => append({ id: `kpi-${Date.now()}`, name: '', target: 0, current: 0, parentId: null, includeInActionGoals: true, showOnActionCard: false })}
+                                                onClick={() => append({ id: `kpi-${Date.now()}`, name: '', target: 0, current: 0, parentId: null, includeInActionGoals: true })}
                                             >
                                                 <PlusCircle className="mr-2 h-4 w-4" />
                                                 Добавить KPI
@@ -287,23 +286,6 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
                                                                 </FormControl>
                                                                 <FormLabel className="text-sm font-normal text-muted-foreground">
                                                                     Включить в общие цели акции
-                                                                </FormLabel>
-                                                            </FormItem>
-                                                        )}
-                                                    />
-                                                    <FormField
-                                                        control={form.control}
-                                                        name={`kpis.${index}.showOnActionCard`}
-                                                        render={({ field }) => (
-                                                            <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                                                                <FormControl>
-                                                                    <Checkbox
-                                                                        checked={field.value}
-                                                                        onCheckedChange={field.onChange}
-                                                                    />
-                                                                </FormControl>
-                                                                <FormLabel className="text-sm font-normal text-muted-foreground">
-                                                                    Показывать на карточке акции
                                                                 </FormLabel>
                                                             </FormItem>
                                                         )}

@@ -38,6 +38,7 @@ async function seedDatabase() {
             ],
             activities: [],
             generalExpenses: [],
+            summaryKpis: [],
           },
           {
             id: 'act-c1-2',
@@ -50,6 +51,7 @@ async function seedDatabase() {
             goals: [],
             activities: [],
             generalExpenses: [],
+            summaryKpis: [],
           }
         ],
       },
@@ -95,7 +97,7 @@ async function seedDatabase() {
 }
 
 
-export async function addAction(campaignId: string, action: Omit<Action, 'id' | 'goals' | 'activities' | 'generalExpenses'>) {
+export async function addAction(campaignId: string, action: Omit<Action, 'id' | 'goals' | 'activities' | 'generalExpenses' | 'summaryKpis'>) {
     const campaignRef = doc(db, "campaigns", campaignId);
     
     const newAction: Action = {
@@ -104,6 +106,7 @@ export async function addAction(campaignId: string, action: Omit<Action, 'id' | 
         goals: [],
         activities: [],
         generalExpenses: [],
+        summaryKpis: [],
     };
     await updateDoc(campaignRef, {
         actions: arrayUnion(newAction)
@@ -214,9 +217,7 @@ export async function updateActivity(campaignId: string, actionId: string, updat
                 return {
                     ...uk,
                     current: existingKpi ? existingKpi.current : 0,
-                    multiple: uk.multiple || 1,
                     includeInActionGoals: uk.includeInActionGoals,
-                    showOnActionCard: uk.showOnActionCard,
                 };
             });
 
@@ -498,6 +499,9 @@ export async function getCampaignById(id: string): Promise<Campaign | undefined>
               if (!action.generalExpenses) {
                   action.generalExpenses = [];
               }
+               if (!action.summaryKpis) {
+                  action.summaryKpis = [];
+              }
               if (action.activities) {
                   action.activities.forEach(activity => {
                       if (!activity.expenses) {
@@ -507,10 +511,8 @@ export async function getCampaignById(id: string): Promise<Campaign | undefined>
 
                       if (activity.kpis) {
                           activity.kpis.forEach(kpi => {
-                              if (kpi.multiple === undefined) kpi.multiple = 1;
                               if (kpi.current === undefined) kpi.current = 0;
                               if (kpi.includeInActionGoals === undefined) kpi.includeInActionGoals = true;
-                              if (kpi.showOnActionCard === undefined) kpi.showOnActionCard = false;
                           });
                       }
                   });
@@ -671,4 +673,27 @@ export async function getUniqueKpiNames(campaignId?: string): Promise<{value: st
   });
 
   return Array.from(kpiNames).sort().map(name => ({ value: name, label: name }));
+}
+
+export async function updateActionSummaryKpis(campaignId: string, actionId: string, summaryKpis: string[]) {
+    const campaignRef = doc(db, 'campaigns', campaignId);
+
+    try {
+        await runTransaction(db, async (transaction) => {
+            const campaignDoc = await transaction.get(campaignRef);
+            if (!campaignDoc.exists()) throw new Error("Campaign document does not exist!");
+
+            const campaignData = campaignDoc.data() as Campaign;
+            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
+            if (actionIndex === -1) throw new Error("Action not found!");
+
+            const newActions = [...campaignData.actions];
+            newActions[actionIndex].summaryKpis = summaryKpis;
+
+            transaction.update(campaignRef, { actions: newActions });
+        });
+    } catch (e) {
+        console.error("Update summary KPIs transaction failed: ", e);
+        throw e;
+    }
 }

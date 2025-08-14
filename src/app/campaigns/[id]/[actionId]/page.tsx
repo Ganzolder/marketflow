@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/tooltip";
 import { UpdateMetricsForm } from './update-metrics-form';
 import { GeneralExpensesList } from './general-expenses-list';
+import { UpdateActionSummaryKpisForm } from './update-action-summary-kpis';
 
 type ActionDetailPageProps = {
   params: {
@@ -124,24 +125,16 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
         <Card>
             <CardHeader>
                 <CardTitle>Общие цели акции</CardTitle>
-                <CardDescription>Суммарный прогресс по всем KPI из активностей.</CardDescription>
+                <CardDescription>Суммарный прогресс по всем KPI из активностей. Отметьте, какие KPI показывать на карточке акции.</CardDescription>
             </CardHeader>
             <CardContent>
                 {aggregatedKpisArray.length > 0 ? (
-                    <div className="grid md:grid-cols-2 gap-x-8 gap-y-4">
-                    {aggregatedKpisArray.map(goal => (
-                        <div key={goal.name}>
-                            <div className="flex justify-between text-sm mb-1">
-                                <span className="text-muted-foreground">{goal.name}</span>
-                                <span className="font-medium">{goal.target > 0 ? Math.round((goal.current / goal.target) * 100) : 0}%</span>
-                            </div>
-                            <Progress value={goal.target > 0 ? (goal.current / goal.target) * 100 : 0} className="h-3" />
-                            <p className="text-sm text-muted-foreground text-right mt-1">
-                                {goal.current.toLocaleString(locale)} / {goal.target.toLocaleString(locale)}
-                            </p>
-                        </div>
-                    ))}
-                    </div>
+                    <UpdateActionSummaryKpisForm 
+                        kpis={aggregatedKpisArray}
+                        action={action}
+                        campaignId={campaign.id}
+                        locale={locale}
+                    />
                     ) : (
                     <p className="text-sm text-muted-foreground text-center py-4">KPI для этой акции еще не определены в активностях.</p>
                 )}

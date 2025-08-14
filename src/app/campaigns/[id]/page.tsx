@@ -123,9 +123,24 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
             <CardContent>
                 <div className="grid gap-4 md:grid-cols-2">
                     {filteredActions.map(action => {
-                        const allKpis = action.activities?.flatMap(a => a.kpis || []) || [];
-                        const summaryKpis = allKpis.filter(kpi => kpi.showOnActionCard);
+                        const allKpis = action.activities?.flatMap(a => a.kpis?.filter(k => k.includeInActionGoals !== false) || []) || [];
+                        const summaryKpis: Record<string, { current: number, target: number }> = {};
                         
+                        // Aggregate KPIs
+                        allKpis.forEach(kpi => {
+                            if (summaryKpis[kpi.name]) {
+                                summaryKpis[kpi.name].current += kpi.current;
+                                summaryKpis[kpi.name].target += kpi.target;
+                            } else {
+                                summaryKpis[kpi.name] = { current: kpi.current, target: kpi.target };
+                            }
+                        });
+
+                        const summaryKpisToShow = Object.entries(summaryKpis)
+                            .filter(([name]) => action.summaryKpis?.includes(name))
+                            .map(([name, data]) => ({ name, ...data }));
+
+
                         return (
                         <Link key={action.id} href={`/campaigns/${campaign.id}/${action.id}`} className="block hover:shadow-lg transition-shadow rounded-lg">
                             <Card className="h-full flex flex-col">
@@ -138,10 +153,10 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                                 </CardHeader>
                                 <CardContent className="flex-1 space-y-4">
                                     <div className="space-y-4">
-                                        {summaryKpis.length > 0 && (
+                                        {summaryKpisToShow.length > 0 && (
                                             <div className="space-y-3">
-                                                {summaryKpis.map(kpi => (
-                                                    <div key={kpi.id}>
+                                                {summaryKpisToShow.map(kpi => (
+                                                    <div key={kpi.name}>
                                                         <div className="flex justify-between items-center text-sm mb-1">
                                                           <span className="text-muted-foreground flex items-center"><Eye className="w-3 h-3 mr-1.5"/>{kpi.name}</span>
                                                           <span className="font-medium">{kpi.target > 0 ? Math.round((kpi.current / kpi.target) * 100) : 0}%</span>
@@ -151,7 +166,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                                                 ))}
                                             </div>
                                         )}
-                                        {summaryKpis.length > 0 && <Separator />}
+                                        {summaryKpisToShow.length > 0 && <Separator />}
                                         <div className="flex items-center justify-between text-sm text-muted-foreground">
                                             <StatusBadge status={action.status} />
                                             <span>{new Date(action.startDate).toLocaleDateString(locale, {month: 'short', day: 'numeric'})} - {new Date(action.endDate).toLocaleDateString(locale, {month: 'short', day: 'numeric'})}</span>

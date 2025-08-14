@@ -1,4 +1,5 @@
 
+
 export type Goal = {
   id: string;
   name: string;
@@ -13,10 +14,8 @@ export type KPI = {
   name: string;
   target: number;
   current: number; 
-  multiple: number;
   parentId: string | null; // ID of the parent KPI for conversion tracking
   includeInActionGoals?: boolean;
-  showOnActionCard?: boolean;
 }
 
 export type Expense = {
@@ -51,6 +50,7 @@ export type Action = {
   goals: Goal[];
   activities: Activity[];
   generalExpenses: Expense[];
+  summaryKpis?: string[]; // Names of aggregated KPIs to show on the campaign page action card
 };
 
 export type CampaignStatus = 'active' | 'planned' | 'completed' | 'paused';
