@@ -19,6 +19,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { stringify } from 'csv-stringify/sync';
+import { EditKpiMetricButton } from './edit-kpi-metric-button';
+import { DeleteKpiMetricButton } from './delete-kpi-metric-button';
 
 type FlattenedLog = {
     logId: string;
@@ -29,7 +31,7 @@ type FlattenedLog = {
     cumulative: number;
 }
 
-export function KpiHistoryModal({ activity }: { activity: Activity }) {
+export function KpiHistoryModal({ activity, campaignId, actionId }: { activity: Activity, campaignId: string, actionId: string }) {
     const [open, setOpen] = useState(false);
     const [selectedKpis, setSelectedKpis] = useState<string[]>(() => activity.kpis.map(kpi => kpi.id));
     const locale = 'ru-RU';
@@ -87,9 +89,11 @@ export function KpiHistoryModal({ activity }: { activity: Activity }) {
         const finalFlattenedLogs = allFlattenedLogs.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
         const config: any = {};
-        activity.kpis.forEach((kpi, index) => {
-            config[kpi.id] = { label: kpi.name, color: `hsl(var(--chart-${(index % 5) + 1}))` };
-            config[`${kpi.id}_cumulative`] = { label: `${kpi.name} (Итог)`, color: `hsl(var(--chart-${(index % 5) + 1}))` };
+        activity.kpis.forEach((kpi) => {
+             const kpiIdHash = kpi.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+             const colorIndex = (kpiIdHash % 5) + 1;
+             config[kpi.id] = { label: kpi.name, color: `hsl(var(--chart-${colorIndex}))` };
+             config[`${kpi.id}_cumulative`] = { label: `${kpi.name} (Итог)`, color: `hsl(var(--chart-${colorIndex}))` };
         });
 
         return { chartData: finalChartData, flattenedLogs: finalFlattenedLogs, chartConfig: config };
@@ -221,17 +225,41 @@ export function KpiHistoryModal({ activity }: { activity: Activity }) {
                                             <TableHead>KPI</TableHead>
                                             <TableHead className="text-right">Значение</TableHead>
                                             <TableHead className="text-right">Накопительный итог</TableHead>
+                                            <TableHead className="text-right w-[100px]">Действия</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {flattenedLogs.map((log) => (
-                                            <TableRow key={log.logId}>
+                                        {flattenedLogs.map((log, index) => {
+                                            const originalKpi = activity.kpis.find(k => k.id === log.kpiId);
+                                            const originalLog = originalKpi?.metrics.find(m => m.id === log.logId);
+                                            if (!originalLog || !originalKpi) return null;
+                                            
+                                            return (
+                                            <TableRow key={`${log.logId}-${index}`}>
                                                 <TableCell>{new Date(log.date).toLocaleDateString(locale, dateOptions)}</TableCell>
                                                 <TableCell>{log.kpiName}</TableCell>
                                                 <TableCell className="text-right font-medium">+{log.value.toLocaleString(locale)}</TableCell>
                                                 <TableCell className="text-right">{log.cumulative.toLocaleString(locale)}</TableCell>
+                                                <TableCell>
+                                                     <div className="flex items-center justify-end space-x-1">
+                                                        <EditKpiMetricButton 
+                                                            log={originalLog}
+                                                            kpiId={originalKpi.id}
+                                                            campaignId={campaignId}
+                                                            actionId={actionId}
+                                                            activityId={activity.id}
+                                                        />
+                                                        <DeleteKpiMetricButton 
+                                                            logId={log.logId}
+                                                            kpiId={log.kpiId}
+                                                            campaignId={campaignId}
+                                                            actionId={actionId}
+                                                            activityId={activity.id}
+                                                        />
+                                                    </div>
+                                                </TableCell>
                                             </TableRow>
-                                        ))}
+                                        )})}
                                     </TableBody>
                                 </Table>
                              </div>
@@ -250,3 +278,4 @@ export function KpiHistoryModal({ activity }: { activity: Activity }) {
         </Dialog>
     );
 }
+
