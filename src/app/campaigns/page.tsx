@@ -3,15 +3,11 @@ import Link from 'next/link';
 import {
   Card,
   CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter
 } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { PageHeader } from '@/components/page-header';
 import { getCampaigns } from '@/lib/data';
 import { UpdateCampaignStatus } from './update-campaign-status';
@@ -21,6 +17,8 @@ import type { CampaignStatus } from '@/lib/types';
 import { EditCampaignButton } from './edit-campaign-button';
 import { DeleteCampaignButton } from './delete-campaign-button';
 import { NewCampaignButton } from './new-campaign-button';
+import { Separator } from '@/components/ui/separator';
+import { Calendar, Landmark } from 'lucide-react';
 
 type CampaignsPageProps = {
   searchParams: {
@@ -38,7 +36,7 @@ export default async function CampaignsPage({ searchParams }: CampaignsPageProps
 
   const locale = 'ru-RU';
   const currencyOptions = { style: 'currency', currency: 'RUB', minimumFractionDigits: 0, maximumFractionDigits: 0 };
-  const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+  const dateOptions: Intl.DateTimeFormatOptions = { day: '2-digit', month: 'short', year: 'numeric' };
   const today = new Date();
 
   return (
@@ -49,66 +47,82 @@ export default async function CampaignsPage({ searchParams }: CampaignsPageProps
           <NewCampaignButton />
         </div>
       </PageHeader>
-      <Card>
-        <CardContent className="pt-6">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Название</TableHead>
-                <TableHead>Статус</TableHead>
-                <TableHead className="hidden lg:table-cell">Длительность</TableHead>
-                <TableHead className="hidden lg:table-cell w-[150px]">Прогресс</TableHead>
-                <TableHead className="text-right hidden md:table-cell">Бюджет</TableHead>
-                <TableHead className="text-right">Действия</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredCampaigns.map((campaign) => {
-                const startDate = new Date(campaign.startDate);
-                const endDate = new Date(campaign.endDate);
-                const totalDuration = Math.max(1, endDate.getTime() - startDate.getTime());
-                const elapsedDuration = Math.max(0, today.getTime() - startDate.getTime());
-                let durationProgress = Math.min(100, (elapsedDuration / totalDuration) * 100);
+      
+      <div className="grid gap-6">
+        {filteredCampaigns.map((campaign) => {
+          const startDate = new Date(campaign.startDate);
+          const endDate = new Date(campaign.endDate);
+          const totalDuration = Math.max(1, endDate.getTime() - startDate.getTime());
+          const elapsedDuration = Math.max(0, today.getTime() - startDate.getTime());
+          let durationProgress = Math.min(100, (elapsedDuration / totalDuration) * 100);
 
-                return (
-                  <TableRow key={campaign.id}>
-                    <TableCell>
-                      <Link href={`/campaigns/${campaign.id}`} className="font-medium hover:text-primary hover:underline break-words">
-                        {campaign.name}
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <UpdateCampaignStatus campaign={campaign} />
-                    </TableCell>
-                    <TableCell className="hidden lg:table-cell">
-                      {startDate.toLocaleDateString(locale, {month: 'short', day: 'numeric'})} - {endDate.toLocaleDateString(locale, {month: 'short', day: 'numeric', year: 'numeric'})}
-                    </TableCell>
-                    <TableCell className="hidden lg:table-cell">
-                      <Progress value={durationProgress} />
-                    </TableCell>
-                    <TableCell className="text-right hidden md:table-cell">
-                      {new Intl.NumberFormat(locale, currencyOptions).format(campaign.budget)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                        <div className="flex items-center justify-end space-x-1">
-                            <EditCampaignButton campaign={campaign} asIcon={true} />
-                            <DeleteCampaignButton campaignId={campaign.id} asIcon={true} />
+          return (
+            <Card key={campaign.id}>
+              <CardHeader>
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                  <div className="flex-1">
+                     <CardTitle className="text-xl">
+                        <Link href={`/campaigns/${campaign.id}`} className="hover:underline">
+                            {campaign.name}
+                        </Link>
+                     </CardTitle>
+                     <CardDescription className="mt-1">{campaign.description}</CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <EditCampaignButton campaign={campaign} asIcon={true} />
+                    <DeleteCampaignButton campaignId={campaign.id} asIcon={true} />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid sm:grid-cols-3 gap-4 text-sm">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-muted rounded-md">
+                            <Landmark className="h-5 w-5 text-muted-foreground" />
                         </div>
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-               {filteredCampaigns.length === 0 && (
-                <TableRow>
-                    <TableCell colSpan={6} className="text-center h-24 text-muted-foreground">
+                        <div>
+                            <p className="text-muted-foreground">Бюджет</p>
+                            <p className="font-semibold">{new Intl.NumberFormat(locale, currencyOptions).format(campaign.budget)}</p>
+                        </div>
+                    </div>
+                     <div className="flex items-center gap-3">
+                        <div className="p-2 bg-muted rounded-md">
+                            <Calendar className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <div>
+                            <p className="text-muted-foreground">Длительность</p>
+                            <p className="font-semibold">
+                                {startDate.toLocaleDateString(locale, dateOptions)} - {endDate.toLocaleDateString(locale, dateOptions)}
+                            </p>
+                        </div>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Статус</p>
+                      <UpdateCampaignStatus campaign={campaign} />
+                    </div>
+                </div>
+              </CardContent>
+              <CardFooter className="flex-col items-start gap-2 pt-4 border-t">
+                  <div className="flex justify-between w-full text-sm text-muted-foreground">
+                      <span>Прогресс кампании</span>
+                      <span>{Math.round(durationProgress)}%</span>
+                  </div>
+                  <Progress value={durationProgress} className="h-2 w-full" />
+              </CardFooter>
+            </Card>
+          )
+        })}
+        
+        {filteredCampaigns.length === 0 && (
+            <Card>
+                <CardContent className="text-center h-48 flex flex-col items-center justify-center text-muted-foreground">
+                    <p>
                         {selectedStatus ? 'Нет кампаний, соответствующих вашим фильтрам.' : 'Кампании еще не созданы.'}
-                    </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                    </p>
+                </CardContent>
+            </Card>
+        )}
+      </div>
     </div>
   );
 }
