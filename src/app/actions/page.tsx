@@ -28,7 +28,8 @@ type ActionsPageProps = {
   };
 };
 
-export default async function ActionsPage({ searchParams }: ActionsPageProps) {
+export default async function ActionsPage({ searchParams: searchParamsPromise }: ActionsPageProps) {
+  const searchParams = await searchParamsPromise;
   const allCampaigns = await getCampaigns();
   const allActions = await getAllActions();
   const selectedCampaignId = searchParams.campaignId;
