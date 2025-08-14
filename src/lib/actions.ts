@@ -1,10 +1,12 @@
 
+
 "use server";
 
 import { z } from "zod";
-import { addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData } from "./data";
+import { addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData } from "./data";
 import { revalidatePath } from "next/cache";
 import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus } from "./types";
+import { redirect } from "next/navigation";
 
 const ActionSchema = z.object({
   name: z.string().min(3, { message: "Название акции должно содержать не менее 3 символов." }),
@@ -726,4 +728,69 @@ export async function updateCampaignStatus(
   revalidatePath(`/campaigns`);
   revalidatePath(`/campaigns/${campaignId}`);
   return { message: "Статус кампании обновлен." };
+}
+
+const CampaignSchema = z.object({
+  name: z.string().min(3, { message: "Название кампании должно содержать не менее 3 символов." }),
+  description: z.string().min(10, { message: "Описание должно содержать не менее 10 символов." }),
+  budget: z.coerce.number().min(0, { message: "Бюджет не может быть отрицательным." }),
+  startDate: z.string().refine((date) => !isNaN(Date.parse(date)), { message: "Неверный формат даты начала." }),
+  endDate: z.string().refine((date) => !isNaN(Date.parse(date)), { message: "Неверный формат даты окончания." }),
+});
+
+export type CampaignFormState = {
+  message: string;
+  error?: boolean;
+  errors?: z.ZodError<z.infer<typeof CampaignSchema>>['formErrors']['fieldErrors']
+}
+
+export async function editCampaign(prevState: CampaignFormState, formData: FormData): Promise<CampaignFormState> {
+    const campaignId = formData.get('campaignId') as string;
+    if (!campaignId) {
+        return { message: "ID кампании отсутствует.", error: true };
+    }
+
+    const validatedFields = CampaignSchema.safeParse({
+        name: formData.get('name'),
+        description: formData.get('description'),
+        budget: formData.get('budget'),
+        startDate: formData.get('startDate'),
+        endDate: formData.get('endDate'),
+    });
+
+    if (!validatedFields.success) {
+        return {
+            message: "Ошибка валидации.",
+            error: true,
+            errors: validatedFields.error.flatten().fieldErrors,
+        };
+    }
+
+    try {
+        await updateCampaignData(campaignId, validatedFields.data);
+    } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+        return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
+    }
+
+    revalidatePath(`/campaigns`);
+    revalidatePath(`/campaigns/${campaignId}`);
+    return { message: "Кампания успешно обновлена." };
+}
+
+export async function deleteCampaign(formData: FormData): Promise<DeleteFormState> {
+    const campaignId = formData.get('campaignId') as string;
+    if (!campaignId) {
+        return { message: "ID кампании отсутствует.", error: true };
+    }
+
+    try {
+        await deleteCampaignData(campaignId);
+    } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+        return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
+    }
+    
+    // Redirect after deletion
+    redirect('/campaigns');
 }

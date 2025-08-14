@@ -88,3 +88,15 @@ export type ActivityFormState = {
   };
 };
 
+export type CampaignFormState = {
+  message: string;
+  error?: boolean;
+  errors?: {
+    name?: string[];
+    description?: string[];
+    budget?: string[];
+    startDate?: string[];
+    endDate?: string[];
+  };
+};
+

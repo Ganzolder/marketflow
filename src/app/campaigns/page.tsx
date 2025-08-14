@@ -18,9 +18,23 @@ import { getCampaigns } from '@/lib/data';
 import { PlusCircle } from 'lucide-react';
 import { UpdateCampaignStatus } from './update-campaign-status';
 import { Progress } from '@/components/ui/progress';
+import { CampaignStatusFilter } from './campaign-status-filter';
+import type { CampaignStatus } from '@/lib/types';
 
-export default async function CampaignsPage() {
+type CampaignsPageProps = {
+  searchParams: {
+    status?: CampaignStatus;
+  }
+}
+
+export default async function CampaignsPage({ searchParams }: CampaignsPageProps) {
   const campaigns = await getCampaigns();
+  const selectedStatus = searchParams.status;
+  
+  const filteredCampaigns = selectedStatus 
+    ? campaigns.filter(c => c.status === selectedStatus)
+    : campaigns;
+
   const locale = 'ru-RU';
   const currencyOptions = { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 };
   const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -29,6 +43,7 @@ export default async function CampaignsPage() {
   return (
     <div>
       <PageHeader title="Кампании" description="Управляйте и отслеживайте все ваши маркетинговые кампании.">
+        <CampaignStatusFilter />
         <Button>
           <PlusCircle className="mr-2 h-4 w-4" />
           Создать кампанию
@@ -47,7 +62,7 @@ export default async function CampaignsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {campaigns.map((campaign) => {
+              {filteredCampaigns.map((campaign) => {
                 const startDate = new Date(campaign.startDate);
                 const endDate = new Date(campaign.endDate);
                 const totalDuration = Math.max(1, endDate.getTime() - startDate.getTime());
@@ -76,10 +91,10 @@ export default async function CampaignsPage() {
                   </TableRow>
                 )
               })}
-               {campaigns.length === 0 && (
+               {filteredCampaigns.length === 0 && (
                 <TableRow>
                     <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
-                        Кампании еще не созданы.
+                        {selectedStatus ? 'Нет кампаний, соответствующих вашим фильтрам.' : 'Кампании еще не созданы.'}
                     </TableCell>
                 </TableRow>
               )}

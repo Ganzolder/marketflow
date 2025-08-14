@@ -1,4 +1,5 @@
 
+
 import { getCampaignById } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
@@ -12,6 +13,7 @@ import { EditActionButton } from './edit-action-button';
 import Link from 'next/link';
 import { Progress } from '@/components/ui/progress';
 import { UpdateCampaignStatus } from '../update-campaign-status';
+import { EditCampaignButton } from '../edit-campaign-button';
 
 type CampaignDetailPageProps = {
   params: {
@@ -65,10 +67,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
   return (
     <div>
       <PageHeader title={campaign.name}>
-        <Button variant="outline">
-          <Edit className="mr-2 h-4 w-4" />
-          Редактировать кампанию
-        </Button>
+        <EditCampaignButton campaign={campaign} />
       </PageHeader>
 
       <div className="grid gap-8">

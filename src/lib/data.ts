@@ -1,8 +1,9 @@
 
 
+
 import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction, ActionStatus, CampaignStatus } from './types';
 import { db } from './firebase';
-import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, addDoc, writeBatch, runTransaction } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, addDoc, writeBatch, runTransaction, deleteDoc } from "firebase/firestore";
 import { Combobox } from '@/components/ui/combobox';
 
 // Helper function to seed the database with initial data if it's empty
@@ -795,6 +796,26 @@ export async function updateCampaignStatus(campaignId: string, status: CampaignS
         await updateDoc(campaignRef, { status: status });
     } catch (e) {
         console.error("Update campaign status failed: ", e);
+        throw e;
+    }
+}
+
+export async function updateCampaign(campaignId: string, data: Partial<Omit<Campaign, 'id' | 'actions' | 'goals'>>) {
+    const campaignRef = doc(db, 'campaigns', campaignId);
+    try {
+        await updateDoc(campaignRef, data);
+    } catch (e) {
+        console.error("Update campaign failed: ", e);
+        throw e;
+    }
+}
+
+export async function deleteCampaign(campaignId: string) {
+    const campaignRef = doc(db, 'campaigns', campaignId);
+    try {
+        await deleteDoc(campaignRef);
+    } catch (e) {
+        console.error("Delete campaign failed: ", e);
         throw e;
     }
 }
