@@ -49,7 +49,7 @@ export default async function ActionsPage({ searchParams: searchParamsPromise }:
         title="Все акции"
         description="Просматривайте и управляйте всеми акциями в одном месте."
       >
-        <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+        <div className="flex flex-wrap gap-2 w-full md:w-auto">
             <CampaignFilter campaigns={allCampaigns} />
             <StatusFilter />
         </div>
