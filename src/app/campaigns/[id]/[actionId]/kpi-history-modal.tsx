@@ -92,9 +92,10 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: KpiHistoryMo
 
     // --- Chart Data Preparation ---
     const chartConfig = kpis.reduce((acc, kpi, index) => {
+        const colorName = `chart-${(index % 5) + 1}`;
         acc[kpi.name] = {
             label: kpi.name,
-            color: `hsl(var(--chart-${index + 1}))`,
+            color: `hsl(var(--${colorName}))`,
         };
         return acc;
     }, {} as ChartConfig);
@@ -222,8 +223,8 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: KpiHistoryMo
                                             </BarChart>
                                         </ChartContainer>
                                         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-4 p-2 border rounded-lg">
-                                            {kpis.map((kpi, index) => (
-                                                <div key={kpi.id} className="flex items-center space-x-2">
+                                            {kpis.map((kpi) => (
+                                                <div key={`daily-filter-${kpi.id}`} className="flex items-center space-x-2">
                                                     <Checkbox
                                                         id={`kpi-toggle-${kpi.id}`}
                                                         checked={visibleKpis[kpi.name]}
@@ -233,7 +234,7 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: KpiHistoryMo
                                                                 [kpi.name]: !!checked
                                                             }));
                                                         }}
-                                                        style={{ color: `hsl(var(--chart-${index + 1}))` }}
+                                                        style={{ color: chartConfig[kpi.name]?.color }}
                                                         className="border-current data-[state=checked]:bg-current"
                                                     />
                                                     <label
@@ -273,7 +274,7 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: KpiHistoryMo
                                             </LineChart>
                                         </ChartContainer>
                                           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-4 p-2 border rounded-lg">
-                                            {kpis.map((kpi, index) => (
+                                            {kpis.map((kpi) => (
                                                 <div key={`cum-filter-${kpi.id}`} className="flex items-center space-x-2">
                                                     <Checkbox
                                                         id={`cum-kpi-toggle-${kpi.id}`}
@@ -284,7 +285,7 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: KpiHistoryMo
                                                                 [kpi.name]: !!checked
                                                             }));
                                                         }}
-                                                        style={{ color: `hsl(var(--chart-${index + 1}))` }}
+                                                        style={{ color: chartConfig[kpi.name]?.color }}
                                                         className="border-current data-[state=checked]:bg-current"
                                                     />
                                                     <label
