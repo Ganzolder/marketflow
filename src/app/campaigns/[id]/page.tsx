@@ -193,7 +193,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                                         {(summaryKpisToShow.length > 0 || plannedBudget > 0 || hasRevenueData) && <Separator />}
 
                                         <div className="space-y-3">
-                                            {hasRevenueData > 0 && (
+                                            {hasRevenueData && (
                                                 <div>
                                                     <div className="flex justify-between items-center text-sm mb-1">
                                                         <span className="text-muted-foreground flex items-center"><TrendingUp className="w-3 h-3 mr-1.5"/>Выручка</span>
@@ -204,7 +204,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                                                     <Progress value={plannedRevenue > 0 ? (actualRevenue / plannedRevenue) * 100 : 0} className="h-2" indicatorClassName="bg-accent" />
                                                 </div>
                                             )}
-                                            {hasProfitData > 0 && (
+                                            {hasProfitData && (
                                                 <div>
                                                     <div className="flex justify-between items-center text-sm mb-1">
                                                         <span className="text-muted-foreground flex items-center"><Landmark className="w-3 h-3 mr-1.5"/>Прибыль</span>
