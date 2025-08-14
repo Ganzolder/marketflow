@@ -16,14 +16,14 @@ import {
 } from "@/components/ui/table";
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { stringify } from 'csv-stringify/sync';
-import { Bar, BarChart, CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   ChartContainer,
   ChartConfig,
@@ -31,8 +31,8 @@ import {
   ChartTooltipContent,
   ChartLegend,
   ChartLegendContent,
-} from "@/components/ui/chart"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs';
+} from "@/components/ui/chart";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
 type KpiHistoryModalProps = {
@@ -57,10 +57,8 @@ export function KpiHistoryModal({ activity }: KpiHistoryModalProps) {
     (activity.kpis || []).forEach(kpi => {
         const sortedMetrics = [...(kpi.metrics || [])].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
         
+        runningTotals[kpi.name] = 0; // Reset running total for each KPI
         sortedMetrics.forEach(metric => {
-            if (!runningTotals[kpi.name]) {
-                runningTotals[kpi.name] = 0;
-            }
             runningTotals[kpi.name] += metric.value;
             flattenedLogs.push({
                 kpiName: kpi.name,
@@ -88,17 +86,49 @@ export function KpiHistoryModal({ activity }: KpiHistoryModalProps) {
             const date = new Date(log.date).toLocaleDateString(locale, { day: 'numeric', month: 'short' });
             if (!acc[date]) {
                 acc[date] = { date };
+                 (activity.kpis || []).forEach(kpi => {
+                    acc[date][kpi.name] = 0;
+                });
             }
             // Daily value
             acc[date][log.kpiName] = (acc[date][log.kpiName] || 0) + log.value;
-            // Cumulative value
-            acc[date][`${log.kpiName}_cumulative`] = log.runningTotal;
+            
             return acc;
             }, {} as Record<string, any>)
-        ).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        ).sort((a, b) => {
+            const dateA = new Date(a.date.split('.').reverse().join('-'));
+            const dateB = new Date(b.date.split('.').reverse().join('-'));
+            return dateA.getTime() - dateB.getTime();
+        })
         : [];
-    
-    
+        
+    const cumulativeChartData = (activity.kpis || []).length > 0 ?
+        (() => {
+            const dataMap: Record<string, any> = {};
+            const cumulativeTotals: Record<string, number> = {};
+
+            // Initialize cumulative totals
+            (activity.kpis || []).forEach(kpi => {
+                cumulativeTotals[kpi.name] = 0;
+            });
+            
+            // Re-sort flattened logs by date ascending for cumulative calculation
+            const sortedLogsAsc = [...flattenedLogs].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+            sortedLogsAsc.forEach(log => {
+                const date = new Date(log.date).toLocaleDateString(locale, { day: 'numeric', month: 'short' });
+                if (!dataMap[date]) {
+                    dataMap[date] = { date, ...cumulativeTotals };
+                }
+                cumulativeTotals[log.kpiName] += log.value;
+                dataMap[date] = { date, ...cumulativeTotals };
+            });
+
+            return Object.values(dataMap);
+        })()
+        : [];
+
+
     const handleExport = () => {
         const csvData = stringify(flattenedLogs, {
             header: true,
@@ -167,8 +197,8 @@ export function KpiHistoryModal({ activity }: KpiHistoryModalProps) {
                                                 <YAxis />
                                                 <ChartTooltip content={<ChartTooltipContent />} />
                                                 <ChartLegend content={<ChartLegendContent />} />
-                                                 {(activity.kpis || []).map(kpi => (
-                                                    <Bar dataKey={kpi.name} key={kpi.id} fill={`var(--color-${kpi.name})`} radius={4} />
+                                                 {(activity.kpis || []).map((kpi, index) => (
+                                                    <Bar dataKey={kpi.name} key={kpi.id} fill={`var(--color-${kpi.name})`} stackId="a" radius={4} />
                                                  ))}
                                             </BarChart>
                                         </ChartContainer>
@@ -183,7 +213,7 @@ export function KpiHistoryModal({ activity }: KpiHistoryModalProps) {
                                     </CardHeader>
                                     <CardContent>
                                         <ChartContainer config={chartConfig} className="h-[400px] w-full">
-                                            <LineChart accessibilityLayer data={chartData}>
+                                            <LineChart accessibilityLayer data={cumulativeChartData}>
                                                 <CartesianGrid vertical={false} />
                                                 <XAxis
                                                     dataKey="date"
@@ -194,8 +224,8 @@ export function KpiHistoryModal({ activity }: KpiHistoryModalProps) {
                                                 <YAxis />
                                                 <ChartTooltip content={<ChartTooltipContent />} />
                                                 <ChartLegend content={<ChartLegendContent />} />
-                                                 {(activity.kpis || []).map(kpi => (
-                                                    <Line dataKey={`${kpi.name}_cumulative`} name={kpi.name} key={kpi.id} type="monotone" stroke={`var(--color-${kpi.name})`} strokeWidth={2} dot={false} />
+                                                 {(activity.kpis || []).map((kpi, index) => (
+                                                    <Line dataKey={kpi.name} name={kpi.name} key={kpi.id} type="monotone" stroke={`var(--color-${kpi.name})`} strokeWidth={2} dot={false} />
                                                  ))}
                                             </LineChart>
                                         </ChartContainer>
