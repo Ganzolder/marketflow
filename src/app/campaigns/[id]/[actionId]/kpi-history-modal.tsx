@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
-import { History, Download, Pencil, Trash2 } from "lucide-react";
+import { History, Download } from "lucide-react";
 import type { Activity } from '@/lib/types';
 import {
   Table,
@@ -226,7 +226,7 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: KpiHistoryMo
                                             {kpis.map((kpi) => (
                                                 <div key={`daily-filter-${kpi.id}`} className="flex items-center space-x-2">
                                                     <Checkbox
-                                                        id={`kpi-toggle-${kpi.id}`}
+                                                        id={`kpi-toggle-daily-${kpi.id}`}
                                                         checked={visibleKpis[kpi.name]}
                                                         onCheckedChange={(checked) => {
                                                             setVisibleKpis(prev => ({
@@ -238,7 +238,7 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: KpiHistoryMo
                                                         className="border-current data-[state=checked]:bg-current"
                                                     />
                                                     <label
-                                                        htmlFor={`kpi-toggle-${kpi.id}`}
+                                                        htmlFor={`kpi-toggle-daily-${kpi.id}`}
                                                         className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                                     >
                                                         {kpi.name}
@@ -277,7 +277,7 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: KpiHistoryMo
                                             {kpis.map((kpi) => (
                                                 <div key={`cum-filter-${kpi.id}`} className="flex items-center space-x-2">
                                                     <Checkbox
-                                                        id={`cum-kpi-toggle-${kpi.id}`}
+                                                        id={`kpi-toggle-cum-${kpi.id}`}
                                                         checked={visibleKpis[kpi.name]}
                                                         onCheckedChange={(checked) => {
                                                             setVisibleKpis(prev => ({
@@ -289,7 +289,7 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: KpiHistoryMo
                                                         className="border-current data-[state=checked]:bg-current"
                                                     />
                                                     <label
-                                                        htmlFor={`cum-kpi-toggle-${kpi.id}`}
+                                                        htmlFor={`kpi-toggle-cum-${kpi.id}`}
                                                         className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                                     >
                                                         {kpi.name}
