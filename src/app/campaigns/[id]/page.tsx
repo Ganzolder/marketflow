@@ -143,6 +143,23 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                         const plannedBudget = action.activities?.reduce((sum, activity) => sum + activity.budget, 0) || 0;
                         const totalSpent = (action.activities?.reduce((sum, activity) => sum + activity.spent, 0) || 0) + (action.generalExpenses?.reduce((sum, expense) => sum + expense.amount, 0) || 0);
                         const budgetProgress = plannedBudget > 0 ? (totalSpent / plannedBudget) * 100 : 0;
+                        
+                        const salesKpiName = "Продажи";
+                        let plannedSales = 0;
+                        let actualSales = 0;
+
+                        action.activities?.forEach(activity => {
+                            activity.kpis?.forEach(kpi => {
+                                if (kpi.name === salesKpiName) {
+                                    plannedSales += kpi.target;
+                                    actualSales += kpi.current;
+                                }
+                            });
+                        });
+
+                        const plannedRevenue = plannedSales * (action.plannedAverageCheck || 0);
+                        const actualRevenue = actualSales * (action.actualAverageCheck || 0);
+                        const hasRevenueData = action.plannedAverageCheck || action.actualAverageCheck;
 
                         return (
                         <Link key={action.id} href={`/campaigns/${campaign.id}/${action.id}`} className="block hover:shadow-lg transition-shadow rounded-lg">
@@ -169,18 +186,34 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                                                 ))}
                                             </div>
                                         )}
-                                        {(summaryKpisToShow.length > 0 || plannedBudget > 0) && <Separator />}
-                                         {plannedBudget > 0 && (
-                                            <div>
-                                                <div className="flex justify-between items-center text-sm mb-1">
-                                                    <span className="text-muted-foreground flex items-center"><DollarSign className="w-3 h-3 mr-1.5"/>Бюджет</span>
-                                                    <span className="font-medium">
-                                                        {new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(totalSpent)} / {new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(plannedBudget)}
-                                                    </span>
+                                        
+                                        {(summaryKpisToShow.length > 0 || plannedBudget > 0 || hasRevenueData) && <Separator />}
+
+                                        <div className="space-y-3">
+                                            {hasRevenueData > 0 && (
+                                                <div>
+                                                    <div className="flex justify-between items-center text-sm mb-1">
+                                                        <span className="text-muted-foreground flex items-center"><TrendingUp className="w-3 h-3 mr-1.5"/>Выручка</span>
+                                                        <span className="font-medium text-accent">
+                                                            {new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(actualRevenue)} / <span className="text-muted-foreground">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(plannedRevenue)}</span>
+                                                        </span>
+                                                    </div>
+                                                    <Progress value={plannedRevenue > 0 ? (actualRevenue / plannedRevenue) * 100 : 0} className="h-2" indicatorClassName="bg-accent" />
                                                 </div>
-                                                <Progress value={budgetProgress} className="h-2" indicatorClassName={budgetProgress > 100 ? 'bg-destructive' : ''} />
-                                            </div>
-                                        )}
+                                            )}
+                                            {plannedBudget > 0 && (
+                                                <div>
+                                                    <div className="flex justify-between items-center text-sm mb-1">
+                                                        <span className="text-muted-foreground flex items-center"><DollarSign className="w-3 h-3 mr-1.5"/>Бюджет</span>
+                                                        <span className="font-medium">
+                                                            {new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(totalSpent)} / {new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(plannedBudget)}
+                                                        </span>
+                                                    </div>
+                                                    <Progress value={budgetProgress} className="h-2" indicatorClassName={budgetProgress > 100 ? 'bg-destructive' : ''} />
+                                                </div>
+                                            )}
+                                        </div>
+                                        
                                         <div className="flex items-center justify-between text-sm text-muted-foreground pt-2">
                                             <StatusBadge status={action.status} />
                                             <span>{new Date(action.startDate).toLocaleDateString(locale, {month: 'short', day: 'numeric'})} - {new Date(action.endDate).toLocaleDateString(locale, {month: 'short', day: 'numeric'})}</span>
