@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -18,6 +18,8 @@ import { useFieldArray } from 'react-hook-form';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Combobox } from '@/components/ui/combobox';
+import { getUniqueKpiNames } from '@/lib/data';
 
 
 const KpiSchema = z.object({
@@ -45,6 +47,13 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
     const { toast } = useToast();
     const locale = 'ru-RU';
     const currencyOptions = { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 };
+    const [kpiOptions, setKpiOptions] = useState<{value: string, label: string}[]>([]);
+
+    useEffect(() => {
+        if (open) {
+            getUniqueKpiNames(campaignId).then(setKpiOptions);
+        }
+    }, [open, campaignId]);
     
     const form = useForm<z.infer<typeof AddActivityFormSchema>>({
         resolver: zodResolver(AddActivityFormSchema),
@@ -213,9 +222,16 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
                                                     control={form.control}
                                                     name={`kpis.${index}.name`}
                                                     render={({ field }) => (
-                                                        <FormItem>
+                                                        <FormItem className="flex flex-col">
                                                             <FormLabel>Название KPI</FormLabel>
-                                                            <FormControl><Input placeholder="напр. Показы" {...field} /></FormControl>
+                                                              <Combobox
+                                                                options={kpiOptions}
+                                                                value={field.value}
+                                                                onChange={field.onChange}
+                                                                placeholder="Выберите или введите KPI..."
+                                                                searchPlaceholder="Поиск KPI..."
+                                                                notFoundText="KPI не найден."
+                                                              />
                                                             <FormMessage />
                                                         </FormItem>
                                                     )}

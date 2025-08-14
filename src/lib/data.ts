@@ -3,6 +3,7 @@
 import { Campaign, UpcomingAction, Action, Activity, KPI, Expense } from './types';
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, addDoc, writeBatch, runTransaction } from "firebase/firestore";
+import { Combobox } from '@/components/ui/combobox';
 
 // Helper function to seed the database with initial data if it's empty
 async function seedDatabase() {
@@ -214,7 +215,7 @@ export async function updateActivity(campaignId: string, actionId: string, updat
                     ...uk,
                     current: existingKpi ? existingKpi.current : 0,
                     multiple: uk.multiple || 1,
-                    includeInActionGoals: uk.includeInActionGoals ?? true,
+                    includeInActionGoals: uk.includeInActionGoals,
                 };
             });
 
@@ -640,10 +641,23 @@ export async function deleteGeneralExpenseFromAction(campaignId: string, actionI
     }
 }
 
-export async function getUniqueKpiNames(): Promise<string[]> {
+export async function getUniqueKpiNames(campaignId?: string): Promise<{value: string, label: string}[]> {
   const campaigns = await getCampaigns();
   const kpiNames = new Set<string>();
+  
+  // If a campaignId is provided, prioritize KPIs from that campaign
+  if (campaignId) {
+    const currentCampaign = campaigns.find(c => c.id === campaignId);
+    currentCampaign?.actions?.forEach(action => {
+      action.activities?.forEach(activity => {
+        activity.kpis?.forEach(kpi => {
+          kpiNames.add(kpi.name);
+        });
+      });
+    });
+  }
 
+  // Then add KPIs from all other campaigns to ensure a complete list
   campaigns.forEach(campaign => {
     campaign.actions?.forEach(action => {
       action.activities?.forEach(activity => {
@@ -654,5 +668,5 @@ export async function getUniqueKpiNames(): Promise<string[]> {
     });
   });
 
-  return Array.from(kpiNames).sort();
+  return Array.from(kpiNames).sort().map(name => ({ value: name, label: name }));
 }
