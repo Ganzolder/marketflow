@@ -12,7 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/status-badge';
 import Link from 'next/link';
 import { Progress } from '@/components/ui/progress';
-import { Eye, FilePlus, Ruble, TrendingUp, Landmark } from 'lucide-react';
+import { Eye, FilePlus, Landmark, TrendingUp } from 'lucide-react';
 import { CampaignFilter } from './campaign-filter';
 import { StatusFilter } from './status-filter';
 import type { ActionStatus } from '@/lib/types';
@@ -179,7 +179,7 @@ export default async function ActionsPage({ searchParams: searchParamsPromise }:
                         {plannedBudget > 0 && (
                             <div>
                                 <div className="flex justify-between items-center text-sm mb-1">
-                                    <span className="text-muted-foreground flex items-center"><Ruble className="w-3 h-3 mr-1.5"/>Бюджет</span>
+                                    <span className="text-muted-foreground flex items-center"><Landmark className="w-3 h-3 mr-1.5"/>Бюджет</span>
                                     <span className="font-medium">
                                         {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(totalSpent)} / {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(plannedBudget)}
                                     </span>
