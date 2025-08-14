@@ -332,34 +332,36 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                                                     )}
                                                 />
                                             </div>
-                                            <div className="flex items-center gap-4 text-muted-foreground pt-2 text-xs border-t mt-2 pt-2">
-                                                {conversion !== null && parentKpi && (
-                                                    <TooltipProvider>
-                                                        <Tooltip>
-                                                        <TooltipTrigger className="flex items-center gap-1">
-                                                            <TrendingUp className="w-4 h-4 text-green-500"/> 
-                                                            <span className="font-bold text-green-500">{conversion.toFixed(1)}%</span>
-                                                        </TooltipTrigger>
-                                                        <TooltipContent>
-                                                            <p>Конверсия из "{parentKpi.name}"</p>
-                                                        </TooltipContent>
-                                                        </Tooltip>
-                                                    </TooltipProvider>
-                                                )}
-                                                {costPerUnit !== null && (
-                                                    <TooltipProvider>
-                                                        <Tooltip>
+                                            {(conversion !== null || costPerUnit !== null) && (
+                                                <div className="flex items-center gap-4 text-muted-foreground pt-2 text-xs border-t mt-2 pt-2">
+                                                    {conversion !== null && parentKpi && (
+                                                        <TooltipProvider>
+                                                            <Tooltip>
                                                             <TooltipTrigger className="flex items-center gap-1">
-                                                            <CircleDollarSign className="w-4 h-4 text-blue-500" />
-                                                            <span className="font-bold text-blue-500">{new Intl.NumberFormat(locale, currencyOptions).format(costPerUnit)}</span>
+                                                                <TrendingUp className="w-4 h-4 text-green-500"/> 
+                                                                <span className="font-bold text-green-500">{conversion.toFixed(1)}%</span>
                                                             </TooltipTrigger>
                                                             <TooltipContent>
-                                                            <p>Стоимость за ед.</p>
+                                                                <p>Плановая конверсия из "{parentKpi.name}"</p>
                                                             </TooltipContent>
-                                                        </Tooltip>
-                                                    </TooltipProvider>
-                                                )}
-                                            </div>
+                                                            </Tooltip>
+                                                        </TooltipProvider>
+                                                    )}
+                                                    {costPerUnit !== null && (
+                                                        <TooltipProvider>
+                                                            <Tooltip>
+                                                                <TooltipTrigger className="flex items-center gap-1">
+                                                                <CircleDollarSign className="w-4 h-4 text-blue-500" />
+                                                                <span className="font-bold text-blue-500">{new Intl.NumberFormat(locale, currencyOptions).format(costPerUnit)}</span>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>
+                                                                <p>Плановая стоимость за ед.</p>
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        </TooltipProvider>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                         )
                                     })}
