@@ -14,10 +14,13 @@ import Link from 'next/link';
 import { Progress } from '@/components/ui/progress';
 import { Eye, FilePlus, DollarSign, TrendingUp, Landmark } from 'lucide-react';
 import { CampaignFilter } from './campaign-filter';
+import { StatusFilter } from './status-filter';
+import type { ActionStatus } from '@/lib/types';
 
 type ActionsPageProps = {
   searchParams: {
     campaignId?: string;
+    status?: ActionStatus;
   };
 };
 
@@ -26,10 +29,17 @@ export default async function ActionsPage({ searchParams: searchParamsPromise }:
   const allCampaigns = await getCampaigns();
   const allActions = await getAllActions();
   const selectedCampaignId = searchParams.campaignId;
+  const selectedStatus = searchParams.status;
 
-  const filteredActions = selectedCampaignId
-    ? allActions.filter((action) => action.campaignId === selectedCampaignId)
-    : allActions;
+  let filteredActions = allActions;
+
+  if (selectedCampaignId) {
+    filteredActions = filteredActions.filter((action) => action.campaignId === selectedCampaignId);
+  }
+
+  if (selectedStatus) {
+      filteredActions = filteredActions.filter((action) => action.status === selectedStatus);
+  }
 
   const locale = 'ru-RU';
 
@@ -39,7 +49,10 @@ export default async function ActionsPage({ searchParams: searchParamsPromise }:
         title="Все акции"
         description="Просматривайте и управляйте всеми акциями в одном месте."
       >
-        <CampaignFilter campaigns={allCampaigns} />
+        <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+            <CampaignFilter campaigns={allCampaigns} />
+            <StatusFilter />
+        </div>
       </PageHeader>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {filteredActions.map((action) => {
@@ -202,8 +215,8 @@ export default async function ActionsPage({ searchParams: searchParamsPromise }:
           <CardContent className="py-10">
             <div className="text-center text-sm text-muted-foreground">
               <FilePlus className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-              {selectedCampaignId
-                ? 'В этой кампании нет акций.'
+              {selectedCampaignId || selectedStatus
+                ? 'Нет акций, соответствующих вашим фильтрам.'
                 : 'Акции еще не созданы.'}
             </div>
           </CardContent>

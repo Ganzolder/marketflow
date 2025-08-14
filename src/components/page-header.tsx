@@ -10,7 +10,7 @@ type PageHeaderProps = {
 export function PageHeader({ title, description, children, className }: PageHeaderProps) {
   return (
     <div className={cn("flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8", className)}>
-      <div className="space-y-1.5">
+      <div className="space-y-1.5 flex-1">
         <h1 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">{title}</h1>
         {description && <p className="text-muted-foreground">{description}</p>}
       </div>
