@@ -41,6 +41,8 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
   const locale = 'ru-RU';
   const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
   const currencyOptions = { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 };
+  const shortCurrencyOptions = { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 };
+
 
   const aggregatedKpis: Record<string, { current: number; target: number; }> = {};
 
@@ -68,6 +70,9 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
     ...data,
   }));
 
+  const totalBudget = action.activities?.reduce((sum, activity) => sum + (activity.budget || 0), 0) || 0;
+  const totalSpent = (action.activities?.reduce((sum, activity) => sum + (activity.spent || 0), 0) || 0) + (action.generalExpenses?.reduce((sum, expense) => sum + (expense.amount || 0), 0) || 0);
+  const budgetProgress = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
 
   return (
     <div>
@@ -117,6 +122,28 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
                     </div>
                 </>
             )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+              <CardTitle>Бюджет акции</CardTitle>
+              <CardDescription>
+                  Общий запланированный бюджет и фактические расходы по всем активностям.
+              </CardDescription>
+          </CardHeader>
+          <CardContent>
+              <div className="space-y-2">
+                  <div className="flex justify-between items-end">
+                      <span className="text-4xl font-bold">{new Intl.NumberFormat(locale, shortCurrencyOptions).format(totalSpent)}</span>
+                      <span className="text-muted-foreground">/ {new Intl.NumberFormat(locale, shortCurrencyOptions).format(totalBudget)}</span>
+                  </div>
+                  <Progress value={budgetProgress} indicatorClassName={budgetProgress > 100 ? 'bg-destructive' : 'bg-primary'} />
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                      <span>Потрачено</span>
+                      <span>Запланировано</span>
+                  </div>
+              </div>
           </CardContent>
         </Card>
 

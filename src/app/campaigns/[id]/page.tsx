@@ -3,7 +3,7 @@ import { getCampaignById } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { Edit, Calendar as CalendarIcon, DollarSign, Target, FilePlus, Eye } from 'lucide-react';
+import { Edit, Calendar as CalendarIcon, DollarSign, Target, FilePlus, Eye, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/status-badge';
@@ -140,6 +140,9 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                             .filter(([name]) => action.summaryKpis?.includes(name))
                             .map(([name, data]) => ({ name, ...data }));
 
+                        const plannedBudget = action.activities?.reduce((sum, activity) => sum + activity.budget, 0) || 0;
+                        const totalSpent = (action.activities?.reduce((sum, activity) => sum + activity.spent, 0) || 0) + (action.generalExpenses?.reduce((sum, expense) => sum + expense.amount, 0) || 0);
+                        const budgetProgress = plannedBudget > 0 ? (totalSpent / plannedBudget) * 100 : 0;
 
                         return (
                         <Link key={action.id} href={`/campaigns/${campaign.id}/${action.id}`} className="block hover:shadow-lg transition-shadow rounded-lg">
@@ -166,8 +169,19 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                                                 ))}
                                             </div>
                                         )}
-                                        {summaryKpisToShow.length > 0 && <Separator />}
-                                        <div className="flex items-center justify-between text-sm text-muted-foreground">
+                                        {(summaryKpisToShow.length > 0 || plannedBudget > 0) && <Separator />}
+                                         {plannedBudget > 0 && (
+                                            <div>
+                                                <div className="flex justify-between items-center text-sm mb-1">
+                                                    <span className="text-muted-foreground flex items-center"><DollarSign className="w-3 h-3 mr-1.5"/>Бюджет</span>
+                                                    <span className="font-medium">
+                                                        {new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(totalSpent)} / {new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(plannedBudget)}
+                                                    </span>
+                                                </div>
+                                                <Progress value={budgetProgress} className="h-2" indicatorClassName={budgetProgress > 100 ? 'bg-destructive' : ''} />
+                                            </div>
+                                        )}
+                                        <div className="flex items-center justify-between text-sm text-muted-foreground pt-2">
                                             <StatusBadge status={action.status} />
                                             <span>{new Date(action.startDate).toLocaleDateString(locale, {month: 'short', day: 'numeric'})} - {new Date(action.endDate).toLocaleDateString(locale, {month: 'short', day: 'numeric'})}</span>
                                         </div>
