@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useActionState } from 'react';
+import { useActionState, useTransition } from 'react';
 import { updateActionStatus, type StatusFormState } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -18,6 +18,7 @@ const statusTranslations: Record<ActionStatus, string> = {
 export function UpdateActionStatus({ action, campaignId }: { action: Action; campaignId: string }) {
     const { toast } = useToast();
     const initialState: StatusFormState = { message: "" };
+    const [isPending, startTransition] = useTransition();
 
     // We need a unique form identifier for useActionState
     const formAction = updateActionStatus.bind(null);
@@ -45,13 +46,16 @@ export function UpdateActionStatus({ action, campaignId }: { action: Action; cam
         formData.append('campaignId', campaignId);
         formData.append('actionId', action.id);
         formData.append('status', newStatus);
-        dispatch(formData);
+        
+        startTransition(() => {
+            dispatch(formData);
+        });
     };
 
     return (
         <form>
-             <Select onValueChange={handleValueChange} value={action.status}>
-                <SelectTrigger className="h-auto border-none p-0 bg-transparent w-auto focus:ring-0 focus:ring-offset-0">
+             <Select onValueChange={handleValueChange} value={action.status} disabled={isPending}>
+                <SelectTrigger className="h-auto border-none p-0 bg-transparent w-auto focus:ring-0 focus:ring-offset-0 disabled:opacity-70 disabled:cursor-not-allowed">
                     <SelectValue asChild>
                          <StatusBadge status={action.status} />
                     </SelectValue>
