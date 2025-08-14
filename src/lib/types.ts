@@ -69,6 +69,8 @@ export type Campaign = {
 
 export type UpcomingAction = Action & { campaignName: string, campaignId: string };
 
+export type EnrichedAction = Action & { campaignName: string, campaignId: string };
+
 export type ActivityFormState = {
   message: string;
   error?: boolean;

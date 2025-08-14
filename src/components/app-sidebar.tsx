@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -8,6 +9,7 @@ import {
   ListChecks,
   Sparkles,
   Rocket,
+  Megaphone,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -24,6 +26,7 @@ import { ThemeSwitcher } from './theme-switcher';
 const menuItems = [
   { href: '/', label: 'Панель управления', icon: LayoutGrid },
   { href: '/campaigns', label: 'Кампании', icon: ListChecks },
+  { href: '/actions', label: 'Акции', icon: Megaphone },
   { href: '/creatives', label: 'Креативы', icon: Sparkles },
   { href: '/calculator', label: 'Калькулятор', icon: Calculator },
 ];
@@ -46,7 +49,7 @@ export function AppSidebar() {
             <SidebarMenuItem key={item.href}>
               <SidebarMenuButton
                 asChild
-                isActive={pathname === item.href}
+                isActive={pathname.startsWith(item.href) && (item.href !== '/' || pathname === '/')}
                 className="w-full"
                 tooltip={{children: item.label, side:"right", align:"center"}}
               >

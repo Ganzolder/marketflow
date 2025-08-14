@@ -1,6 +1,6 @@
 
 
-import { Campaign, UpcomingAction, Action, Activity, KPI, Expense } from './types';
+import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction } from './types';
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, addDoc, writeBatch, runTransaction } from "firebase/firestore";
 import { Combobox } from '@/components/ui/combobox';
@@ -696,4 +696,23 @@ export async function updateActionSummaryKpis(campaignId: string, actionId: stri
         console.error("Update summary KPIs transaction failed: ", e);
         throw e;
     }
+}
+
+export async function getAllActions(): Promise<EnrichedAction[]> {
+  const campaigns = await getCampaigns();
+  const allActions: EnrichedAction[] = [];
+
+  campaigns.forEach(campaign => {
+    if (campaign.actions) {
+      campaign.actions.forEach(action => {
+        allActions.push({
+          ...action,
+          campaignId: campaign.id,
+          campaignName: campaign.name,
+        });
+      });
+    }
+  });
+
+  return allActions.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
 }
