@@ -45,7 +45,12 @@ export function KpiLogList({ kpi, activityId, actionId, campaignId }: KpiLogList
                             <TableCell className="py-1.5 text-right">
                                 <div className="flex items-center justify-end space-x-1">
                                     <EditKpiMetricButton 
-                                        log={{...log, kpiId: kpi.id}}
+                                        log={{
+                                            logId: log.id,
+                                            kpiId: kpi.id,
+                                            date: log.date,
+                                            value: log.value,
+                                        }}
                                         campaignId={campaignId}
                                         actionId={actionId}
                                         activityId={activityId}

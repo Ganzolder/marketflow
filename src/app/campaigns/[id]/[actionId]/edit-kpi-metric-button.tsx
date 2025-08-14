@@ -113,4 +113,3 @@ export function EditKpiMetricButton({ log, activityId, actionId, campaignId }: E
         </Dialog>
     );
 }
-
