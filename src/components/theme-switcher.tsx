@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -32,72 +33,47 @@ export function ThemeSwitcher() {
     setTheme(newTheme);
   };
   
-  if (sidebarState === 'collapsed') {
-    return (
-        <div className="flex flex-col gap-1">
-             <Button
-                variant={theme === 'light' ? "secondary" : "ghost"}
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => handleThemeChange("light")}
-                aria-label="Light theme"
-            >
-                <Sun />
-            </Button>
-            <Button
-                variant={theme === 'dark' ? "secondary" : "ghost"}
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => handleThemeChange("dark")}
-                aria-label="Dark theme"
-            >
-                <Moon />
-            </Button>
-            <Button
-                variant={theme === 'system' ? "secondary" : "ghost"}
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => handleThemeChange("system")}
-                aria-label="System theme"
-            >
-                <Monitor />
-            </Button>
-        </div>
-    )
-  }
+  const containerClasses = sidebarState === 'collapsed' 
+    ? "flex flex-col gap-1"
+    : "grid grid-cols-3 gap-1 border rounded-lg p-1";
+
+  const buttonSize = sidebarState === 'collapsed' ? "icon" : "sm";
+  const buttonClasses = sidebarState === 'collapsed' ? "h-8 w-8" : "h-7";
+
 
   return (
-    <div className="grid grid-cols-3 gap-1 border rounded-lg p-1">
-      <Button
-        variant={theme === 'light' ? "secondary" : "ghost"}
-        size="sm"
-        className="h-7"
-        onClick={() => handleThemeChange("light")}
-        aria-label="Light theme"
-      >
-        <Sun className="mr-2" />
-        <span>Светлая</span>
-      </Button>
-       <Button
-        variant={theme === 'dark' ? "secondary" : "ghost"}
-        size="sm"
-        className="h-7"
-        onClick={() => handleThemeChange("dark")}
-        aria-label="Dark theme"
-      >
-        <Moon className="mr-2" />
-        <span>Темная</span>
-      </Button>
-       <Button
-        variant={theme === 'system' ? "secondary" : "ghost"}
-        size="sm"
-        className="h-7"
-        onClick={() => handleThemeChange("system")}
-        aria-label="System theme"
-      >
-        <Monitor className="mr-2" />
-        <span>Система</span>
-      </Button>
+    <div className={containerClasses}>
+        <Button
+            variant={theme === 'light' ? "secondary" : "ghost"}
+            size={buttonSize}
+            className={buttonClasses}
+            onClick={() => handleThemeChange("light")}
+            aria-label="Light theme"
+        >
+            <Sun className={sidebarState === 'collapsed' ? "" : "mr-2"} />
+            {sidebarState !== 'collapsed' && <span>Светлая</span>}
+        </Button>
+        <Button
+            variant={theme === 'dark' ? "secondary" : "ghost"}
+            size={buttonSize}
+            className={buttonClasses}
+            onClick={() => handleThemeChange("dark")}
+            aria-label="Dark theme"
+        >
+            <Moon className={sidebarState === 'collapsed' ? "" : "mr-2"} />
+            {sidebarState !== 'collapsed' && <span>Темная</span>}
+        </Button>
+        <Button
+            variant={theme === 'system' ? "secondary" : "ghost"}
+            size={buttonSize}
+            className={buttonClasses}
+            onClick={() => handleThemeChange("system")}
+            aria-label="System theme"
+        >
+            <Monitor className={sidebarState === 'collapsed' ? "" : "mr-2"} />
+            {sidebarState !== 'collapsed' && <span>Система</span>}
+        </Button>
     </div>
   );
 }
+
