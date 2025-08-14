@@ -223,10 +223,9 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: KpiHistoryMo
                                         </ChartContainer>
                                         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-4 p-2 border rounded-lg">
                                             {kpis.map((kpi, index) => (
-                                                <div key={`daily-filter-${kpi.id}`} className="flex items-center space-x-2">
+                                                <div key={kpi.id} className="flex items-center space-x-2">
                                                     <Checkbox
                                                         id={`kpi-toggle-${kpi.id}`}
-                                                        key={`daily-checkbox-${kpi.id}`}
                                                         checked={visibleKpis[kpi.name]}
                                                         onCheckedChange={(checked) => {
                                                             setVisibleKpis(prev => ({
@@ -278,7 +277,6 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: KpiHistoryMo
                                                 <div key={`cum-filter-${kpi.id}`} className="flex items-center space-x-2">
                                                     <Checkbox
                                                         id={`cum-kpi-toggle-${kpi.id}`}
-                                                        key={`cum-checkbox-${kpi.id}`}
                                                         checked={visibleKpis[kpi.name]}
                                                         onCheckedChange={(checked) => {
                                                             setVisibleKpis(prev => ({
