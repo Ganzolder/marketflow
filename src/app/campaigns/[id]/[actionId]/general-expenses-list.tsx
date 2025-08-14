@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import type { Action, Expense, Activity } from "@/lib/types";
@@ -24,6 +25,7 @@ import { AddGeneralExpenseButton } from "./add-general-expense-button";
 import { DeleteGeneralExpenseButton } from "./delete-general-expense-button";
 import { EditExpenseButton } from "./edit-expense-button";
 import { DeleteExpenseButton } from "./delete-expense-button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 type EnrichedExpense = Expense & {
     activityName?: string;
@@ -58,6 +60,7 @@ export function GeneralExpensesList({ action, campaignId }: { action: Action; ca
       </CardHeader>
       <CardContent>
         {allExpenses.length > 0 ? (
+          <ScrollArea className="w-full whitespace-nowrap">
           <Table>
             <TableHeader>
               <TableRow>
@@ -110,6 +113,7 @@ export function GeneralExpensesList({ action, campaignId }: { action: Action; ca
               ))}
             </TableBody>
           </Table>
+          </ScrollArea>
         ) : (
           <div className="text-center text-sm text-muted-foreground py-10 border-2 border-dashed rounded-lg">
             <p>Расходы еще не добавлены.</p>
