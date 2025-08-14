@@ -1,5 +1,4 @@
 
-
 export type Goal = {
   id: string;
   name: string;
@@ -15,7 +14,6 @@ export type KPI = {
   name: string;
   target: number;
   current: number; 
-  unit: string;
   multiple: number;
   parentId: string | null; // ID of the parent KPI for conversion tracking
   includeInActionGoals?: boolean;

@@ -1,5 +1,4 @@
 
-
 import { notFound } from 'next/navigation';
 import { getCampaignById } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
@@ -42,7 +41,7 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
   const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
   const currencyOptions = { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
-  const aggregatedKpis: Record<string, { current: number; target: number; unit: string }> = {};
+  const aggregatedKpis: Record<string, { current: number; target: number; }> = {};
 
   (action.activities || []).forEach(activity => {
     (activity.kpis || []).forEach(kpi => {
@@ -58,7 +57,6 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
         aggregatedKpis[kpi.name] = {
           current: kpi.current,
           target: kpi.target,
-          unit: kpi.unit,
         };
       }
     });
@@ -139,7 +137,7 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
                             </div>
                             <Progress value={goal.target > 0 ? (goal.current / goal.target) * 100 : 0} className="h-3" />
                             <p className="text-sm text-muted-foreground text-right mt-1">
-                                {goal.current.toLocaleString(locale)} / {goal.target.toLocaleString(locale)} {goal.unit}
+                                {goal.current.toLocaleString(locale)} / {goal.target.toLocaleString(locale)}
                             </p>
                         </div>
                     ))}
@@ -214,7 +212,7 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
                                                             <span className="font-bold text-blue-500">{new Intl.NumberFormat(locale, currencyOptions).format(costPerUnit)}</span>
                                                             </TooltipTrigger>
                                                             <TooltipContent>
-                                                              <p>Стоимость за / {kpi.multiple} {kpi.unit} (факт)</p>
+                                                              <p>Стоимость за / {kpi.multiple} ед. (факт)</p>
                                                             </TooltipContent>
                                                         </Tooltip>
                                                     </TooltipProvider>

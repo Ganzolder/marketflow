@@ -115,7 +115,6 @@ const KpiSchema = z.object({
     name: z.string(),
     target: z.coerce.number(),
     current: z.coerce.number(),
-    unit: z.string(),
     multiple: z.coerce.number().min(1),
     parentId: z.string().nullable(),
     includeInActionGoals: z.boolean().optional(),

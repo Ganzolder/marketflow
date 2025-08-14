@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useEffect, useRef, useActionState } from 'react';
@@ -97,7 +96,6 @@ export function UpdateMetricsForm({ activity, campaignId, actionId }: { activity
                                 </div>
                                 <div className="flex items-center gap-2">
                                      <Progress value={kpi.target > 0 ? (kpi.current / kpi.target) * 100 : 0} className="h-2 flex-1" />
-                                     <span className="text-xs text-muted-foreground">{kpi.unit}</span>
                                      <span className="text-sm text-muted-foreground">/</span>
                                      <Input
                                         id={`kpi-${kpi.id}`}

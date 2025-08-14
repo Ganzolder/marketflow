@@ -26,7 +26,6 @@ const KpiSchema = z.object({
     name: z.string().min(1, "Название KPI обязательно."),
     target: z.coerce.number().min(1, "Цель должна быть больше 0."),
     current: z.coerce.number(), // Not editable in this form, but needed for type consistency
-    unit: z.string().min(1, "Укажите единицу измерения."),
     multiple: z.coerce.number().min(1, "Кратность должна быть больше 0."),
     parentId: z.string().nullable(),
     includeInActionGoals: z.boolean().optional(),
@@ -105,8 +104,8 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                     <span className="sr-only">Редактировать активность</span>
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[800px] flex flex-col max-h-[90vh]">
-                <DialogHeader>
+            <DialogContent className="sm:max-w-[800px] h-[85vh] flex flex-col overflow-hidden">
+                <DialogHeader className="shrink-0">
                     <DialogTitle>Редактировать активность</DialogTitle>
                     <DialogDescription>
                         Измените информацию об активности.
@@ -186,7 +185,7 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                                             type="button"
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => append({ id: `kpi-${Date.now()}`, name: '', target: 0, current: 0, unit: '', multiple: 1, parentId: null, includeInActionGoals: true })}
+                                            onClick={() => append({ id: `kpi-${Date.now()}`, name: '', target: 0, current: 0, multiple: 1, parentId: null, includeInActionGoals: true })}
                                         >
                                             <PlusCircle className="mr-2 h-4 w-4" />
                                             Добавить KPI
@@ -223,7 +222,7 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                                                 )}
                                             />
                                             
-                                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                                            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 items-end">
                                                 <FormField
                                                     control={form.control}
                                                     name={`kpis.${index}.target`}
@@ -231,17 +230,6 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                                                         <FormItem>
                                                             <FormLabel>Цель</FormLabel>
                                                             <FormControl><Input type="number" placeholder="1000" {...field} /></FormControl>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                    )}
-                                                />
-                                                <FormField
-                                                    control={form.control}
-                                                    name={`kpis.${index}.unit`}
-                                                    render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Ед. изм.</FormLabel>
-                                                            <FormControl><Input placeholder="шт." {...field} /></FormControl>
                                                             <FormMessage />
                                                         </FormItem>
                                                     )}
@@ -322,7 +310,7 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                                                             <span className="font-bold text-blue-500">{new Intl.NumberFormat(locale, currencyOptions).format(costPerUnit)}</span>
                                                             </TooltipTrigger>
                                                             <TooltipContent>
-                                                            <p>Стоимость за / {currentKpi?.multiple || 1} {currentKpi?.unit || 'ед.'}</p>
+                                                            <p>Стоимость за / {currentKpi?.multiple || 1} ед.</p>
                                                             </TooltipContent>
                                                         </Tooltip>
                                                     </TooltipProvider>
@@ -354,6 +342,3 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
         </Dialog>
     );
 }
-
-    
-    
