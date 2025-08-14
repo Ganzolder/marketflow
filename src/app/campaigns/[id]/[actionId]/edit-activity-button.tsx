@@ -29,11 +29,11 @@ import { useFormStatus } from 'react-dom';
 const KpiSchema = z.object({
     id: z.string(),
     name: z.string().min(1, "Название KPI обязательно."),
-    target: z.coerce.number().min(1, "Цель должна быть больше 0."),
+    target: z.coerce.number().min(0, "Цель должна быть больше 0."),
     current: z.coerce.number(),
     metrics: z.array(z.object({ id: z.string(), date: z.string(), value: z.number() })),
     parentId: z.string().nullable(),
-    includeInActionGoals: z.boolean().optional(),
+    includeInActionGoals: z.boolean(),
 });
 
 const EditActivityFormSchema = z.object({
@@ -88,6 +88,7 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
             kpis: activity.kpis?.map(kpi => ({
                 ...kpi, 
                 includeInActionGoals: kpi.includeInActionGoals ?? true,
+                parentId: kpi.parentId ?? null,
             })) || [],
         },
     });

@@ -117,7 +117,7 @@ const KpiSchemaBase = z.object({
     name: z.string().min(1, "Название KPI обязательно."),
     target: z.coerce.number().min(0, "Цель должна быть 0 или больше."),
     parentId: z.string().nullable(),
-    includeInActionGoals: z.boolean().optional(),
+    includeInActionGoals: z.boolean(),
 });
 
 const AddKpiSchema = KpiSchemaBase.extend({
@@ -194,6 +194,8 @@ export async function addActivityToAction(
       ...kpi,
       target: Number(kpi.target),
       current: 0,
+      includeInActionGoals: kpi.includeInActionGoals ?? true,
+      parentId: kpi.parentId ?? null,
   }));
 
   const validatedFields = AddActivitySchema.safeParse({
@@ -225,8 +227,7 @@ export async function addActivityToAction(
       kpis: activityData.kpis?.map(kpi => ({
           ...kpi, 
           current: 0, 
-          metrics: [], 
-          includeInActionGoals: kpi.includeInActionGoals ?? true,
+          metrics: [],
         })) || [] 
   }
 
@@ -260,6 +261,7 @@ export async function updateActivity(
       target: Number(kpi.target),
       current: Number(kpi.current),
       includeInActionGoals: kpi.includeInActionGoals ?? true,
+      parentId: kpi.parentId ?? null,
   }));
   
   const validatedFields = EditActivitySchema.safeParse({
@@ -590,7 +592,7 @@ export async function deleteGeneralExpense(prevState: DeleteFormState | null, fo
         await deleteGeneralExpenseFromAction(campaignId, actionId, expenseId);
     } catch (e) {
         const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
-        return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
+        return { message: `Ошибка базы данных: не удалось удалить общий расход. ${errorMessage}`, error: true };
     }
 
     revalidatePath(`/campaigns/${campaignId}/${actionId}`);

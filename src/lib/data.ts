@@ -4,6 +4,7 @@
 
 
 
+
 import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction, ActionStatus, CampaignStatus, KpiMetricLog } from './types';
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, addDoc, writeBatch, runTransaction, deleteDoc } from "firebase/firestore";
@@ -234,7 +235,8 @@ export async function updateActivity(campaignId: string, actionId: string, updat
                     ...uk,
                     metrics: existingKpi ? existingKpi.metrics : [],
                     current: existingKpi ? existingKpi.current : 0,
-                    includeInActionGoals: uk.includeInActionGoals,
+                    includeInActionGoals: uk.includeInActionGoals ?? true,
+                    parentId: uk.parentId ?? null,
                 };
             });
 
@@ -538,6 +540,7 @@ export async function getCampaignById(id: string): Promise<Campaign | undefined>
                           if (!kpi.metrics) kpi.metrics = [];
                           kpi.current = kpi.metrics.reduce((acc, metric) => acc + metric.value, 0);
                           if (kpi.includeInActionGoals === undefined) kpi.includeInActionGoals = true;
+                          if (kpi.parentId === undefined) kpi.parentId = null;
                       });
                   });
               }
