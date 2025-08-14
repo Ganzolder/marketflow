@@ -22,6 +22,7 @@ import { UpdateMetricsForm } from './update-metrics-form';
 import { GeneralExpensesList } from './general-expenses-list';
 import { UpdateActionSummaryKpisForm } from './update-action-summary-kpis';
 import { ActionEffectivenessCard } from './action-effectiveness-card';
+import { UpdateActionStatus } from './update-action-status';
 
 type ActionDetailPageProps = {
   params: {
@@ -101,7 +102,9 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
                     </div>
                     <div>
                         <p className="text-muted-foreground">Статус</p>
-                        <div className="font-semibold text-lg"><StatusBadge status={action.status} /></div>
+                        <div className="font-semibold text-lg">
+                          <UpdateActionStatus action={action} campaignId={campaign.id} />
+                        </div>
                     </div>
                 </div>
                  <div className="flex items-center gap-3">

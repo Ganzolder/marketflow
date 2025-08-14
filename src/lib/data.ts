@@ -1,6 +1,6 @@
 
 
-import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction } from './types';
+import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction, ActionStatus } from './types';
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, addDoc, writeBatch, runTransaction } from "firebase/firestore";
 import { Combobox } from '@/components/ui/combobox';
@@ -763,6 +763,28 @@ export async function updateActionEffectiveness(campaignId: string, actionId: st
         });
     } catch (e) {
         console.error("Update effectiveness data transaction failed: ", e);
+        throw e;
+    }
+}
+
+export async function updateActionStatus(campaignId: string, actionId: string, status: ActionStatus) {
+    const campaignRef = doc(db, 'campaigns', campaignId);
+    try {
+        await runTransaction(db, async (transaction) => {
+            const campaignDoc = await transaction.get(campaignRef);
+            if (!campaignDoc.exists()) throw new Error("Campaign document does not exist!");
+
+            const campaignData = campaignDoc.data() as Campaign;
+            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
+            if (actionIndex === -1) throw new Error("Action not found!");
+
+            const newActions = [...campaignData.actions];
+            newActions[actionIndex].status = status;
+
+            transaction.update(campaignRef, { actions: newActions });
+        });
+    } catch (e) {
+        console.error("Update status transaction failed: ", e);
         throw e;
     }
 }
