@@ -1,10 +1,10 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
-import { History, Download } from "lucide-react";
+import { History, Download, Info } from "lucide-react";
 import type { Activity } from '@/lib/types';
 import {
   Table,
@@ -68,85 +68,83 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: KpiHistoryMo
         return initialState;
     });
 
-    const flattenedLogs: FlattenedKpiLog[] = [];
-    const runningTotals: Record<string, number> = {};
+    const flattenedLogs: FlattenedKpiLog[] = useMemo(() => {
+        const logs: FlattenedKpiLog[] = [];
+        const runningTotals: Record<string, number> = {};
 
-    kpis.forEach(kpi => {
-        const sortedMetrics = [...(kpi.metrics || [])].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-        
-        runningTotals[kpi.name] = 0; // Reset running total for each KPI
-        sortedMetrics.forEach(metric => {
-            runningTotals[kpi.name] += metric.value;
-            flattenedLogs.push({
-                logId: metric.id,
-                kpiId: kpi.id,
-                kpiName: kpi.name,
-                date: metric.date,
-                value: metric.value,
-                runningTotal: runningTotals[kpi.name],
+        kpis.forEach(kpi => {
+            const sortedMetrics = [...(kpi.metrics || [])].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+            
+            runningTotals[kpi.name] = 0;
+            sortedMetrics.forEach(metric => {
+                runningTotals[kpi.name] += metric.value;
+                logs.push({
+                    logId: metric.id,
+                    kpiId: kpi.id,
+                    kpiName: kpi.name,
+                    date: metric.date,
+                    value: metric.value,
+                    runningTotal: runningTotals[kpi.name],
+                });
             });
         });
-    });
 
-    flattenedLogs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        return logs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    }, [kpis]);
+
 
     // --- Chart Data Preparation ---
-    const chartConfig = kpis.reduce((acc, kpi, index) => {
+    const chartConfig = useMemo(() => kpis.reduce((acc, kpi, index) => {
         const colorName = `chart-${(index % 5) + 1}`;
         acc[kpi.name] = {
             label: kpi.name,
             color: `hsl(var(--${colorName}))`,
         };
         return acc;
-    }, {} as ChartConfig);
+    }, {} as ChartConfig), [kpis]);
 
-    const chartData = kpis.length > 0 ? 
-        Object.values(
-            flattenedLogs.reduce((acc, log) => {
-            const date = new Date(log.date).toLocaleDateString(locale, { day: 'numeric', month: 'short' });
-            if (!acc[date]) {
-                acc[date] = { date };
-                 kpis.forEach(kpi => {
-                    acc[date][kpi.name] = 0;
-                });
-            }
-            // Daily value
-            acc[date][log.kpiName] = (acc[date][log.kpiName] || 0) + log.value;
-            
-            return acc;
-            }, {} as Record<string, any>)
-        ).sort((a, b) => {
-            const dateA = new Date(a.date.split('.').reverse().join('-'));
-            const dateB = new Date(b.date.split('.').reverse().join('-'));
-            return dateA.getTime() - dateB.getTime();
-        })
-        : [];
+    const chartData = useMemo(() => {
+        if (kpis.length === 0) return [];
         
-    const cumulativeChartData = kpis.length > 0 ?
-        (() => {
-            const dataMap: Record<string, any> = {};
-            const cumulativeTotals: Record<string, number> = {};
-
-            // Initialize cumulative totals
-            kpis.forEach(kpi => {
-                cumulativeTotals[kpi.name] = 0;
-            });
-            
-            // Re-sort flattened logs by date ascending for cumulative calculation
-            const sortedLogsAsc = [...flattenedLogs].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-            sortedLogsAsc.forEach(log => {
+        const data = Object.values(
+            flattenedLogs.reduce((acc, log) => {
                 const date = new Date(log.date).toLocaleDateString(locale, { day: 'numeric', month: 'short' });
-                if (!dataMap[date]) {
-                    dataMap[date] = { date, ...cumulativeTotals };
+                if (!acc[date]) {
+                    acc[date] = { date };
+                    kpis.forEach(kpi => {
+                        acc[date][kpi.name] = 0;
+                    });
                 }
-                cumulativeTotals[log.kpiName] += log.value;
-                dataMap[date] = { date, ...cumulativeTotals };
-            });
+                acc[date][log.kpiName] = (acc[date][log.kpiName] || 0) + log.value;
+                return acc;
+            }, {} as Record<string, any>)
+        );
 
-            return Object.values(dataMap);
-        })()
-        : [];
+        return data.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    }, [flattenedLogs, kpis, locale]);
+        
+    const cumulativeChartData = useMemo(() => {
+        if (kpis.length === 0) return [];
+
+        const dataMap: Record<string, any> = {};
+        const cumulativeTotals: Record<string, number> = {};
+        kpis.forEach(kpi => {
+            cumulativeTotals[kpi.name] = 0;
+        });
+        
+        const sortedLogsAsc = [...flattenedLogs].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+        sortedLogsAsc.forEach(log => {
+            const date = new Date(log.date).toLocaleDateString(locale, { day: 'numeric', month: 'short' });
+            if (!dataMap[date]) {
+                dataMap[date] = { date, ...cumulativeTotals };
+            }
+            cumulativeTotals[log.kpiName] += log.value;
+            dataMap[date] = { date, ...cumulativeTotals };
+        });
+
+        return Object.values(dataMap);
+    }, [flattenedLogs, kpis, locale]);
 
 
     const handleExport = () => {
@@ -176,6 +174,12 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: KpiHistoryMo
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+                 <Button variant="ghost" size="sm">
+                    <History className="mr-2 h-4 w-4"/>
+                    История
+                </Button>
+            </DialogTrigger>
             <DialogContent className="max-w-[90vw] w-full lg:max-w-[70vw]">
                 <DialogHeader>
                     <DialogTitle>История KPI для "{activity.name}"</DialogTitle>
@@ -292,7 +296,7 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: KpiHistoryMo
                                             ))}
                                         </div>
                                     </CardContent>
-                                </Card>
+                                 </Card>
                             </TabsContent>
                             <TabsContent value="table">
                                  <Card>
@@ -348,6 +352,7 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: KpiHistoryMo
 
                     ) : (
                         <div className="text-center text-sm text-muted-foreground py-10 border-2 border-dashed rounded-lg">
+                            <Info className="mx-auto w-8 h-8 text-muted-foreground mb-2" />
                             <p>История изменений KPI пока пуста.</p>
                             <p className="text-xs mt-1">Добавьте данные в форме ниже, чтобы начать отслеживание.</p>
                         </div>

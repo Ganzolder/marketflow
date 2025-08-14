@@ -83,10 +83,10 @@ export function UpdateMetricsForm({ activity, campaignId, actionId }: { activity
             <div>
                 <div className="flex justify-between items-center">
                     <Label className="text-base font-medium">Добавить данные KPI</Label>
-                     <SubmitButton />
-                </div>
-                 <div className="flex justify-end mt-2">
-                    <KpiHistoryModal activity={activity} />
+                     <div className="flex items-center gap-2">
+                        <KpiHistoryModal activity={activity} campaignId={campaignId} actionId={actionId} />
+                        <SubmitButton />
+                    </div>
                 </div>
                 <div className="space-y-4 mt-2">
                     {activity.kpis && activity.kpis.length > 0 ? (
