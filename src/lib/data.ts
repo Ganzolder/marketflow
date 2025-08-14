@@ -1,11 +1,4 @@
 
-
-
-
-
-
-
-
 import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction, ActionStatus, CampaignStatus, KpiMetricLog } from './types';
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, addDoc, writeBatch, runTransaction, deleteDoc } from "firebase/firestore";
@@ -203,49 +196,36 @@ export async function updateActivity(campaignId: string, actionId: string, updat
     try {
         await runTransaction(db, async (transaction) => {
             const campaignDoc = await transaction.get(campaignRef);
-            if (!campaignDoc.exists()) {
-                throw new Error("Campaign document does not exist!");
-            }
+            if (!campaignDoc.exists()) throw new Error("Campaign document does not exist!");
 
             const campaignData = campaignDoc.data() as Campaign;
             const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
-            
-            if (actionIndex === -1) {
-                throw new Error("Action not found in this campaign!");
-            }
+            if (actionIndex === -1) throw new Error("Action not found in this campaign!");
             
             const newActions = [...campaignData.actions];
             const action = newActions[actionIndex];
             
-            if (!action.activities) {
-                 throw new Error("Activities array does not exist in this action!");
-            }
+            if (!action.activities) throw new Error("Activities array does not exist in this action!");
 
             const activityIndex = action.activities.findIndex(act => act.id === updatedActivity.id);
-            
-            if (activityIndex === -1) {
-                throw new Error("Activity not found in this action!");
-            }
+            if (activityIndex === -1) throw new Error("Activity not found in this action!");
             
             const existingActivity = action.activities[activityIndex];
             
-            // Ensure `kpis` and `metrics` arrays exist before trying to map or access them
-            const existingKpis = existingActivity.kpis || [];
-            const updatedKpisFromForm = updatedActivity.kpis || [];
-
-            const updatedKpis = updatedKpisFromForm.map(uk => {
-                const existingKpi = existingKpis.find(ek => ek.id === uk.id);
+            const updatedKpis = (updatedActivity.kpis || []).map(uk => {
+                const existingKpi = (existingActivity.kpis || []).find(ek => ek.id === uk.id);
                 return {
-                    ...uk,
+                    id: uk.id,
+                    name: uk.name,
+                    target: uk.target,
+                    parentId: uk.parentId,
+                    includeInActionGoals: uk.includeInActionGoals,
+                    multiplicity: uk.multiplicity || 1,
                     // Preserve existing metrics and current value
                     metrics: existingKpi?.metrics || [],
                     current: existingKpi?.current || 0,
-                    // Set defaults for potentially missing fields
-                    includeInActionGoals: uk.includeInActionGoals ?? true,
-                    parentId: uk.parentId ?? null,
                 };
             });
-
 
             action.activities[activityIndex] = { 
               ...existingActivity, 
@@ -547,6 +527,7 @@ export async function getCampaignById(id: string): Promise<Campaign | undefined>
                           kpi.current = kpi.metrics.reduce((acc, metric) => acc + metric.value, 0);
                           if (kpi.includeInActionGoals === undefined) kpi.includeInActionGoals = true;
                           if (kpi.parentId === undefined) kpi.parentId = null;
+                          if (kpi.multiplicity === undefined) kpi.multiplicity = 1;
                       });
                   });
               }

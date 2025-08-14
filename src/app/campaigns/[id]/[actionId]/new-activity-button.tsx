@@ -29,7 +29,8 @@ const KpiSchema = z.object({
     target: z.coerce.number().min(1, "Цель должна быть больше 0."),
     current: z.coerce.number(),
     parentId: z.string().nullable(),
-    includeInActionGoals: z.boolean().optional(),
+    includeInActionGoals: z.boolean(),
+    multiplicity: z.coerce.number().min(1, "Кратность должна быть не меньше 1."),
 });
 
 const AddActivityFormSchema = z.object({
@@ -232,7 +233,7 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
                                                 type="button"
                                                 variant="outline"
                                                 size="sm"
-                                                onClick={() => append({ id: `kpi-${Date.now()}`, name: '', target: 0, current: 0, parentId: null, includeInActionGoals: true })}
+                                                onClick={() => append({ id: `kpi-${Date.now()}`, name: '', target: 0, current: 0, parentId: null, includeInActionGoals: true, multiplicity: 1 })}
                                             >
                                                 <PlusCircle className="mr-2 h-4 w-4" />
                                                 Добавить KPI
@@ -242,7 +243,7 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
                                             const currentKpi = kpis?.[index];
                                             const parentKpi = kpis?.find(p => p.id === currentKpi?.parentId);
                                             const conversion = parentKpi && parentKpi.target > 0 && currentKpi && currentKpi.target > 0 ? (currentKpi.target / parentKpi.target) * 100 : null;
-                                            const costPerUnit = currentKpi && currentKpi.target > 0 && budget > 0 ? budget / currentKpi.target : null;
+                                            const costPerUnit = currentKpi && currentKpi.target > 0 && budget > 0 ? (budget / currentKpi.target) * currentKpi.multiplicity : null;
                                             
                                             return (
                                             <div key={field.id} className="grid grid-cols-1 gap-4 p-4 border rounded-lg relative">
@@ -286,6 +287,17 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
                                                                 <FormControl><Input type="number" placeholder="1000" {...field} /></FormControl>
                                                                 <FormMessage />
                                                             </FormItem>
+                                                        )}
+                                                    />
+                                                    <FormField
+                                                        control={form.control}
+                                                        name={`kpis.${index}.multiplicity`}
+                                                        render={({ field }) => (
+                                                          <FormItem>
+                                                            <FormLabel>Кратность</FormLabel>
+                                                            <FormControl><Input type="number" placeholder="1" {...field} /></FormControl>
+                                                            <FormMessage />
+                                                          </FormItem>
                                                         )}
                                                     />
                                                     <FormField
@@ -353,7 +365,7 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
                                                                     <span className="font-bold text-blue-500">{new Intl.NumberFormat(locale, currencyOptions).format(costPerUnit)}</span>
                                                                 </TooltipTrigger>
                                                                 <TooltipContent>
-                                                                    <p>Плановая стоимость за ед.</p>
+                                                                    <p>Плановая стоимость за {currentKpi.multiplicity} ед.</p>
                                                                 </TooltipContent>
                                                             </Tooltip>
                                                             </TooltipProvider>
@@ -386,5 +398,3 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
         </Dialog>
     );
 }
-
-    

@@ -210,7 +210,7 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
                             const footerKpis = kpis.filter(kpi => {
                                 const parentKpi = kpis.find(p => p.id === kpi.parentId);
                                 const conversion = parentKpi && parentKpi.current > 0 && kpi.current > 0 ? (kpi.current / parentKpi.current) * 100 : null;
-                                const costPerUnit = kpi.current > 0 && activity.spent > 0 ? (activity.spent / kpi.current) : null;
+                                const costPerUnit = kpi.current > 0 && activity.spent > 0 ? (activity.spent / kpi.current) * (kpi.multiplicity || 1) : null;
                                 return conversion !== null || costPerUnit !== null;
                             });
 
@@ -242,7 +242,7 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
                                         {footerKpis.map(kpi => {
                                             const parentKpi = kpis.find(p => p.id === kpi.parentId);
                                             const conversion = parentKpi && parentKpi.current > 0 && kpi.current > 0 ? (kpi.current / parentKpi.current) * 100 : null;
-                                            const costPerUnit = kpi.current > 0 && activity.spent > 0 ? (activity.spent / kpi.current) : null;
+                                            const costPerUnit = kpi.current > 0 && activity.spent > 0 ? (activity.spent / kpi.current) * (kpi.multiplicity || 1) : null;
 
                                             return (
                                                 <div key={`footer-${kpi.id}`} className="flex items-center gap-4 text-xs">
@@ -267,7 +267,7 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
                                                                     <span className="font-bold text-blue-500">{new Intl.NumberFormat(locale, currencyOptions).format(costPerUnit)} р.</span>
                                                                 </TooltipTrigger>
                                                                 <TooltipContent>
-                                                                <p>Стоимость за ед. (факт)</p>
+                                                                <p>Стоимость за {kpi.multiplicity || 1} ед. (факт)</p>
                                                                 </TooltipContent>
                                                             </Tooltip>
                                                         </TooltipProvider>

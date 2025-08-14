@@ -2,7 +2,8 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -22,9 +23,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Checkbox } from '@/components/ui/checkbox';
 import { Combobox } from '@/components/ui/combobox';
 import { getUniqueKpiNames } from '@/lib/data';
-import { useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
-
 
 const KpiSchema = z.object({
     id: z.string(),
@@ -32,6 +30,7 @@ const KpiSchema = z.object({
     target: z.coerce.number().min(0, "Цель должна быть 0 или больше."),
     parentId: z.string().nullable(),
     includeInActionGoals: z.boolean(),
+    multiplicity: z.coerce.number().min(1, "Кратность должна быть не меньше 1."),
 });
 
 const EditActivityFormSchema = z.object({
@@ -89,8 +88,9 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                 id: kpi.id,
                 name: kpi.name,
                 target: kpi.target, 
-                includeInActionGoals: kpi.includeInActionGoals ?? true,
-                parentId: kpi.parentId ?? null,
+                includeInActionGoals: kpi.includeInActionGoals,
+                parentId: kpi.parentId,
+                multiplicity: kpi.multiplicity || 1,
             })) || [],
         },
     });
@@ -108,8 +108,9 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                     id: kpi.id,
                     name: kpi.name,
                     target: kpi.target, 
-                    includeInActionGoals: kpi.includeInActionGoals ?? true,
-                    parentId: kpi.parentId ?? null,
+                    includeInActionGoals: kpi.includeInActionGoals,
+                    parentId: kpi.parentId,
+                    multiplicity: kpi.multiplicity || 1,
                 })) || [],
             });
         }
@@ -261,7 +262,7 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                                             type="button"
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => append({ id: `kpi-${Date.now()}`, name: '', target: 0, parentId: null, includeInActionGoals: true })}
+                                            onClick={() => append({ id: `kpi-${Date.now()}`, name: '', target: 0, parentId: null, includeInActionGoals: true, multiplicity: 1 })}
                                         >
                                             <PlusCircle className="mr-2 h-4 w-4" />
                                             Добавить KPI
@@ -271,7 +272,7 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                                         const currentKpi = kpis?.[index];
                                         const parentKpi = kpis?.find(p => p.id === currentKpi?.parentId);
                                         const conversion = parentKpi && parentKpi.target > 0 && currentKpi && currentKpi.target > 0 ? (currentKpi.target / parentKpi.target) * 100 : null;
-                                        const costPerUnit = currentKpi && currentKpi.target > 0 && budget > 0 ? (budget / currentKpi.target) : null;
+                                        const costPerUnit = currentKpi && currentKpi.target > 0 && budget > 0 ? (budget / currentKpi.target) * currentKpi.multiplicity : null;
 
 
                                         return (
@@ -314,6 +315,17 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                                                         <FormItem>
                                                             <FormLabel>Цель</FormLabel>
                                                             <FormControl><Input type="number" placeholder="1000" {...field} /></FormControl>
+                                                            <FormMessage />
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                                 <FormField
+                                                    control={form.control}
+                                                    name={`kpis.${index}.multiplicity`}
+                                                    render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel>Кратность</FormLabel>
+                                                            <FormControl><Input type="number" placeholder="1" {...field} /></FormControl>
                                                             <FormMessage />
                                                         </FormItem>
                                                     )}
@@ -383,7 +395,7 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                                                                     <span className="font-bold text-blue-500">{new Intl.NumberFormat(locale, currencyOptions).format(costPerUnit)}</span>
                                                                 </TooltipTrigger>
                                                                 <TooltipContent>
-                                                                <p>Плановая стоимость за ед.</p>
+                                                                <p>Плановая стоимость за {currentKpi.multiplicity} ед.</p>
                                                                 </TooltipContent>
                                                             </Tooltip>
                                                         </TooltipProvider>

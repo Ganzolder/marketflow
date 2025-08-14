@@ -3,7 +3,7 @@
 "use server";
 
 import { z } from "zod";
-import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, exportKpiHistoryToCsv as exportKpiHistoryToCsvData } from "./data";
+import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData } from "./data";
 import { revalidatePath } from "next/cache";
 import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog } from "./types";
 import { redirect } from "next/navigation";
@@ -118,6 +118,7 @@ const KpiSchemaBase = z.object({
     target: z.coerce.number().min(0, "Цель должна быть 0 или больше."),
     parentId: z.string().nullable(),
     includeInActionGoals: z.boolean(),
+    multiplicity: z.coerce.number().min(1, "Кратность должна быть не меньше 1."),
 });
 
 
@@ -189,6 +190,7 @@ export async function addActivityToAction(
       target: Number(kpi.target) || 0,
       parentId: kpi.parentId ?? null,
       includeInActionGoals: kpi.includeInActionGoals ?? true,
+      multiplicity: Number(kpi.multiplicity) || 1,
   }));
 
   const validatedFields = AddActivitySchema.safeParse({
@@ -257,10 +259,11 @@ export async function updateActivity(
         id: kpi.id,
         name: kpi.name,
         target: Number(kpi.target) || 0,
-        current: originalKpi ? originalKpi.current : 0, 
-        metrics: originalKpi ? originalKpi.metrics : [],
+        current: originalKpi?.current || 0, 
+        metrics: originalKpi?.metrics || [],
         parentId: kpi.parentId ?? null,
         includeInActionGoals: kpi.includeInActionGoals ?? true,
+        multiplicity: Number(kpi.multiplicity) || 1,
     };
   });
   
@@ -949,31 +952,4 @@ export async function deleteKpiMetric(prevState: DeleteFormState, formData: Form
 
     revalidatePath(`/campaigns/${campaignId}/${actionId}`);
     return { message: "Запись KPI успешно удалена." };
-}
-
-export type ExportState = {
-    csv?: string;
-    error?: string;
-    message?: string;
-};
-
-export async function exportKpiHistory(
-    prevState: ExportState,
-    formData: FormData
-): Promise<ExportState> {
-    const activityId = formData.get('activityId') as string;
-    const campaignId = formData.get('campaignId') as string;
-    const actionId = formData.get('actionId') as string;
-    
-    if (!activityId || !campaignId || !actionId) {
-        return { error: 'Необходимые ID отсутствуют.' };
-    }
-
-    try {
-        const csvString = await exportKpiHistoryToCsvData(campaignId, actionId, activityId);
-        return { csv: csvString, message: 'Данные готовы для скачивания.' };
-    } catch (e) {
-        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
-        return { error: `Не удалось экспортировать данные: ${errorMessage}` };
-    }
 }

@@ -22,7 +22,8 @@ export type KPI = {
   current: number; // This will be calculated on the fly, but kept for simplicity in display components
   metrics: KpiMetricLog[]; // History of metric entries
   parentId: string | null; // ID of the parent KPI for conversion tracking
-  includeInActionGoals?: boolean;
+  includeInActionGoals: boolean;
+  multiplicity: number; // For cost calculation, e.g. 1000 for CPM
 }
 
 export type Expense = {
