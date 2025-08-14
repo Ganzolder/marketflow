@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/status-badge';
-import { Calendar as CalendarIcon, Target, Users, DollarSign, ArrowRight, TrendingUp, CircleDollarSign } from 'lucide-react';
+import { Calendar as CalendarIcon, Target, Users, DollarSign, ArrowRight, TrendingUp, CircleDollarSign, Landmark } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { NewActivityButton } from './new-activity-button';
 import { EditActivityButton } from './edit-activity-button';

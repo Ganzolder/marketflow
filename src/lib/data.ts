@@ -41,6 +41,8 @@ async function seedDatabase() {
             summaryKpis: [],
             plannedAverageCheck: 0,
             actualAverageCheck: 0,
+            plannedMarginality: 0,
+            actualMarginality: 0,
           },
           {
             id: 'act-c1-2',
@@ -56,6 +58,8 @@ async function seedDatabase() {
             summaryKpis: [],
             plannedAverageCheck: 0,
             actualAverageCheck: 0,
+            plannedMarginality: 0,
+            actualMarginality: 0,
           }
         ],
       },
@@ -113,6 +117,8 @@ export async function addAction(campaignId: string, action: Omit<Action, 'id' | 
         summaryKpis: [],
         plannedAverageCheck: 0,
         actualAverageCheck: 0,
+        plannedMarginality: 0,
+        actualMarginality: 0,
     };
     await updateDoc(campaignRef, {
         actions: arrayUnion(newAction)
@@ -514,6 +520,12 @@ export async function getCampaignById(id: string): Promise<Campaign | undefined>
               if (!action.actualAverageCheck) {
                   action.actualAverageCheck = 0;
               }
+              if (!action.plannedMarginality) {
+                action.plannedMarginality = 0;
+              }
+              if (!action.actualMarginality) {
+                  action.actualMarginality = 0;
+              }
               if (action.activities) {
                   action.activities.forEach(activity => {
                       if (!activity.expenses) {
@@ -729,7 +741,7 @@ export async function getAllActions(): Promise<EnrichedAction[]> {
   return allActions.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
 }
 
-export async function updateActionAverageChecks(campaignId: string, actionId: string, plannedAverageCheck: number, actualAverageCheck: number) {
+export async function updateActionEffectiveness(campaignId: string, actionId: string, data: { plannedAverageCheck: number, actualAverageCheck: number, plannedMarginality: number, actualMarginality: number }) {
     const campaignRef = doc(db, 'campaigns', campaignId);
 
     try {
@@ -742,13 +754,15 @@ export async function updateActionAverageChecks(campaignId: string, actionId: st
             if (actionIndex === -1) throw new Error("Action not found!");
 
             const newActions = [...campaignData.actions];
-            newActions[actionIndex].plannedAverageCheck = plannedAverageCheck;
-            newActions[actionIndex].actualAverageCheck = actualAverageCheck;
+            newActions[actionIndex].plannedAverageCheck = data.plannedAverageCheck;
+            newActions[actionIndex].actualAverageCheck = data.actualAverageCheck;
+            newActions[actionIndex].plannedMarginality = data.plannedMarginality;
+            newActions[actionIndex].actualMarginality = data.actualMarginality;
 
             transaction.update(campaignRef, { actions: newActions });
         });
     } catch (e) {
-        console.error("Update average checks transaction failed: ", e);
+        console.error("Update effectiveness data transaction failed: ", e);
         throw e;
     }
 }

@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Save, ShoppingCart, Banknote } from 'lucide-react';
+import { Loader2, Save, ShoppingCart, Banknote, Landmark } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { updateActionAverageChecks, type AverageCheckFormState } from '@/lib/actions';
+import { updateActionEffectiveness, type EffectivenessFormState } from '@/lib/actions';
 import type { Action } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 
@@ -41,8 +41,8 @@ export function ActionEffectivenessCard({ action, campaignId, locale, currencyOp
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
 
-    const initialState: AverageCheckFormState = { message: "" };
-    const [state, dispatch] = useActionState(updateActionAverageChecks, initialState);
+    const initialState: EffectivenessFormState = { message: "" };
+    const [state, dispatch] = useActionState(updateActionEffectiveness, initialState);
 
     useEffect(() => {
         if (state?.message) {
@@ -76,13 +76,16 @@ export function ActionEffectivenessCard({ action, campaignId, locale, currencyOp
 
     const plannedRevenue = plannedSales * (action.plannedAverageCheck || 0);
     const actualRevenue = actualSales * (action.actualAverageCheck || 0);
+    const plannedProfit = plannedRevenue * ((action.plannedMarginality || 0) / 100);
+    const actualProfit = actualRevenue * ((action.actualMarginality || 0) / 100);
+
 
     return (
         <Card>
             <CardHeader>
                 <CardTitle>Эффективность акции</CardTitle>
                 <CardDescription>
-                    Рассчитайте плановую и фактическую выручку на основе продаж и среднего чека.
+                    Рассчитайте плановые и фактические показатели на основе продаж, среднего чека и маржинальности.
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -90,7 +93,7 @@ export function ActionEffectivenessCard({ action, campaignId, locale, currencyOp
                     <input type="hidden" name="campaignId" value={campaignId} />
                     <input type="hidden" name="actionId" value={action.id} />
                     
-                    <div className="grid md:grid-cols-2 gap-6 items-end">
+                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
                          <div className="grid gap-2">
                             <Label htmlFor="plannedAverageCheck">Планируемый средний чек ($)</Label>
                             <Input 
@@ -115,6 +118,32 @@ export function ActionEffectivenessCard({ action, campaignId, locale, currencyOp
                              />
                              {state.errors?.actualAverageCheck && <p className="text-sm text-destructive">{state.errors.actualAverageCheck[0]}</p>}
                         </div>
+                         <div className="grid gap-2">
+                            <Label htmlFor="plannedMarginality">Плановая маржинальность (%)</Label>
+                            <Input 
+                                id="plannedMarginality" 
+                                name="plannedMarginality" 
+                                type="number" 
+                                step="any"
+                                defaultValue={action.plannedMarginality || ''} 
+                                placeholder="25"
+                                max="100"
+                            />
+                            {state.errors?.plannedMarginality && <p className="text-sm text-destructive">{state.errors.plannedMarginality[0]}</p>}
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="actualMarginality">Фактическая маржинальность (%)</Label>
+                            <Input 
+                                id="actualMarginality" 
+                                name="actualMarginality" 
+                                type="number"
+                                step="any"
+                                defaultValue={action.actualMarginality || ''}
+                                placeholder="28"
+                                max="100"
+                             />
+                             {state.errors?.actualMarginality && <p className="text-sm text-destructive">{state.errors.actualMarginality[0]}</p>}
+                        </div>
                     </div>
                     
                     <div className="flex justify-end">
@@ -124,7 +153,7 @@ export function ActionEffectivenessCard({ action, campaignId, locale, currencyOp
 
                 <Separator className="my-6" />
 
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
                         <div className="p-3 bg-primary/10 rounded-lg">
                             <ShoppingCart className="w-6 h-6 text-primary" />
@@ -150,6 +179,34 @@ export function ActionEffectivenessCard({ action, campaignId, locale, currencyOp
                             </p>
                              <p className="text-xs text-muted-foreground">
                                 {actualSales.toLocaleString(locale)} продаж по {new Intl.NumberFormat(locale, currencyOptions).format(action.actualAverageCheck || 0)}
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
+                        <div className="p-3 bg-primary/10 rounded-lg">
+                            <Landmark className="w-6 h-6 text-primary" />
+                        </div>
+                        <div>
+                            <p className="text-sm text-muted-foreground">Плановая прибыль</p>
+                             <p className="text-2xl font-bold">
+                                {new Intl.NumberFormat(locale, currencyOptions).format(plannedProfit)}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                                {action.plannedMarginality || 0}% маржинальность
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
+                        <div className="p-3 bg-accent/10 rounded-lg">
+                            <Landmark className="w-6 h-6 text-accent" />
+                        </div>
+                        <div>
+                            <p className="text-sm text-muted-foreground">Фактическая прибыль</p>
+                            <p className="text-2xl font-bold text-accent">
+                                {new Intl.NumberFormat(locale, currencyOptions).format(actualProfit)}
+                            </p>
+                             <p className="text-xs text-muted-foreground">
+                                {action.actualMarginality || 0}% маржинальность
                             </p>
                         </div>
                     </div>

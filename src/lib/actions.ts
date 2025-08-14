@@ -2,7 +2,7 @@
 "use server";
 
 import { z } from "zod";
-import { addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionAverageChecks as updateActionAverageChecksData } from "./data";
+import { addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData } from "./data";
 import { revalidatePath } from "next/cache";
 import type { Action, Activity, KPI, Expense } from "./types";
 
@@ -586,29 +586,33 @@ export async function updateActionSummaryKpis(
     return { message: "Настройки отображения KPI обновлены." };
 }
 
-const UpdateAverageChecksSchema = z.object({
+const UpdateEffectivenessSchema = z.object({
   campaignId: z.string(),
   actionId: z.string(),
   plannedAverageCheck: z.coerce.number().min(0, "Средний чек не может быть отрицательным.").optional().or(z.literal('')),
   actualAverageCheck: z.coerce.number().min(0, "Средний чек не может быть отрицательным.").optional().or(z.literal('')),
+  plannedMarginality: z.coerce.number().min(0, "Маржинальность не может быть отрицательной.").max(100, "Маржинальность не может быть больше 100.").optional().or(z.literal('')),
+  actualMarginality: z.coerce.number().min(0, "Маржинальность не может быть отрицательной.").max(100, "Маржинальность не может быть больше 100.").optional().or(z.literal('')),
 });
 
 
-export type AverageCheckFormState = {
+export type EffectivenessFormState = {
   message: string;
   error?: boolean;
-  errors?: z.ZodError<z.infer<typeof UpdateAverageChecksSchema>>['formErrors']['fieldErrors']
+  errors?: z.ZodError<z.infer<typeof UpdateEffectivenessSchema>>['formErrors']['fieldErrors']
 };
 
-export async function updateActionAverageChecks(
-  prevState: AverageCheckFormState | null,
+export async function updateActionEffectiveness(
+  prevState: EffectivenessFormState | null,
   formData: FormData
-): Promise<AverageCheckFormState> {
-  const validatedFields = UpdateAverageChecksSchema.safeParse({
+): Promise<EffectivenessFormState> {
+  const validatedFields = UpdateEffectivenessSchema.safeParse({
     campaignId: formData.get('campaignId'),
     actionId: formData.get('actionId'),
     plannedAverageCheck: formData.get('plannedAverageCheck'),
     actualAverageCheck: formData.get('actualAverageCheck'),
+    plannedMarginality: formData.get('plannedMarginality'),
+    actualMarginality: formData.get('actualMarginality'),
   });
 
   if (!validatedFields.success) {
@@ -619,15 +623,24 @@ export async function updateActionAverageChecks(
     };
   }
 
-  const { campaignId, actionId, plannedAverageCheck, actualAverageCheck } = validatedFields.data;
+  const { campaignId, actionId, plannedAverageCheck, actualAverageCheck, plannedMarginality, actualMarginality } = validatedFields.data;
 
   try {
-    await updateActionAverageChecksData(campaignId, actionId, Number(plannedAverageCheck) || 0, Number(actualAverageCheck) || 0);
+    await updateActionEffectivenessData(
+        campaignId, 
+        actionId, 
+        {
+            plannedAverageCheck: Number(plannedAverageCheck) || 0, 
+            actualAverageCheck: Number(actualAverageCheck) || 0,
+            plannedMarginality: Number(plannedMarginality) || 0,
+            actualMarginality: Number(actualMarginality) || 0,
+        }
+    );
   } catch (e) {
     const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
     return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
   }
 
   revalidatePath(`/campaigns/${campaignId}/${actionId}`);
-  return { message: "Средний чек обновлен." };
+  return { message: "Данные эффективности обновлены." };
 }

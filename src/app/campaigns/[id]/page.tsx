@@ -3,7 +3,7 @@ import { getCampaignById } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { Edit, Calendar as CalendarIcon, DollarSign, Target, FilePlus, Eye, TrendingUp } from 'lucide-react';
+import { Edit, Calendar as CalendarIcon, DollarSign, Target, FilePlus, Eye, TrendingUp, Landmark } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/status-badge';
@@ -159,7 +159,10 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
 
                         const plannedRevenue = plannedSales * (action.plannedAverageCheck || 0);
                         const actualRevenue = actualSales * (action.actualAverageCheck || 0);
+                        const actualProfit = actualRevenue * ((action.actualMarginality || 0) / 100);
                         const hasRevenueData = action.plannedAverageCheck || action.actualAverageCheck;
+                        const hasProfitData = action.actualMarginality;
+
 
                         return (
                         <Link key={action.id} href={`/campaigns/${campaign.id}/${action.id}`} className="block hover:shadow-lg transition-shadow rounded-lg">
@@ -199,6 +202,16 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                                                         </span>
                                                     </div>
                                                     <Progress value={plannedRevenue > 0 ? (actualRevenue / plannedRevenue) * 100 : 0} className="h-2" indicatorClassName="bg-accent" />
+                                                </div>
+                                            )}
+                                            {hasProfitData > 0 && (
+                                                <div>
+                                                    <div className="flex justify-between items-center text-sm mb-1">
+                                                        <span className="text-muted-foreground flex items-center"><Landmark className="w-3 h-3 mr-1.5"/>Прибыль</span>
+                                                        <span className="font-medium text-accent">
+                                                            {new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(actualProfit)}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             )}
                                             {plannedBudget > 0 && (

@@ -53,6 +53,8 @@ export type Action = {
   summaryKpis?: string[]; // Names of aggregated KPIs to show on the campaign page action card
   plannedAverageCheck?: number;
   actualAverageCheck?: number;
+  plannedMarginality?: number;
+  actualMarginality?: number;
 };
 
 export type CampaignStatus = 'active' | 'planned' | 'completed' | 'paused';
