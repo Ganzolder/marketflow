@@ -176,12 +176,6 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: KpiHistoryMo
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button variant="outline" size="sm">
-                    <History className="mr-2 h-4 w-4" />
-                    История KPI
-                </Button>
-            </DialogTrigger>
             <DialogContent className="max-w-[90vw] w-full lg:max-w-[70vw]">
                 <DialogHeader>
                     <DialogTitle>История KPI для "{activity.name}"</DialogTitle>
@@ -372,5 +366,4 @@ export function KpiHistoryModal({ activity, campaignId, actionId }: KpiHistoryMo
             </DialogContent>
         </Dialog>
     );
-
-    
+}
