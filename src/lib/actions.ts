@@ -120,14 +120,8 @@ const KpiSchemaBase = z.object({
     includeInActionGoals: z.boolean(),
 });
 
-const AddKpiSchema = KpiSchemaBase.extend({
-    current: z.coerce.number(),
-});
 
-const EditKpiSchema = KpiSchemaBase.extend({
-    current: z.coerce.number(),
-    metrics: z.array(z.object({ id: z.string(), date: z.string(), value: z.number() })),
-});
+const EditKpiSchema = KpiSchemaBase;
 
 
 const ActivitySchema = z.object({
@@ -142,7 +136,7 @@ const ActivitySchema = z.object({
 });
 
 const AddActivitySchema = ActivitySchema.extend({
-    kpis: z.array(AddKpiSchema).optional(),
+    kpis: z.array(KpiSchemaBase).optional(),
 });
 
 const EditActivitySchema = ActivitySchema.extend({
@@ -192,10 +186,9 @@ export async function addActivityToAction(
 
   const processedKpis = kpis.map((kpi: any) => ({
       ...kpi,
-      target: Number(kpi.target),
-      current: 0,
-      includeInActionGoals: kpi.includeInActionGoals ?? true,
+      target: Number(kpi.target) || 0,
       parentId: kpi.parentId ?? null,
+      includeInActionGoals: kpi.includeInActionGoals ?? true,
   }));
 
   const validatedFields = AddActivitySchema.safeParse({
@@ -244,25 +237,32 @@ export async function addActivityToAction(
 
 
 export async function updateActivity(
+  activityId: string,
+  existingKpis: KPI[],
   prevState: ActivityFormState,
   formData: FormData
 ): Promise<ActivityFormState> {
 
   const kpisString = formData.get('kpis') as string;
-  let kpis = [];
+  let kpisFromForm = [];
   try {
-      kpis = kpisString ? JSON.parse(kpisString) : [];
+      kpisFromForm = kpisString ? JSON.parse(kpisString) : [];
   } catch (e) {
       return { message: 'Не удалось обработать данные KPI.', error: true };
   }
 
-  const processedKpis = kpis.map((kpi: any) => ({
-      ...kpi,
-      target: Number(kpi.target),
-      current: Number(kpi.current),
-      includeInActionGoals: kpi.includeInActionGoals ?? true,
-      parentId: kpi.parentId ?? null,
-  }));
+  const processedKpis = kpisFromForm.map((kpi: any) => {
+    const originalKpi = existingKpis.find(ek => ek.id === kpi.id);
+    return {
+        id: kpi.id,
+        name: kpi.name,
+        target: Number(kpi.target) || 0,
+        current: originalKpi ? originalKpi.current : 0, 
+        metrics: originalKpi ? originalKpi.metrics : [],
+        parentId: kpi.parentId ?? null,
+        includeInActionGoals: kpi.includeInActionGoals ?? true,
+    };
+  });
   
   const validatedFields = EditActivitySchema.safeParse({
     name: formData.get('activity-name'),
@@ -274,10 +274,11 @@ export async function updateActivity(
     kpis: processedKpis,
     campaignId: formData.get('campaignId'),
     actionId: formData.get('actionId'),
-    id: formData.get('activityId'),
+    id: activityId,
   });
 
   if (!validatedFields.success) {
+    console.error(validatedFields.error.flatten());
     return {
       message: "Ошибка валидации. Не удалось обновить активность.",
       errors: validatedFields.error.flatten().fieldErrors,

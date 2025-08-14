@@ -29,9 +29,7 @@ import { useFormStatus } from 'react-dom';
 const KpiSchema = z.object({
     id: z.string(),
     name: z.string().min(1, "Название KPI обязательно."),
-    target: z.coerce.number().min(0, "Цель должна быть больше 0."),
-    current: z.coerce.number(),
-    metrics: z.array(z.object({ id: z.string(), date: z.string(), value: z.number() })),
+    target: z.coerce.number().min(0, "Цель должна быть 0 или больше."),
     parentId: z.string().nullable(),
     includeInActionGoals: z.boolean(),
 });
@@ -68,7 +66,9 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
     const [kpiOptions, setKpiOptions] = useState<{value: string, label: string}[]>([]);
     
     const initialState: ActivityFormState = { message: "", error: false, errors: {} };
-    const [state, formAction] = useActionState(updateActivity, initialState);
+    
+    const updateActivityWithContext = updateActivity.bind(null, activity.id, activity.kpis || []);
+    const [state, formAction] = useActionState(updateActivityWithContext, initialState);
 
     useEffect(() => {
         if (open) {
@@ -86,13 +86,36 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
             startDate: activity.startDate.split('T')[0],
             endDate: activity.endDate.split('T')[0],
             kpis: activity.kpis?.map(kpi => ({
-                ...kpi, 
+                id: kpi.id,
+                name: kpi.name,
+                target: kpi.target, 
                 includeInActionGoals: kpi.includeInActionGoals ?? true,
                 parentId: kpi.parentId ?? null,
             })) || [],
         },
     });
     
+    useEffect(() => {
+        if (!open) {
+            form.reset({
+                 name: activity.name,
+                description: activity.description || "",
+                trackingMethod: activity.trackingMethod || "",
+                budget: activity.budget,
+                startDate: activity.startDate.split('T')[0],
+                endDate: activity.endDate.split('T')[0],
+                kpis: activity.kpis?.map(kpi => ({
+                    id: kpi.id,
+                    name: kpi.name,
+                    target: kpi.target, 
+                    includeInActionGoals: kpi.includeInActionGoals ?? true,
+                    parentId: kpi.parentId ?? null,
+                })) || [],
+            });
+        }
+    }, [open, activity, form]);
+
+
     useEffect(() => {
         if (state.message && !state.error) {
             toast({ title: 'Успех', description: state.message });
@@ -238,7 +261,7 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                                             type="button"
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => append({ id: `kpi-${Date.now()}`, name: '', target: 0, current: 0, metrics: [], parentId: null, includeInActionGoals: true })}
+                                            onClick={() => append({ id: `kpi-${Date.now()}`, name: '', target: 0, parentId: null, includeInActionGoals: true })}
                                         >
                                             <PlusCircle className="mr-2 h-4 w-4" />
                                             Добавить KPI

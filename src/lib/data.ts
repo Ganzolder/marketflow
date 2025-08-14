@@ -5,6 +5,7 @@
 
 
 
+
 import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction, ActionStatus, CampaignStatus, KpiMetricLog } from './types';
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, addDoc, writeBatch, runTransaction, deleteDoc } from "firebase/firestore";
@@ -227,14 +228,19 @@ export async function updateActivity(campaignId: string, actionId: string, updat
             }
             
             const existingActivity = action.activities[activityIndex];
-            const existingKpis = existingActivity.kpis || [];
             
-            const updatedKpis = (updatedActivity.kpis || []).map(uk => {
+            // Ensure `kpis` and `metrics` arrays exist before trying to map or access them
+            const existingKpis = existingActivity.kpis || [];
+            const updatedKpisFromForm = updatedActivity.kpis || [];
+
+            const updatedKpis = updatedKpisFromForm.map(uk => {
                 const existingKpi = existingKpis.find(ek => ek.id === uk.id);
                 return {
                     ...uk,
-                    metrics: existingKpi ? existingKpi.metrics : [],
-                    current: existingKpi ? existingKpi.current : 0,
+                    // Preserve existing metrics and current value
+                    metrics: existingKpi?.metrics || [],
+                    current: existingKpi?.current || 0,
+                    // Set defaults for potentially missing fields
                     includeInActionGoals: uk.includeInActionGoals ?? true,
                     parentId: uk.parentId ?? null,
                 };
