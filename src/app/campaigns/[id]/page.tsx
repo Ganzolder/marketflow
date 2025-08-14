@@ -4,7 +4,7 @@ import { getCampaignById } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { Edit, Calendar as CalendarIcon, Ruble, Target, FilePlus, Eye, TrendingUp, Landmark, CalendarDays } from 'lucide-react';
+import { Edit, Calendar as CalendarIcon, Target, FilePlus, Eye, TrendingUp, Landmark, CalendarDays } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/status-badge';
@@ -76,7 +76,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
             <div className="grid md:grid-cols-3 gap-4 text-sm">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-muted rounded-md">
-                        <Ruble className="h-5 w-5 text-muted-foreground" />
+                        <Landmark className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div>
                         <p className="text-muted-foreground">Бюджет</p>
@@ -240,7 +240,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                                             {plannedBudget > 0 && (
                                                 <div>
                                                     <div className="flex justify-between items-center text-sm mb-1">
-                                                        <span className="text-muted-foreground flex items-center"><Ruble className="w-3 h-3 mr-1.5"/>Бюджет</span>
+                                                        <span className="text-muted-foreground flex items-center"><Landmark className="w-3 h-3 mr-1.5"/>Бюджет</span>
                                                         <span className="font-medium">
                                                             {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(totalSpent)} / {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(plannedBudget)}
                                                         </span>
