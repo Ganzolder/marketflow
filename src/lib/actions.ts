@@ -5,8 +5,9 @@
 import { z } from "zod";
 import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData } from "./data";
 import { revalidatePath } from "next/cache";
-import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog } from "./types";
+import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog, Campaign } from "./types";
 import { redirect } from "next/navigation";
+import { analyzeActionPerformance, type AnalyzeActionPerformanceOutput } from "@/ai/flows/analyze-action-performance";
 
 const ActionSchema = z.object({
   name: z.string().min(3, { message: "Название акции должно содержать не менее 3 символов." }),
@@ -952,4 +953,33 @@ export async function deleteKpiMetric(prevState: DeleteFormState, formData: Form
 
     revalidatePath(`/campaigns/${campaignId}/${actionId}`);
     return { message: "Запись KPI успешно удалена." };
+}
+
+
+// --- AI Analyzer Action ---
+export type AnalyzeActionState = 
+    | { status: 'idle' }
+    | { status: 'loading' }
+    | { status: 'success'; analysis: AnalyzeActionPerformanceOutput }
+    | { status: 'error'; error: string };
+
+export async function analyzeAction(action: Action, campaign: Campaign): Promise<AnalyzeActionState> {
+    const actionContext = {
+        campaignName: campaign.name,
+        campaignBudget: campaign.budget,
+        campaignStartDate: campaign.startDate,
+        campaignEndDate: campaign.endDate,
+        ...action
+    };
+
+    try {
+        const analysis = await analyzeActionPerformance({
+            actionContext: JSON.stringify(actionContext, null, 2),
+        });
+        return { status: 'success', analysis };
+    } catch(e) {
+        console.error("AI Analysis failed:", e);
+        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка при анализе.";
+        return { status: 'error', error: errorMessage };
+    }
 }

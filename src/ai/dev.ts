@@ -3,3 +3,4 @@ config();
 
 import '@/ai/flows/generate-campaign-ideas.ts';
 import '@/ai/flows/generate-ad-copy.ts';
+import '@/ai/flows/analyze-action-performance.ts';
