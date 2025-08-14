@@ -24,7 +24,6 @@ import { GeneralExpensesList } from './general-expenses-list';
 import { UpdateActionSummaryKpisForm } from './update-action-summary-kpis';
 import { ActionEffectivenessCard } from './action-effectiveness-card';
 import { UpdateActionStatus } from './update-action-status';
-import { KpiHistoryModal } from './kpi-history-modal';
 
 type ActionDetailPageProps = {
   params: {
