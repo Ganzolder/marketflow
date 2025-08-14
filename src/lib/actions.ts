@@ -184,7 +184,20 @@ export async function addActivityToAction(
 ): Promise<ActivityFormState> {
   
   const kpisString = formData.get('kpis') as string;
-  const kpis = kpisString ? JSON.parse(kpisString) : [];
+  let kpis = [];
+  try {
+    kpis = kpisString ? JSON.parse(kpisString) : [];
+  } catch (e) {
+    return { message: 'Не удалось обработать данные KPI.', error: true };
+  }
+
+  // Pre-process KPIs to ensure multiplicity is set
+  const processedKpis = kpis.map((kpi: any) => ({
+      ...kpi,
+      target: Number(kpi.target),
+      current: 0,
+      multiplicity: Number(kpi.multiplicity) || 1, // Ensure multiplicity has a default value
+  }));
 
   const validatedFields = AddActivitySchema.safeParse({
     name: formData.get('activity-name'),
@@ -193,12 +206,7 @@ export async function addActivityToAction(
     budget: formData.get('budget'),
     startDate: formData.get('start-date'),
     endDate: formData.get('end-date'),
-    kpis: kpis.map((kpi: any) => ({ 
-        ...kpi, 
-        target: Number(kpi.target), 
-        current: 0,
-        multiplicity: Number(kpi.multiplicity) || 1,
-    })),
+    kpis: processedKpis,
     campaignId: formData.get('campaignId'),
     actionId: formData.get('actionId'),
   });
@@ -222,7 +230,6 @@ export async function addActivityToAction(
           current: 0, 
           metrics: [], 
           includeInActionGoals: kpi.includeInActionGoals ?? true,
-          multiplicity: kpi.multiplicity || 1,
         })) || [] 
   }
 
@@ -244,7 +251,21 @@ export async function updateActivity(
 ): Promise<ActivityFormState> {
 
   const kpisString = formData.get('kpis') as string;
-  const kpis = kpisString ? JSON.parse(kpisString) : [];
+  let kpis = [];
+  try {
+      kpis = kpisString ? JSON.parse(kpisString) : [];
+  } catch (e) {
+      return { message: 'Не удалось обработать данные KPI.', error: true };
+  }
+
+  // Pre-process KPIs to ensure multiplicity is set
+  const processedKpis = kpis.map((kpi: any) => ({
+      ...kpi,
+      target: Number(kpi.target),
+      current: Number(kpi.current),
+      includeInActionGoals: kpi.includeInActionGoals ?? true,
+      multiplicity: Number(kpi.multiplicity) || 1, // Ensure multiplicity has a default value
+  }));
   
   const validatedFields = EditActivitySchema.safeParse({
     name: formData.get('activity-name'),
@@ -253,13 +274,7 @@ export async function updateActivity(
     budget: formData.get('budget'),
     startDate: formData.get('start-date'),
     endDate: formData.get('end-date'),
-    kpis: kpis.map((kpi: any) => ({ 
-        ...kpi, 
-        target: Number(kpi.target), 
-        current: Number(kpi.current), 
-        includeInActionGoals: kpi.includeInActionGoals ?? true,
-        multiplicity: Number(kpi.multiplicity) || 1,
-    })),
+    kpis: processedKpis,
     campaignId: formData.get('campaignId'),
     actionId: formData.get('actionId'),
     id: formData.get('activityId'),
@@ -276,17 +291,13 @@ export async function updateActivity(
   const { campaignId, actionId, id, ...activityData } = validatedFields.data;
   
   const activityUpdateData = {
-      ...activityData,
-      kpis: activityData.kpis?.map(kpi => ({
-          ...kpi,
-          multiplicity: kpi.multiplicity || 1
-      })) || []
+      ...activityData
   };
 
   try {
     await updateActivityData(campaignId, actionId, { id, ...activityUpdateData } as Activity);
-  } catch (error) {
-     const errorMessage = error instanceof Error ? error.message : "Произошла неизвестная ошибка.";
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
     return { message: `Ошибка базы данных: не удалось обновить активность. ${errorMessage}`, error: true };
   }
 

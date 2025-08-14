@@ -23,6 +23,7 @@ export type KPI = {
   metrics: KpiMetricLog[]; // History of metric entries
   parentId: string | null; // ID of the parent KPI for conversion tracking
   includeInActionGoals?: boolean;
+  multiplicity?: number; // e.g. 1000 for cost per 1000 impressions
 }
 
 export type Expense = {
