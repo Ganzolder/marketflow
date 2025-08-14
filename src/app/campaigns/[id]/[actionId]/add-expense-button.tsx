@@ -13,6 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { storage } from '@/lib/firebase';
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { Progress } from '@/components/ui/progress';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export function AddExpenseButton({ activityId, campaignId, actionId }: { activityId: string; campaignId: string; actionId: string; }) {
     const [open, setOpen] = useState(false);
@@ -115,58 +116,59 @@ export function AddExpenseButton({ activityId, campaignId, actionId }: { activit
                     Добавить трату
                 </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-h-[70vh] flex flex-col">
                 <DialogHeader>
                     <DialogTitle>Добавить расход</DialogTitle>
                     <DialogDescription>
                         Заполните информацию о расходе для этой активности.
                     </DialogDescription>
                 </DialogHeader>
-                <form onSubmit={handleFormSubmit} ref={formRef}>
-                    <input type="hidden" name="campaignId" value={campaignId} />
-                    <input type="hidden" name="actionId" value={actionId} />
-                    <input type="hidden" name="activityId" value={activityId} />
-
-                    <div className="grid gap-4 py-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="description">Описание</Label>
-                            <Textarea id="description" name="description" placeholder="например, Оплата услуг инфлюенсера" />
-                            {state?.errors?.description && <p className="text-sm text-destructive">{state.errors.description[0]}</p>}
-                        </div>
-                        <div className="grid sm:grid-cols-2 gap-4">
+                <form onSubmit={handleFormSubmit} ref={formRef} className="flex-1 flex flex-col min-h-0">
+                    <ScrollArea className="flex-1 pr-6 -mr-6">
+                        <div className="grid gap-4 py-4 pr-6">
                             <div className="grid gap-2">
-                                <Label htmlFor="amount">Сумма (р.)</Label>
-                                <Input id="amount" name="amount" type="number" placeholder="150.00" />
-                                {state?.errors?.amount && <p className="text-sm text-destructive">{state.errors.amount[0]}</p>}
+                                <Label htmlFor="description">Описание</Label>
+                                <Textarea id="description" name="description" placeholder="например, Оплата услуг инфлюенсера" />
+                                {state?.errors?.description && <p className="text-sm text-destructive">{state.errors.description[0]}</p>}
                             </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="date">Дата</Label>
-                                <Input id="date" name="date" type="date" />
-                                {state?.errors?.date && <p className="text-sm text-destructive">{state.errors.date[0]}</p>}
-                            </div>
-                        </div>
-                         <div className="grid gap-2">
-                            <Label htmlFor="legalEntity">Юр. лицо (необязательно)</Label>
-                            <Input id="legalEntity" name="legalEntity" placeholder="например, ООО 'Маркетинг'" />
-                             {state?.errors?.legalEntity && <p className="text-sm text-destructive">{state.errors.legalEntity[0]}</p>}
-                        </div>
-                         <div className="grid gap-2">
-                            <Label htmlFor="photoFile">Загрузить файл</Label>
-                            <Input id="photoFile" name="photoFile" type="file" onChange={handleFileChange} disabled={isUploading || isPending} />
-                            {isUploading && (
-                                <div className="space-y-1">
-                                    <p className="text-sm text-muted-foreground">Загрузка...</p>
-                                    <Progress value={uploadProgress} className="h-2" />
+                            <div className="grid sm:grid-cols-2 gap-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="amount">Сумма (р.)</Label>
+                                    <Input id="amount" name="amount" type="number" placeholder="150.00" />
+                                    {state?.errors?.amount && <p className="text-sm text-destructive">{state.errors.amount[0]}</p>}
                                 </div>
-                            )}
+                                <div className="grid gap-2">
+                                    <Label htmlFor="date">Дата</Label>
+                                    <Input id="date" name="date" type="date" />
+                                    {state?.errors?.date && <p className="text-sm text-destructive">{state.errors.date[0]}</p>}
+                                </div>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="legalEntity">Юр. лицо (необязательно)</Label>
+                                <Input id="legalEntity" name="legalEntity" placeholder="например, ООО 'Маркетинг'" />
+                                {state?.errors?.legalEntity && <p className="text-sm text-destructive">{state.errors.legalEntity[0]}</p>}
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="photoFile">Загрузить файл</Label>
+                                <Input id="photoFile" name="photoFile" type="file" onChange={handleFileChange} disabled={isUploading || isPending} />
+                                {isUploading && (
+                                    <div className="space-y-1">
+                                        <p className="text-sm text-muted-foreground">Загрузка...</p>
+                                        <Progress value={uploadProgress} className="h-2" />
+                                    </div>
+                                )}
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="photoURL_text">Или вставьте URL</Label>
+                                <Input id="photoURL_text" name="photoURL_text" type="text" placeholder="https://example.com/image.png" disabled={isUploading || isPending || !!file} />
+                                {state?.errors?.photoURL && <p className="text-sm text-destructive">{state.errors.photoURL[0]}</p>}
+                            </div>
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="photoURL_text">Или вставьте URL</Label>
-                            <Input id="photoURL_text" name="photoURL_text" type="text" placeholder="https://example.com/image.png" disabled={isUploading || isPending || !!file} />
-                             {state?.errors?.photoURL && <p className="text-sm text-destructive">{state.errors.photoURL[0]}</p>}
-                        </div>
-                    </div>
-                    <DialogFooter>
+                    </ScrollArea>
+                    <DialogFooter className="mt-auto pt-4 border-t">
+                        <input type="hidden" name="campaignId" value={campaignId} />
+                        <input type="hidden" name="actionId" value={actionId} />
+                        <input type="hidden" name="activityId" value={activityId} />
                         <DialogClose asChild>
                             <Button variant="outline" type="button">Отмена</Button>
                         </DialogClose>
