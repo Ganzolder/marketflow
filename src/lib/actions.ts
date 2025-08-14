@@ -115,7 +115,7 @@ export async function editActionInCampaign(
 const KpiSchemaBase = z.object({
     id: z.string(),
     name: z.string().min(1, "Название KPI обязательно."),
-    target: z.coerce.number().min(1, "Цель должна быть больше 0."),
+    target: z.coerce.number().min(0, "Цель должна быть 0 или больше."),
     parentId: z.string().nullable(),
     includeInActionGoals: z.boolean().optional(),
     multiplicity: z.coerce.number().min(1, "Кратность должна быть больше 0").optional(),
@@ -129,6 +129,7 @@ const EditKpiSchema = KpiSchemaBase.extend({
     current: z.coerce.number(),
     metrics: z.array(z.object({ id: z.string(), date: z.string(), value: z.number() })),
 });
+
 
 const ActivitySchema = z.object({
   name: z.string().min(3, { message: "Название активности должно содержать не менее 3 символов." }),
@@ -244,7 +245,7 @@ export async function updateActivity(
 
   const kpisString = formData.get('kpis') as string;
   const kpis = kpisString ? JSON.parse(kpisString) : [];
-
+  
   const validatedFields = EditActivitySchema.safeParse({
     name: formData.get('activity-name'),
     description: formData.get('description'),

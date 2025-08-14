@@ -227,8 +227,8 @@ export async function updateActivity(campaignId: string, actionId: string, updat
             
             const existingActivity = action.activities[activityIndex];
             const existingKpis = existingActivity.kpis || [];
-
-            const updatedKpis = updatedActivity.kpis.map(uk => {
+            
+            const updatedKpis = (updatedActivity.kpis || []).map(uk => {
                 const existingKpi = existingKpis.find(ek => ek.id === uk.id);
                 return {
                     ...uk,
@@ -537,7 +537,7 @@ export async function getCampaignById(id: string): Promise<Campaign | undefined>
                       if (!activity.kpis) activity.kpis = [];
                       activity.kpis.forEach(kpi => {
                           if (!kpi.metrics) kpi.metrics = [];
-                          if (!kpi.multiplicity) kpi.multiplicity = 1;
+                          kpi.multiplicity = kpi.multiplicity || 1;
                           kpi.current = kpi.metrics.reduce((acc, metric) => acc + metric.value, 0);
                           if (kpi.includeInActionGoals === undefined) kpi.includeInActionGoals = true;
                       });
