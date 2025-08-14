@@ -379,5 +379,3 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
         </Dialog>
     );
 }
-
-    
