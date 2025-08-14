@@ -26,7 +26,8 @@ type ActivitiesPageProps = {
   };
 };
 
-export default async function ActivitiesPage({ searchParams }: ActivitiesPageProps) {
+export default async function ActivitiesPage({ searchParams: searchParamsPromise }: ActivitiesPageProps) {
+  const searchParams = await searchParamsPromise;
   const allCampaigns = await getCampaigns();
   const allActions = await getAllActions();
   const allActivities = await getAllActivities();
