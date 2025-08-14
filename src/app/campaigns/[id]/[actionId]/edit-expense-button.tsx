@@ -146,7 +146,7 @@ export function EditExpenseButton({ expense, campaignId, actionId, activities, o
                             <Textarea id="description" name="description" defaultValue={expense.description} />
                             {state?.errors?.description && <p className="text-sm text-destructive">{state.errors.description[0]}</p>}
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid sm:grid-cols-2 gap-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="amount">Сумма (р.)</Label>
                                 <Input id="amount" name="amount" type="number" defaultValue={expense.amount} />

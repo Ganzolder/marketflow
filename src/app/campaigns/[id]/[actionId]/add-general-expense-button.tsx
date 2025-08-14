@@ -149,9 +149,9 @@ export function AddGeneralExpenseButton({ campaignId, actionId, activities }: { 
                             <Textarea id="description" name="description" placeholder="например, Аренда конференц-зала" />
                             {state?.errors?.description && <p className="text-sm text-destructive">{state.errors.description[0]}</p>}
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid sm:grid-cols-2 gap-4">
                             <div className="grid gap-2">
-                                <Label htmlFor="amount">Сумма (₽)</Label>
+                                <Label htmlFor="amount">Сумма (р.)</Label>
                                 <Input id="amount" name="amount" type="number" placeholder="500.00" />
                                 {state?.errors?.amount && <p className="text-sm text-destructive">{state.errors.amount[0]}</p>}
                             </div>
