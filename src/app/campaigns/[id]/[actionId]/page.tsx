@@ -246,7 +246,9 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
 
                                             return (
                                                 <div key={`footer-${kpi.id}`} className="flex items-center gap-4 text-xs">
-                                                    <p className="font-medium text-foreground w-24 truncate">{kpi.name}:</p>
+                                                    <p className="font-medium text-foreground w-24 truncate">
+                                                        {kpi.name}{kpi.multiplicity && kpi.multiplicity > 1 ? ` (${kpi.multiplicity})` : ''}:
+                                                    </p>
                                                     {conversion !== null && parentKpi && (
                                                         <TooltipProvider>
                                                             <Tooltip>
