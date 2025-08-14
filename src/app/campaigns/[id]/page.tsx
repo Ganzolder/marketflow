@@ -67,7 +67,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
   return (
     <div>
       <PageHeader title={campaign.name}>
-        <EditCampaignButton campaign={campaign} />
+        {/* The Edit button is now on the main campaigns page table */}
       </PageHeader>
 
       <div className="grid gap-8">

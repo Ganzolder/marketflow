@@ -14,7 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { DeleteCampaignButton } from './delete-campaign-button';
 
 
-export function EditCampaignButton({ campaign }: { campaign: Campaign }) {
+export function EditCampaignButton({ campaign, asIcon = false }: { campaign: Campaign, asIcon?: boolean }) {
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
@@ -41,10 +41,17 @@ export function EditCampaignButton({ campaign }: { campaign: Campaign }) {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline">
-                    <Edit className="mr-2 h-4 w-4" />
-                    Редактировать кампанию
-                </Button>
+                {asIcon ? (
+                    <Button variant="ghost" size="icon">
+                        <Edit className="h-4 w-4" />
+                        <span className="sr-only">Редактировать кампанию</span>
+                    </Button>
+                ) : (
+                    <Button variant="outline">
+                        <Edit className="mr-2 h-4 w-4" />
+                        Редактировать кампанию
+                    </Button>
+                )}
             </DialogTrigger>
             <DialogContent className="sm:max-w-[625px]">
                  <form action={formAction} ref={formRef}>
@@ -98,4 +105,3 @@ export function EditCampaignButton({ campaign }: { campaign: Campaign }) {
         </Dialog>
     );
 }
-

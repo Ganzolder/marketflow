@@ -18,7 +18,7 @@ import { Loader2, Trash2 } from "lucide-react";
 import { deleteCampaign } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 
-export function DeleteCampaignButton({ campaignId }: { campaignId: string }) {
+export function DeleteCampaignButton({ campaignId, asIcon = false }: { campaignId: string, asIcon?: boolean }) {
     const { toast } = useToast();
     const [isPending, startTransition] = useTransition();
 
@@ -47,10 +47,17 @@ export function DeleteCampaignButton({ campaignId }: { campaignId: string }) {
     return (
         <AlertDialog>
             <AlertDialogTrigger asChild>
-                 <Button type="button" variant="destructive" className="mr-auto">
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Удалить
-                </Button>
+                {asIcon ? (
+                     <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                        <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">Удалить кампанию</span>
+                    </Button>
+                ) : (
+                    <Button type="button" variant="destructive" className="mr-auto">
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Удалить
+                    </Button>
+                )}
             </AlertDialogTrigger>
             <AlertDialogContent>
                 <AlertDialogHeader>

@@ -20,6 +20,8 @@ import { UpdateCampaignStatus } from './update-campaign-status';
 import { Progress } from '@/components/ui/progress';
 import { CampaignStatusFilter } from './campaign-status-filter';
 import type { CampaignStatus } from '@/lib/types';
+import { EditCampaignButton } from './edit-campaign-button';
+import { DeleteCampaignButton } from './delete-campaign-button';
 
 type CampaignsPageProps = {
   searchParams: {
@@ -59,6 +61,7 @@ export default async function CampaignsPage({ searchParams }: CampaignsPageProps
                 <TableHead>Длительность</TableHead>
                 <TableHead className="w-[150px]">Прогресс</TableHead>
                 <TableHead className="text-right">Бюджет</TableHead>
+                <TableHead className="w-[120px] text-right">Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -88,12 +91,18 @@ export default async function CampaignsPage({ searchParams }: CampaignsPageProps
                     <TableCell className="text-right">
                       {new Intl.NumberFormat(locale, currencyOptions).format(campaign.budget)}
                     </TableCell>
+                    <TableCell className="text-right">
+                        <div className="flex items-center justify-end space-x-1">
+                            <EditCampaignButton campaign={campaign} asIcon={true} />
+                            <DeleteCampaignButton campaignId={campaign.id} asIcon={true} />
+                        </div>
+                    </TableCell>
                   </TableRow>
                 )
               })}
                {filteredCampaigns.length === 0 && (
                 <TableRow>
-                    <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center h-24 text-muted-foreground">
                         {selectedStatus ? 'Нет кампаний, соответствующих вашим фильтрам.' : 'Кампании еще не созданы.'}
                     </TableCell>
                 </TableRow>
