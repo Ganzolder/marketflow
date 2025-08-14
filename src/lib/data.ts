@@ -235,7 +235,6 @@ export async function updateActivity(campaignId: string, actionId: string, updat
                     metrics: existingKpi ? existingKpi.metrics : [],
                     current: existingKpi ? existingKpi.current : 0,
                     includeInActionGoals: uk.includeInActionGoals,
-                    multiplicity: uk.multiplicity || 1, // Ensure multiplicity has a default value
                 };
             });
 
@@ -537,7 +536,6 @@ export async function getCampaignById(id: string): Promise<Campaign | undefined>
                       if (!activity.kpis) activity.kpis = [];
                       activity.kpis.forEach(kpi => {
                           if (!kpi.metrics) kpi.metrics = [];
-                          kpi.multiplicity = kpi.multiplicity || 1;
                           kpi.current = kpi.metrics.reduce((acc, metric) => acc + metric.value, 0);
                           if (kpi.includeInActionGoals === undefined) kpi.includeInActionGoals = true;
                       });
@@ -722,25 +720,6 @@ export async function updateActionSummaryKpis(campaignId: string, actionId: stri
         console.error("Update summary KPIs transaction failed: ", e);
         throw e;
     }
-}
-
-export async function getAllActions(): Promise<EnrichedAction[]> {
-  const campaigns = await getCampaigns();
-  const allActions: EnrichedAction[] = [];
-
-  campaigns.forEach(campaign => {
-    if (campaign.actions) {
-      campaign.actions.forEach(action => {
-        allActions.push({
-          ...action,
-          campaignId: campaign.id,
-          campaignName: campaign.name,
-        });
-      });
-    }
-  });
-
-  return allActions.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
 }
 
 export async function updateActionEffectiveness(campaignId: string, actionId: string, data: { plannedAverageCheck: number, actualAverageCheck: number, plannedMarginality: number, actualMarginality: number }) {

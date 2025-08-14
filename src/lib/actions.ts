@@ -118,7 +118,6 @@ const KpiSchemaBase = z.object({
     target: z.coerce.number().min(0, "Цель должна быть 0 или больше."),
     parentId: z.string().nullable(),
     includeInActionGoals: z.boolean().optional(),
-    multiplicity: z.coerce.number().min(1, "Кратность должна быть больше 0").optional(),
 });
 
 const AddKpiSchema = KpiSchemaBase.extend({
@@ -191,12 +190,10 @@ export async function addActivityToAction(
     return { message: 'Не удалось обработать данные KPI.', error: true };
   }
 
-  // Pre-process KPIs to ensure multiplicity is set
   const processedKpis = kpis.map((kpi: any) => ({
       ...kpi,
       target: Number(kpi.target),
       current: 0,
-      multiplicity: Number(kpi.multiplicity) || 1, // Ensure multiplicity has a default value
   }));
 
   const validatedFields = AddActivitySchema.safeParse({
@@ -258,13 +255,11 @@ export async function updateActivity(
       return { message: 'Не удалось обработать данные KPI.', error: true };
   }
 
-  // Pre-process KPIs to ensure multiplicity is set
   const processedKpis = kpis.map((kpi: any) => ({
       ...kpi,
       target: Number(kpi.target),
       current: Number(kpi.current),
       includeInActionGoals: kpi.includeInActionGoals ?? true,
-      multiplicity: Number(kpi.multiplicity) || 1, // Ensure multiplicity has a default value
   }));
   
   const validatedFields = EditActivitySchema.safeParse({

@@ -22,7 +22,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Checkbox } from '@/components/ui/checkbox';
 import { Combobox } from '@/components/ui/combobox';
 import { getUniqueKpiNames } from '@/lib/data';
-import { useActionState, useTransition } from 'react';
+import { useActionState, useTransition, useFormStatus } from 'react';
 
 
 const KpiSchema = z.object({
@@ -33,7 +33,6 @@ const KpiSchema = z.object({
     metrics: z.array(z.object({ id: z.string(), date: z.string(), value: z.number() })),
     parentId: z.string().nullable(),
     includeInActionGoals: z.boolean().optional(),
-    multiplicity: z.coerce.number().min(1, "Кратность должна быть больше 0").optional(),
 });
 
 const EditActivityFormSchema = z.object({
@@ -46,6 +45,19 @@ const EditActivityFormSchema = z.object({
     kpis: z.array(KpiSchema).optional(),
 });
 
+function SubmitButton() {
+    const { pending } = useFormStatus();
+    return (
+         <Button type="submit" disabled={pending}>
+            {pending ? (
+                <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Сохранение...
+                </>
+            ) : "Сохранить изменения"}
+        </Button>
+    )
+}
 
 export function EditActivityButton({ activity, campaignId, actionId }: { activity: Activity, campaignId: string, actionId: string }) {
     const [open, setOpen] = useState(false);
@@ -53,11 +65,9 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
     const locale = 'ru-RU';
     const currencyOptions = { style: 'currency', currency: 'RUB', minimumFractionDigits: 2, maximumFractionDigits: 2 };
     const [kpiOptions, setKpiOptions] = useState<{value: string, label: string}[]>([]);
-
+    
     const initialState: ActivityFormState = { message: "", error: false, errors: {} };
     const [state, formAction] = useActionState(updateActivity, initialState);
-    const [isPending, startTransition] = useTransition();
-
 
     useEffect(() => {
         if (open) {
@@ -77,21 +87,18 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
             kpis: activity.kpis?.map(kpi => ({
                 ...kpi, 
                 includeInActionGoals: kpi.includeInActionGoals ?? true,
-                multiplicity: kpi.multiplicity || 1,
             })) || [],
         },
     });
     
     useEffect(() => {
-        if (state.message && !isPending) {
-            if (state.error) {
-                toast({ variant: 'destructive', title: 'Ошибка', description: state.message });
-            } else {
-                toast({ title: 'Успех', description: state.message });
-                setOpen(false);
-            }
+        if (state.message && !state.error) {
+            toast({ title: 'Успех', description: state.message });
+            setOpen(false);
+        } else if (state.message && state.error) {
+            toast({ variant: 'destructive', title: 'Ошибка', description: state.message });
         }
-    }, [state, isPending, toast]);
+    }, [state, toast]);
 
     const { fields, append, remove } = useFieldArray({
         control: form.control,
@@ -100,12 +107,6 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
 
     const kpis = form.watch('kpis');
     const budget = form.watch('budget');
-
-    const onSubmit = (formData: FormData) => {
-        startTransition(() => {
-            formAction(formData);
-        });
-    };
     
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -123,7 +124,7 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                     </DialogDescription>
                 </DialogHeader>
                  <Form {...form}>
-                    <form action={onSubmit} className="flex-1 flex flex-col min-h-0 gap-4">
+                    <form action={formAction} className="flex-1 flex flex-col min-h-0 gap-4">
                      <input type="hidden" name="campaignId" value={campaignId} />
                      <input type="hidden" name="actionId" value={actionId} />
                      <input type="hidden" name="activityId" value={activity.id} />
@@ -235,7 +236,7 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                                             type="button"
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => append({ id: `kpi-${Date.now()}`, name: '', target: 0, current: 0, metrics: [], parentId: null, includeInActionGoals: true, multiplicity: 1 })}
+                                            onClick={() => append({ id: `kpi-${Date.now()}`, name: '', target: 0, current: 0, metrics: [], parentId: null, includeInActionGoals: true })}
                                         >
                                             <PlusCircle className="mr-2 h-4 w-4" />
                                             Добавить KPI
@@ -244,9 +245,8 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                                     {fields.map((field, index) => {
                                         const currentKpi = kpis?.[index];
                                         const parentKpi = kpis?.find(p => p.id === currentKpi?.parentId);
-                                        const multiplicity = form.watch(`kpis.${index}.multiplicity`) || 1;
                                         const conversion = parentKpi && parentKpi.target > 0 && currentKpi && currentKpi.target > 0 ? (currentKpi.target / parentKpi.target) * 100 : null;
-                                        const costPerUnit = currentKpi && currentKpi.target > 0 && budget > 0 ? (budget / currentKpi.target) * multiplicity : null;
+                                        const costPerUnit = currentKpi && currentKpi.target > 0 && budget > 0 ? (budget / currentKpi.target) : null;
 
 
                                         return (
@@ -294,17 +294,6 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                                                     )}
                                                 />
                                                  <FormField
-                                                    control={form.control}
-                                                    name={`kpis.${index}.multiplicity`}
-                                                    render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Кратность</FormLabel>
-                                                            <FormControl><Input type="number" placeholder="1" {...field} /></FormControl>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                    )}
-                                                />
-                                                <FormField
                                                     control={form.control}
                                                     name={`kpis.${index}.parentId`}
                                                     render={({ field }) => (
@@ -369,7 +358,7 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                                                                     <span className="font-bold text-blue-500">{new Intl.NumberFormat(locale, currencyOptions).format(costPerUnit)}</span>
                                                                 </TooltipTrigger>
                                                                 <TooltipContent>
-                                                                <p>Плановая стоимость за {multiplicity} ед.</p>
+                                                                <p>Плановая стоимость за ед.</p>
                                                                 </TooltipContent>
                                                             </Tooltip>
                                                         </TooltipProvider>
@@ -389,14 +378,7 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                             <DialogClose asChild>
                                 <Button variant="outline">Отмена</Button>
                             </DialogClose>
-                            <Button type="submit" disabled={isPending}>
-                                {isPending ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Сохранение...
-                                    </>
-                                ) : "Сохранить изменения"}
-                            </Button>
+                            <SubmitButton />
                         </DialogFooter>
                     </form>
                 </Form>
@@ -404,5 +386,3 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
         </Dialog>
     );
 }
-
-    
