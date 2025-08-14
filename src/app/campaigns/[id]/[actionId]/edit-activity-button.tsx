@@ -164,13 +164,18 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
                                                         </TooltipTrigger>
                                                         <TooltipContent className="max-w-xs text-left">
                                                             <p className="font-bold">Примеры способов отслеживания:</p>
-                                                            <ul className="list-disc list-inside mt-1 text-xs text-muted-foreground">
-                                                                <li>Промокоды или купоны</li>
-                                                                <li>UTM-метки для URL</li>
+                                                            <ul className="list-disc list-inside mt-1 text-xs text-muted-foreground space-y-1">
+                                                                <li>Промокоды или уникальные купоны</li>
+                                                                <li>UTM-метки для отслеживания URL</li>
                                                                 <li>Коллтрекинг (подменные номера)</li>
-                                                                <li>QR-коды</li>
+                                                                <li>QR-коды на печатных материалах</li>
                                                                 <li>Опросы клиентов ("Откуда вы о нас узнали?")</li>
-                                                                <li>Специальные лендинги</li>
+                                                                <li>Специальные посадочные страницы (лендинги)</li>
+                                                                <li>Анализ логов CRM-системы</li>
+                                                                <li>Пиксели ретаргетинга (VK, Yandex)</li>
+                                                                <li>События в Google Analytics / Yandex.Metrika</li>
+                                                                <li>Уникальные email-адреса или телефоны для акции</li>
+                                                                <li>Аналитика мобильных приложений (AppMetrica, Firebase)</li>
                                                             </ul>
                                                         </TooltipContent>
                                                     </Tooltip>
