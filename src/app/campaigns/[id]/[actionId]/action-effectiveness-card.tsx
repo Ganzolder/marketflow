@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Save, ShoppingCart, Banknote, Landmark } from 'lucide-react';
+import { Loader2, Save, ShoppingCart, Banknote, Landmark, PiggyBank, BarChart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { updateActionEffectiveness, type EffectivenessFormState } from '@/lib/actions';
 import type { Action } from '@/lib/types';
@@ -35,9 +35,10 @@ type ActionEffectivenessCardProps = {
     campaignId: string;
     locale: string;
     currencyOptions: Intl.NumberFormatOptions;
+    totalSpent: number;
 }
 
-export function ActionEffectivenessCard({ action, campaignId, locale, currencyOptions }: ActionEffectivenessCardProps) {
+export function ActionEffectivenessCard({ action, campaignId, locale, currencyOptions, totalSpent }: ActionEffectivenessCardProps) {
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
 
@@ -78,6 +79,8 @@ export function ActionEffectivenessCard({ action, campaignId, locale, currencyOp
     const actualRevenue = actualSales * (action.actualAverageCheck || 0);
     const plannedProfit = plannedRevenue * ((action.plannedMarginality || 0) / 100);
     const actualProfit = actualRevenue * ((action.actualMarginality || 0) / 100);
+    const netProfit = actualProfit - totalSpent;
+    const roi = totalSpent > 0 ? (netProfit / totalSpent) * 100 : 0;
 
 
     return (
@@ -211,6 +214,40 @@ export function ActionEffectivenessCard({ action, campaignId, locale, currencyOp
                         </div>
                     </div>
                 </div>
+                
+                <Separator className="my-6" />
+
+                <div className="grid md:grid-cols-2 gap-6">
+                     <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
+                        <div className="p-3 bg-accent/10 rounded-lg">
+                            <PiggyBank className="w-6 h-6 text-accent" />
+                        </div>
+                        <div>
+                            <p className="text-sm text-muted-foreground">Итоговая прибыль (после расходов)</p>
+                            <p className={`text-2xl font-bold ${netProfit >= 0 ? 'text-accent' : 'text-destructive'}`}>
+                                {new Intl.NumberFormat(locale, currencyOptions).format(netProfit)}
+                            </p>
+                             <p className="text-xs text-muted-foreground">
+                                {new Intl.NumberFormat(locale, currencyOptions).format(actualProfit)} (прибыль) - {new Intl.NumberFormat(locale, currencyOptions).format(totalSpent)} (расходы)
+                            </p>
+                        </div>
+                    </div>
+                     <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
+                        <div className="p-3 bg-accent/10 rounded-lg">
+                            <BarChart className="w-6 h-6 text-accent" />
+                        </div>
+                        <div>
+                            <p className="text-sm text-muted-foreground">Возврат на инвестиции (ROI)</p>
+                            <p className={`text-2xl font-bold ${roi >= 0 ? 'text-accent' : 'text-destructive'}`}>
+                                {roi.toFixed(1)}%
+                            </p>
+                             <p className="text-xs text-muted-foreground">
+                                На основе итоговой прибыли и расходов
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
             </CardContent>
         </Card>
     );
