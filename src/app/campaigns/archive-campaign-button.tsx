@@ -17,7 +17,10 @@ export function ArchiveCampaignButton({ campaignId }: { campaignId: string }) {
     const { toast } = useToast();
     const [isPending, startTransition] = useTransition();
 
-    const handleArchive = async () => {
+    const handleArchive = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        e.preventDefault();
+        
         const formData = new FormData();
         formData.append('campaignId', campaignId);
         formData.append('status', 'archived');

@@ -19,7 +19,7 @@ import { EditCampaignButton } from './edit-campaign-button';
 import { DeleteCampaignButton } from './delete-campaign-button';
 import { NewCampaignButton } from './new-campaign-button';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, Landmark, TrendingUp, ShoppingCart, PiggyBank, BarChart, FilePlus, Eye, EyeOff } from 'lucide-react';
+import { Calendar, Landmark, TrendingUp, ShoppingCart, PiggyBank, BarChart, FilePlus, EyeOff } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { ArchiveCampaignButton } from './archive-campaign-button';
 
