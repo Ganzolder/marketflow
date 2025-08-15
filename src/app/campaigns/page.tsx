@@ -29,7 +29,8 @@ type CampaignsPageProps = {
   }
 }
 
-export default async function CampaignsPage({ searchParams }: CampaignsPageProps) {
+export default async function CampaignsPage({ searchParams: searchParamsPromise }: CampaignsPageProps) {
+  const searchParams = await searchParamsPromise;
   const campaigns = await getCampaigns();
   const view = searchParams.view;
   
@@ -247,3 +248,4 @@ export default async function CampaignsPage({ searchParams }: CampaignsPageProps
     </div>
   );
 }
+
