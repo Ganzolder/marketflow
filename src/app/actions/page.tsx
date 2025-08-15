@@ -12,7 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/status-badge';
 import Link from 'next/link';
 import { Progress } from '@/components/ui/progress';
-import { Eye, FilePlus, Landmark, TrendingUp } from 'lucide-react';
+import { Eye, FilePlus, Landmark, TrendingUp, CalendarDays } from 'lucide-react';
 import { CampaignFilter } from './campaign-filter';
 import { StatusFilter } from './status-filter';
 import type { ActionStatus } from '@/lib/types';
@@ -42,6 +42,7 @@ export default async function ActionsPage({ searchParams: searchParamsPromise }:
   }
 
   const locale = 'ru-RU';
+  const today = new Date();
 
   return (
     <div>
@@ -102,6 +103,12 @@ export default async function ActionsPage({ searchParams: searchParamsPromise }:
           const actualProfit = actualRevenue * ((action.actualMarginality || 0) / 100);
           const hasRevenueData = action.plannedAverageCheck || action.actualAverageCheck;
           const hasProfitData = action.actualMarginality || action.plannedMarginality;
+
+          const startDate = new Date(action.startDate);
+          const endDate = new Date(action.endDate);
+          const totalDuration = Math.max(1, endDate.getTime() - startDate.getTime());
+          const elapsedDuration = Math.max(0, today.getTime() - startDate.getTime());
+          let durationProgress = Math.min(100, (elapsedDuration / totalDuration) * 100);
 
           return (
             <Link
@@ -187,6 +194,13 @@ export default async function ActionsPage({ searchParams: searchParamsPromise }:
                                 <Progress value={budgetProgress} className="h-2" indicatorClassName={budgetProgress > 100 ? 'bg-destructive' : ''} />
                             </div>
                         )}
+                         <div>
+                            <div className="flex justify-between items-center text-sm mb-1">
+                                <span className="text-muted-foreground flex items-center"><CalendarDays className="w-3 h-3 mr-1.5"/>Прогресс акции</span>
+                                <span className="font-medium">{Math.round(durationProgress)}%</span>
+                            </div>
+                            <Progress value={durationProgress} className="h-2" />
+                        </div>
                     </div>
                     
                     <div className="flex items-center justify-between text-sm text-muted-foreground pt-2">
