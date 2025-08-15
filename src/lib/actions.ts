@@ -1052,5 +1052,3 @@ export async function updateActionResponsibility(prevState: ResponsibilityFormSt
   revalidatePath(`/campaigns/${campaignId}/${actionId}`);
   return { message: "Ответственные лица обновлены." };
 }
-
-    
