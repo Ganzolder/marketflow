@@ -29,7 +29,7 @@ function SubmitButton() {
     )
 }
 
-export function EditActionButton({ action, campaignId }: { action: Action, campaignId: string }) {
+export function EditActionButton({ action, campaignId, asChild = false }: { action: Action, campaignId: string, asChild?: boolean }) {
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
@@ -54,14 +54,18 @@ export function EditActionButton({ action, campaignId }: { action: Action, campa
             }
         }
     }, [state, toast]);
+
+    const TriggerButton = (
+        <Button variant={asChild ? "ghost" : "outline"} className={asChild ? "w-full justify-start p-2 h-auto" : ""}>
+            <Edit className="h-4 w-4 mr-2" />
+            Редактировать
+        </Button>
+    );
     
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline">
-                    <Edit className="h-4 w-4 mr-2" />
-                    Редактировать
-                </Button>
+                {TriggerButton}
             </DialogTrigger>
             <DialogContent className="sm:max-w-[625px]">
                 <DialogHeader>

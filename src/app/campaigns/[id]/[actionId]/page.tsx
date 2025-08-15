@@ -113,9 +113,8 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
 
       <div className="grid gap-8">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader>
             <CardTitle>Информация об акции</CardTitle>
-            <EditActionButton action={action} campaignId={campaign.id} />
           </CardHeader>
           <CardContent>
              <div className="grid md:grid-cols-3 gap-6 text-sm mb-6">
