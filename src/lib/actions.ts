@@ -22,6 +22,7 @@ const ActionSchema = z.object({
   financeHead: z.string().optional(),
   itHead: z.string().optional(),
   curator: z.string().optional(),
+  salesHead: z.string().optional(),
 });
 
 const AddActionSchema = ActionSchema;
@@ -46,6 +47,7 @@ export type ActionFormState = {
     financeHead?: string[];
     itHead?: string[];
     curator?: string[];
+    salesHead?: string[];
   };
 };
 
@@ -67,6 +69,7 @@ export async function addActionToCampaign(
     financeHead: formData.get('financeHead'),
     itHead: formData.get('itHead'),
     curator: formData.get('curator'),
+    salesHead: formData.get('salesHead'),
   });
 
   if (!validatedFields.success) {
@@ -108,6 +111,7 @@ export async function editActionInCampaign(
     financeHead: formData.get('financeHead'),
     itHead: formData.get('itHead'),
     curator: formData.get('curator'),
+    salesHead: formData.get('salesHead'),
   });
 
   if (!validatedFields.success) {
@@ -1013,6 +1017,7 @@ const ResponsibilitySchema = z.object({
   financeHead: z.string().optional(),
   itHead: z.string().optional(),
   curator: z.string().optional(),
+  salesHead: z.string().optional(),
 });
 
 export async function updateActionResponsibility(prevState: ResponsibilityFormState, formData: FormData): Promise<ResponsibilityFormState> {
@@ -1024,6 +1029,7 @@ export async function updateActionResponsibility(prevState: ResponsibilityFormSt
     financeHead: formData.get('financeHead'),
     itHead: formData.get('itHead'),
     curator: formData.get('curator'),
+    salesHead: formData.get('salesHead'),
   });
 
   if (!validatedFields.success) {

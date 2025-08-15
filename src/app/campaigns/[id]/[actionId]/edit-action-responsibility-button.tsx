@@ -84,6 +84,11 @@ export function EditActionResponsibilityButton({ action, campaignId }: { action:
                                 {state.errors?.marketingHead && <p className="text-sm text-destructive">{state.errors.marketingHead[0]}</p>}
                             </div>
                              <div className="grid gap-2">
+                                <Label htmlFor="salesHead">ФИО руководителя отдела продаж</Label>
+                                <Input id="salesHead" name="salesHead" placeholder="Смирнова Ольга Ивановна" defaultValue={action.salesHead} />
+                                {state.errors?.salesHead && <p className="text-sm text-destructive">{state.errors.salesHead[0]}</p>}
+                            </div>
+                             <div className="grid gap-2">
                                 <Label htmlFor="financeHead">ФИО руководителя финансового отдела</Label>
                                 <Input id="financeHead" name="financeHead" placeholder="Сидорова Анна Викторовна" defaultValue={action.financeHead} />
                                 {state.errors?.financeHead && <p className="text-sm text-destructive">{state.errors.financeHead[0]}</p>}

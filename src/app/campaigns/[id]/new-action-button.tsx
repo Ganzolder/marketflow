@@ -131,6 +131,11 @@ export function NewActionButton({ campaignId }: { campaignId: string }) {
                                 <Input id="marketingHead" name="marketingHead" placeholder="Петров Петр Петрович" />
                                 {state.errors?.marketingHead && <p className="text-sm text-destructive">{state.errors.marketingHead[0]}</p>}
                             </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="salesHead">ФИО руководителя отдела продаж</Label>
+                                <Input id="salesHead" name="salesHead" placeholder="Смирнова Ольга Ивановна" />
+                                {state.errors?.salesHead && <p className="text-sm text-destructive">{state.errors.salesHead[0]}</p>}
+                            </div>
                              <div className="grid gap-2">
                                 <Label htmlFor="financeHead">ФИО руководителя финансового отдела</Label>
                                 <Input id="financeHead" name="financeHead" placeholder="Сидорова Анна Викторовна" />

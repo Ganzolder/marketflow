@@ -69,6 +69,7 @@ export type Action = {
   financeHead?: string;
   itHead?: string;
   curator?: string;
+  salesHead?: string;
 };
 
 export type CampaignStatus = 'active' | 'planned' | 'completed' | 'paused';
@@ -131,5 +132,6 @@ export type ResponsibilityFormState = {
         financeHead?: string[];
         itHead?: string[];
         curator?: string[];
+        salesHead?: string[];
     }
 }

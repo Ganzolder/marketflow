@@ -3,7 +3,7 @@
 
 import type { Action } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { User, Building2, Briefcase, Bot } from 'lucide-react';
+import { User, Building2, Briefcase, Bot, UserCheck } from 'lucide-react';
 import { EditActionResponsibilityButton } from './edit-action-responsibility-button';
 
 type ResponsibilityItemProps = {
@@ -40,6 +40,7 @@ export function ActionResponsibilityCard({ action, campaignId }: { action: Actio
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <ResponsibilityItem icon={User} label="Ответственный" value={action.responsiblePerson} />
                     <ResponsibilityItem icon={Building2} label="Руководитель по маркетингу" value={action.marketingHead} />
+                    <ResponsibilityItem icon={UserCheck} label="Руководитель отдела продаж" value={action.salesHead} />
                     <ResponsibilityItem icon={Briefcase} label="Руководитель по финансам" value={action.financeHead} />
                     <ResponsibilityItem icon={Bot} label="Руководитель по IT" value={action.itHead} />
                     <ResponsibilityItem icon={User} label="Куратор" value={action.curator} />
