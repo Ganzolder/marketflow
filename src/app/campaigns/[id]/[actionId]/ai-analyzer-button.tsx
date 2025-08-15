@@ -42,7 +42,7 @@ export function AiAnalyzerButton({ action, campaign }: { action: Action, campaig
             <DialogTrigger asChild>
                 <Button variant="outline">
                     <Wand2 className="mr-2 h-4 w-4" />
-                    AI Анализатор
+                    AI Анализ
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-2xl">
