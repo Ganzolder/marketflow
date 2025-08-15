@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/status-badge';
-import { Calendar as CalendarIcon, Target, Users, Landmark, ArrowRight, TrendingUp, CalendarDays, LocateFixed, History, Ruble, Edit } from 'lucide-react';
+import { Calendar as CalendarIcon, Target, Users, Landmark, ArrowRight, TrendingUp, CalendarDays, LocateFixed, History, Ruble, Edit, User, Building2, Briefcase, Bot, UserCheck } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { NewActivityButton } from './new-activity-button';
 import { EditActivityButton } from './edit-activity-button';
@@ -24,7 +24,6 @@ import { GeneralExpensesList } from './general-expenses-list';
 import { UpdateActionSummaryKpisForm } from './update-action-summary-kpis';
 import { ActionEffectivenessCard } from './action-effectiveness-card';
 import { UpdateActionStatus } from './update-action-status';
-import { ActionResponsibilityCard } from './action-responsibility-card';
 import { ActionPageHeaderActions } from './action-page-header-actions';
 import { EditActionButton } from './edit-action-button';
 
@@ -34,6 +33,24 @@ type ActionDetailPageProps = {
     actionId: string;
   };
 };
+
+type ResponsibilityItemProps = {
+    icon: React.ElementType;
+    label: string;
+    value?: string;
+}
+
+function ResponsibilityItem({ icon: Icon, label, value }: ResponsibilityItemProps) {
+    return (
+        <div className="flex items-start gap-4">
+            <Icon className="h-5 w-5 text-muted-foreground mt-1 flex-shrink-0" />
+            <div className="flex-1">
+                <p className="text-sm text-muted-foreground">{label}</p>
+                <p className="font-medium">{value || '—'}</p>
+            </div>
+        </div>
+    )
+}
 
 export default async function ActionDetailPage({ params: paramsPromise }: ActionDetailPageProps) {
   const params = await paramsPromise;
@@ -155,7 +172,25 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
           </CardContent>
         </Card>
 
-        <ActionResponsibilityCard action={action} campaignId={campaign.id} />
+        <Card>
+            <CardHeader>
+                <CardTitle>Ответственные лица</CardTitle>
+                <CardDescription>
+                    Ключевые участники, задействованные в акции.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <ResponsibilityItem icon={User} label="Ответственный" value={action.responsiblePerson} />
+                    <ResponsibilityItem icon={Building2} label="Руководитель по маркетингу" value={action.marketingHead} />
+                    <ResponsibilityItem icon={UserCheck} label="Руководитель отдела продаж" value={action.salesHead} />
+                    <ResponsibilityItem icon={Briefcase} label="Руководитель по финансам" value={action.financeHead} />
+                    <ResponsibilityItem icon={Bot} label="Руководитель по IT" value={action.itHead} />
+                    <ResponsibilityItem icon={User} label="Куратор" value={action.curator} />
+                </div>
+            </CardContent>
+        </Card>
+
 
         <ActionEffectivenessCard action={action} campaignId={campaign.id} locale={locale} currencyOptions={currencyOptions} totalSpent={totalSpent} />
         
@@ -301,3 +336,5 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
     </div>
   );
 }
+
+    

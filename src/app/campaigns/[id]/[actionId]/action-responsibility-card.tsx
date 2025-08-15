@@ -4,7 +4,7 @@
 import type { Action } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { User, Building2, Briefcase, Bot, UserCheck } from 'lucide-react';
-import { EditActionResponsibilityButton } from './edit-action-responsibility-button';
+import { EditActionButton } from './edit-action-button';
 
 type ResponsibilityItemProps = {
     icon: React.ElementType;
@@ -34,7 +34,7 @@ export function ActionResponsibilityCard({ action, campaignId }: { action: Actio
                         Ключевые участники, задействованные в акции.
                     </CardDescription>
                 </div>
-                <EditActionResponsibilityButton action={action} campaignId={campaignId} />
+                <EditActionButton action={action} campaignId={campaignId} />
             </CardHeader>
             <CardContent>
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -49,3 +49,5 @@ export function ActionResponsibilityCard({ action, campaignId }: { action: Actio
         </Card>
     )
 }
+
+    
