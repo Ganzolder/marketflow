@@ -100,12 +100,21 @@ function PrintContent({ action, campaign }: { action: Action, campaign: Campaign
                         border-collapse: collapse;
                     }
                     .print-table th, .print-table td {
-                        border: 1px solid black;
+                        border: 1px solid #dee2e6;
                         padding: 8px;
                         text-align: left;
                     }
                     .print-table th {
-                        background-color: #f2f2f2;
+                        background-color: #eaf4ff !important;
+                        color: #000 !important;
+                        font-weight: bold;
+                    }
+                    .print-table tr:nth-child(even) {
+                        background-color: #f8f9fa !important;
+                    }
+                    .print-table tfoot {
+                        font-weight: bold;
+                        background-color: #eaf4ff !important;
                     }
                 `}
             </style>
