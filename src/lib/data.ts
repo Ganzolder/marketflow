@@ -119,6 +119,7 @@ export async function addAction(campaignId: string, action: Omit<Action, 'id' | 
         actualAverageCheck: 0,
         plannedMarginality: 0,
         actualMarginality: 0,
+        conditions: '',
     };
     await updateDoc(campaignRef, {
         actions: arrayUnion(newAction)
@@ -512,6 +513,7 @@ export async function getCampaignById(id: string): Promise<Campaign | undefined>
               if (!action.actualAverageCheck) action.actualAverageCheck = 0;
               if (!action.plannedMarginality) action.plannedMarginality = 0;
               if (!action.actualMarginality) action.actualMarginality = 0;
+              if (!action.conditions) action.conditions = '';
               if (action.activities) {
                   action.activities.forEach(activity => {
                       if (!activity.expenses) activity.expenses = [];
@@ -965,5 +967,28 @@ export async function updateActionResponsibility(campaignId: string, actionId: s
     } catch(e) {
         console.error("Update action responsibility transaction failed: ", e);
         throw e;
+    }
+}
+
+
+export async function updateActionConditions(campaignId: string, actionId: string, conditions: string) {
+    const campaignRef = doc(db, 'campaigns', campaignId);
+    try {
+        await runTransaction(db, async (transaction) => {
+            const campaignDoc = await transaction.get(campaignRef);
+            if (!campaignDoc.exists()) throw new Error("Campaign document does not exist!");
+
+            const campaignData = campaignDoc.data() as Campaign;
+            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
+            if (actionIndex === -1) throw new Error("Action not found in this campaign!");
+
+            const newActions = [...campaignData.actions];
+            newActions[actionIndex].conditions = conditions;
+
+            transaction.update(campaignRef, { actions: newActions });
+        });
+    } catch (e) {
+        console.error("Transaction failed: ", e);
+        throw new Error('Failed to update action conditions.');
     }
 }

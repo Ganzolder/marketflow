@@ -52,6 +52,7 @@ export type Action = {
   id: string;
   name: string;
   description?: string;
+  conditions?: string;
   targetAudience?: string;
   status: ActionStatus;
   startDate: string;

@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Edit } from "lucide-react";
+import { MoreHorizontal, Edit, FileText as FileTextIcon } from "lucide-react";
 import { PrintEstimateButton } from "./print-estimate-button";
 import { PrintOrderButton } from "./print-order-button";
 import { PrintReportButton } from "./print-report-button";
@@ -17,6 +17,7 @@ import { AiAnalyzerButton } from "./ai-analyzer-button";
 import type { Action, Campaign } from "@/lib/types";
 import { EditActionButton } from "./edit-action-button";
 import { EditActionResponsibilityButton } from "./edit-action-responsibility-button";
+import { EditActionConditionsButton } from "./edit-action-conditions-button";
 
 export function ActionPageHeaderActions({ action, campaign }: { action: Action; campaign: Campaign }) {
   return (
@@ -33,6 +34,9 @@ export function ActionPageHeaderActions({ action, campaign }: { action: Action; 
          </DropdownMenuItem>
          <DropdownMenuItem asChild>
             <EditActionResponsibilityButton action={action} campaignId={campaign.id} asChild={true} />
+         </DropdownMenuItem>
+         <DropdownMenuItem asChild>
+            <EditActionConditionsButton action={action} campaignId={campaign.id} asChild={true} />
          </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
