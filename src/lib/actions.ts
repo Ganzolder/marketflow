@@ -17,15 +17,16 @@ const ActionSchema = z.object({
   endDate: z.string().refine((date) => !isNaN(Date.parse(date)), { message: "Неверный формат даты окончания." }),
   status: z.enum(['planned', 'in-progress', 'completed']),
   campaignId: z.string(),
-  responsiblePerson: z.string().optional().nullable(),
-  marketingHead: z.string().optional().nullable(),
-  financeHead: z.string().optional().nullable(),
-  itHead: z.string().optional().nullable(),
-  curator: z.string().optional().nullable(),
-  salesHead: z.string().optional().nullable(),
 });
 
-const AddActionSchema = ActionSchema.extend({});
+const AddActionSchema = ActionSchema.extend({
+    responsiblePerson: z.string().optional().nullable(),
+    marketingHead: z.string().optional().nullable(),
+    financeHead: z.string().optional().nullable(),
+    itHead: z.string().optional().nullable(),
+    curator: z.string().optional().nullable(),
+    salesHead: z.string().optional().nullable(),
+});
 
 const EditActionSchema = ActionSchema.extend({
   id: z.string(),
@@ -56,7 +57,7 @@ export async function addActionToCampaign(
   formData: FormData
 ): Promise<ActionFormState> {
   
-  const validatedFields = AddActionSchema.safeParse({
+  const validatedFields = ActionSchema.safeParse({
     name: formData.get('action-name'),
     description: formData.get('description'),
     targetAudience: formData.get('target-audience'),
@@ -64,12 +65,6 @@ export async function addActionToCampaign(
     endDate: formData.get('end-date'),
     status: formData.get('status'),
     campaignId: formData.get('campaignId'),
-    responsiblePerson: formData.get('responsiblePerson'),
-    marketingHead: formData.get('marketingHead'),
-    financeHead: formData.get('financeHead'),
-    itHead: formData.get('itHead'),
-    curator: formData.get('curator'),
-    salesHead: formData.get('salesHead'),
   });
 
   if (!validatedFields.success) {
@@ -106,12 +101,6 @@ export async function editActionInCampaign(
     endDate: formData.get('end-date'),
     status: formData.get('status'),
     campaignId: formData.get('campaignId'),
-    responsiblePerson: formData.get('responsiblePerson'),
-    marketingHead: formData.get('marketingHead'),
-    financeHead: formData.get('financeHead'),
-    itHead: formData.get('itHead'),
-    curator: formData.get('curator'),
-    salesHead: formData.get('salesHead'),
   });
 
   if (!validatedFields.success) {
@@ -350,7 +339,7 @@ export async function deleteActivity(prevState: DeleteFormState | null, formData
     try {
         await deleteActivityData(campaignId, actionId, activityId);
     } catch (e) {
-        const errorMessage = e instanceof Error ? error.message : "Произошла неизвестная ошибка.";
+        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
         return { message: `Ошибка базы данных: не удалось удалить активность. ${errorMessage}`, error: true };
     }
 
