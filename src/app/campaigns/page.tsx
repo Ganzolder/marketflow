@@ -13,35 +13,31 @@ import { PageHeader } from '@/components/page-header';
 import { getCampaigns } from '@/lib/data';
 import { UpdateCampaignStatus } from './update-campaign-status';
 import { Progress } from '@/components/ui/progress';
-import { CampaignStatusFilter } from './campaign-status-filter';
 import type { CampaignStatus } from '@/lib/types';
 import { EditCampaignButton } from './edit-campaign-button';
 import { DeleteCampaignButton } from './delete-campaign-button';
 import { NewCampaignButton } from './new-campaign-button';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, Landmark, TrendingUp, ShoppingCart, PiggyBank, BarChart, FilePlus, EyeOff } from 'lucide-react';
+import { Calendar, Landmark, TrendingUp, ShoppingCart, PiggyBank, BarChart, FilePlus, EyeOff, Archive, ArchiveRestore } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { ArchiveCampaignButton } from './archive-campaign-button';
+import { Button } from '@/components/ui/button';
 
 type CampaignsPageProps = {
   searchParams: {
-    status?: CampaignStatus;
+    view?: 'archived';
   }
 }
 
 export default async function CampaignsPage({ searchParams }: CampaignsPageProps) {
   const campaigns = await getCampaigns();
-  const selectedStatus = searchParams.status;
+  const view = searchParams.view;
   
   const filteredCampaigns = campaigns.filter(c => {
-    if (selectedStatus && selectedStatus !== 'all') {
-        return c.status === selectedStatus;
+    if (view === 'archived') {
+        return c.status === 'archived';
     }
-    // By default, hide archived campaigns
-    if (!selectedStatus || selectedStatus === 'all') {
-        return c.status !== 'archived';
-    }
-    return true;
+    return c.status !== 'archived';
   });
 
   const locale = 'ru-RU';
@@ -53,7 +49,21 @@ export default async function CampaignsPage({ searchParams }: CampaignsPageProps
     <div>
       <PageHeader title="Кампании" description="Управляйте и отслеживайте все ваши маркетинговые кампании.">
         <div className="flex flex-wrap gap-2 w-full md:w-auto">
-          <CampaignStatusFilter />
+          {view === 'archived' ? (
+              <Button asChild variant="outline">
+                <Link href="/campaigns">
+                  <ArchiveRestore className="mr-2 h-4 w-4" />
+                  Показать активные
+                </Link>
+              </Button>
+          ) : (
+             <Button asChild variant="outline">
+                <Link href="/campaigns?view=archived">
+                  <Archive className="mr-2 h-4 w-4" />
+                  Показать архивные
+                </Link>
+              </Button>
+          )}
           <NewCampaignButton />
         </div>
       </PageHeader>
@@ -228,7 +238,7 @@ export default async function CampaignsPage({ searchParams }: CampaignsPageProps
                 <CardContent className="text-center h-48 flex flex-col items-center justify-center text-muted-foreground">
                     <FilePlus className="w-8 h-8 mb-2" />
                     <p>
-                        {selectedStatus ? 'Нет кампаний, соответствующих вашим фильтрам.' : 'Кампании еще не созданы.'}
+                        {view === 'archived' ? 'Нет кампаний в архиве.' : 'Кампании еще не созданы.'}
                     </p>
                 </CardContent>
             </Card>
