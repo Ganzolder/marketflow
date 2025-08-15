@@ -17,7 +17,7 @@ const statusTranslations: Record<CampaignStatus, string> = {
   planned: "Запланирована",
   completed: "Завершена",
   paused: "Приостановлена",
-  archived: "Архивные",
+  archived: "В архиве",
 }
 
 export function CampaignStatusFilter() {
