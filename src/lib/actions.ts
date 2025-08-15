@@ -3,9 +3,9 @@
 "use server";
 
 import { z } from "zod";
-import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData } from "./data";
+import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData } from "./data";
 import { revalidatePath } from "next/cache";
-import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog, Campaign } from "./types";
+import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog, Campaign, ResponsibilityFormState } from "./types";
 import { redirect } from "next/navigation";
 import { analyzeActionPerformance, type AnalyzeActionPerformanceOutput } from "@/ai/flows/analyze-action-performance";
 
@@ -1002,4 +1002,47 @@ export async function analyzeAction(action: Action, campaign: Campaign): Promise
         const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка при анализе.";
         return { status: 'error', error: errorMessage };
     }
+}
+
+// --- Responsibility Actions ---
+const ResponsibilitySchema = z.object({
+  campaignId: z.string(),
+  actionId: z.string(),
+  responsiblePerson: z.string().optional(),
+  marketingHead: z.string().optional(),
+  financeHead: z.string().optional(),
+  itHead: z.string().optional(),
+  curator: z.string().optional(),
+});
+
+export async function updateActionResponsibility(prevState: ResponsibilityFormState, formData: FormData): Promise<ResponsibilityFormState> {
+  const validatedFields = ResponsibilitySchema.safeParse({
+    campaignId: formData.get('campaignId'),
+    actionId: formData.get('actionId'),
+    responsiblePerson: formData.get('responsiblePerson'),
+    marketingHead: formData.get('marketingHead'),
+    financeHead: formData.get('financeHead'),
+    itHead: formData.get('itHead'),
+    curator: formData.get('curator'),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      message: "Ошибка валидации.",
+      error: true,
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+
+  const { campaignId, actionId, ...responsibilityData } = validatedFields.data;
+
+  try {
+    await updateActionResponsibilityData(campaignId, actionId, responsibilityData);
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+    return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
+  }
+
+  revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+  return { message: "Ответственные лица обновлены." };
 }

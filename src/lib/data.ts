@@ -925,3 +925,25 @@ export async function deleteKpiMetric(campaignId: string, actionId: string, acti
         throw e;
     }
 }
+
+export async function updateActionResponsibility(campaignId: string, actionId: string, data: Partial<Pick<Action, 'responsiblePerson' | 'marketingHead' | 'financeHead' | 'itHead' | 'curator'>>) {
+    const campaignRef = doc(db, 'campaigns', campaignId);
+    try {
+        await runTransaction(db, async (transaction) => {
+            const campaignDoc = await transaction.get(campaignRef);
+            if (!campaignDoc.exists()) throw new Error("Campaign not found");
+            const campaignData = campaignDoc.data() as Campaign;
+            
+            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
+            if (actionIndex === -1) throw new Error("Action not found");
+
+            const newActions = [...campaignData.actions];
+            newActions[actionIndex] = { ...newActions[actionIndex], ...data };
+
+            transaction.update(campaignRef, { actions: newActions });
+        });
+    } catch(e) {
+        console.error("Update action responsibility transaction failed: ", e);
+        throw e;
+    }
+}

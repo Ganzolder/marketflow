@@ -121,3 +121,15 @@ export type CampaignFormState = {
     endDate?: string[];
   };
 };
+
+export type ResponsibilityFormState = {
+    message: string;
+    error?: boolean;
+    errors?: {
+        responsiblePerson?: string[];
+        marketingHead?: string[];
+        financeHead?: string[];
+        itHead?: string[];
+        curator?: string[];
+    }
+}

@@ -25,6 +25,7 @@ import { UpdateActionSummaryKpisForm } from './update-action-summary-kpis';
 import { ActionEffectivenessCard } from './action-effectiveness-card';
 import { UpdateActionStatus } from './update-action-status';
 import { AiAnalyzerButton } from './ai-analyzer-button';
+import { ActionResponsibilityCard } from './action-responsibility-card';
 
 type ActionDetailPageProps = {
   params: {
@@ -151,6 +152,8 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
             )}
           </CardContent>
         </Card>
+
+        <ActionResponsibilityCard action={action} campaignId={campaign.id} />
 
         <ActionEffectivenessCard action={action} campaignId={campaign.id} locale={locale} currencyOptions={currencyOptions} totalSpent={totalSpent} />
         
