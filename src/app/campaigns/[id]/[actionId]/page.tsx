@@ -92,7 +92,7 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
     <div>
       <PageHeader title={action.name} description={`Акция в рамках кампании: ${campaign.name}`}>
         <div className="flex gap-2">
-            <PrintOrderButton />
+            <PrintOrderButton action={action} campaign={campaign} />
             <AiAnalyzerButton action={action} campaign={campaign} />
         </div>
       </PageHeader>
