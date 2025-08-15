@@ -20,12 +20,6 @@ const ActionSchema = z.object({
 });
 
 const AddActionSchema = ActionSchema.extend({
-    responsiblePerson: z.string().optional().nullable(),
-    marketingHead: z.string().optional().nullable(),
-    financeHead: z.string().optional().nullable(),
-    itHead: z.string().optional().nullable(),
-    curator: z.string().optional().nullable(),
-    salesHead: z.string().optional().nullable(),
 });
 
 const EditActionSchema = ActionSchema.extend({
@@ -57,7 +51,7 @@ export async function addActionToCampaign(
   formData: FormData
 ): Promise<ActionFormState> {
   
-  const validatedFields = ActionSchema.safeParse({
+  const validatedFields = AddActionSchema.safeParse({
     name: formData.get('action-name'),
     description: formData.get('description'),
     targetAudience: formData.get('target-audience'),
@@ -815,23 +809,27 @@ const CampaignSchema = z.object({
 export type CampaignFormState = {
   message: string;
   error?: boolean;
-  errors?: z.ZodError<z.infer<typeof CampaignSchema>>['formErrors']['fieldErrors']
+  errors?: z.ZodError<z.infer<typeof CampaignSchema>>['formErrors']['fieldErrors'];
+  fields?: Record<string, any>;
 }
 
 export async function createCampaign(prevState: CampaignFormState, formData: FormData): Promise<CampaignFormState> {
-    const validatedFields = CampaignSchema.safeParse({
+    const rawFormData = {
         name: formData.get('name'),
         description: formData.get('description'),
         budget: formData.get('budget'),
         startDate: formData.get('startDate'),
         endDate: formData.get('endDate'),
-    });
+    };
+    
+    const validatedFields = CampaignSchema.safeParse(rawFormData);
 
     if (!validatedFields.success) {
         return {
             message: "Ошибка валидации.",
             error: true,
             errors: validatedFields.error.flatten().fieldErrors,
+            fields: rawFormData,
         };
     }
 
@@ -839,7 +837,11 @@ export async function createCampaign(prevState: CampaignFormState, formData: For
         await createCampaignData(validatedFields.data);
     } catch (e) {
         const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
-        return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
+        return { 
+            message: `Ошибка базы данных: ${errorMessage}`, 
+            error: true,
+            fields: rawFormData,
+        };
     }
 
     revalidatePath(`/campaigns`);
@@ -851,20 +853,23 @@ export async function editCampaign(prevState: CampaignFormState, formData: FormD
     if (!campaignId) {
         return { message: "ID кампании отсутствует.", error: true };
     }
-
-    const validatedFields = CampaignSchema.safeParse({
+    
+    const rawFormData = {
         name: formData.get('name'),
         description: formData.get('description'),
         budget: formData.get('budget'),
         startDate: formData.get('startDate'),
         endDate: formData.get('endDate'),
-    });
+    };
+
+    const validatedFields = CampaignSchema.safeParse(rawFormData);
 
     if (!validatedFields.success) {
         return {
             message: "Ошибка валидации.",
             error: true,
             errors: validatedFields.error.flatten().fieldErrors,
+            fields: rawFormData,
         };
     }
 
@@ -872,7 +877,11 @@ export async function editCampaign(prevState: CampaignFormState, formData: FormD
         await updateCampaignData(campaignId, validatedFields.data);
     } catch (e) {
         const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
-        return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
+        return { 
+            message: `Ошибка базы данных: ${errorMessage}`, 
+            error: true,
+            fields: rawFormData,
+        };
     }
 
     revalidatePath(`/campaigns`);

@@ -19,11 +19,21 @@ export function EditCampaignButton({ campaign, asIcon = false }: { campaign: Cam
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
     
-    const initialState: CampaignFormState = { message: "", errors: {} };
+    const initialState: CampaignFormState = { 
+        message: "", 
+        errors: {}, 
+        fields: {
+            name: campaign.name,
+            description: campaign.description,
+            budget: campaign.budget.toString(),
+            startDate: campaign.startDate,
+            endDate: campaign.endDate,
+        } 
+    };
     const [state, formAction] = useActionState(editCampaign, initialState);
 
     useEffect(() => {
-        if (state.message && state.errors) {
+        if (state.message && state.error) {
             toast({
                 variant: "destructive",
                 title: "Ошибка",
@@ -67,28 +77,28 @@ export function EditCampaignButton({ campaign, asIcon = false }: { campaign: Cam
                     <div className="grid gap-6 py-4">
                         <div className="grid gap-2">
                             <Label htmlFor="name">Название</Label>
-                            <Input id="name" name="name" defaultValue={campaign.name} />
+                            <Input id="name" name="name" defaultValue={state.fields?.name} />
                             {state.errors?.name && <p className="text-sm text-destructive">{state.errors.name[0]}</p>}
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="description">Описание</Label>
-                            <Textarea id="description" name="description" defaultValue={campaign.description} />
+                            <Textarea id="description" name="description" defaultValue={state.fields?.description} />
                             {state.errors?.description && <p className="text-sm text-destructive">{state.errors.description[0]}</p>}
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="budget">Бюджет (р.)</Label>
-                                <Input id="budget" name="budget" type="number" defaultValue={campaign.budget} />
+                                <Input id="budget" name="budget" type="number" defaultValue={state.fields?.budget} />
                                 {state.errors?.budget && <p className="text-sm text-destructive">{state.errors.budget[0]}</p>}
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="startDate">Дата начала</Label>
-                                <Input id="startDate" name="startDate" type="date" defaultValue={campaign.startDate} />
+                                <Input id="startDate" name="startDate" type="date" defaultValue={state.fields?.startDate} />
                                 {state.errors?.startDate && <p className="text-sm text-destructive">{state.errors.startDate[0]}</p>}
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="endDate">Дата окончания</Label>
-                                <Input id="endDate" name="endDate" type="date" defaultValue={campaign.endDate} />
+                                <Input id="endDate" name="endDate" type="date" defaultValue={state.fields?.endDate} />
                                 {state.errors?.endDate && <p className="text-sm text-destructive">{state.errors.endDate[0]}</p>}
                             </div>
                         </div>

@@ -122,6 +122,7 @@ export type CampaignFormState = {
     startDate?: string[];
     endDate?: string[];
   };
+  fields?: Record<string, any>;
 };
 
 export type ResponsibilityFormState = {
