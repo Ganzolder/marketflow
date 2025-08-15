@@ -49,7 +49,7 @@ function PrintContent({ action, campaign }: { action: Action, campaign: Campaign
             <div className="print-content font-serif text-sm">
                 <div className="min-h-[90vh] flex flex-col justify-between items-center text-center page-break">
                     <div className="flex-grow flex items-center">
-                        <h1 className="text-2xl font-bold">Приказ о проведении маркетингового мероприятия</h1>
+                        <h1 className="text-2xl font-bold">Приказ о проведении маркетингового мероприятия "{action.name}" в рамках кампании "{campaign.name}"</h1>
                     </div>
                     <div className="w-full text-left">
                         <p>№ ______</p>
@@ -104,7 +104,6 @@ export function PrintOrderButton({ action, campaign }: { action: Action, campaig
             const printWindow = window.open('', '_blank', 'height=800,width=800');
             if (printWindow) {
                 printWindow.document.write('<html><head><title>Печать приказа</title>');
-                // Include Tailwind styles for consistent look
                 const styles = Array.from(document.styleSheets)
                     .map(styleSheet => {
                         try {
