@@ -24,10 +24,8 @@ import { GeneralExpensesList } from './general-expenses-list';
 import { UpdateActionSummaryKpisForm } from './update-action-summary-kpis';
 import { ActionEffectivenessCard } from './action-effectiveness-card';
 import { UpdateActionStatus } from './update-action-status';
-import { AiAnalyzerButton } from './ai-analyzer-button';
 import { ActionResponsibilityCard } from './action-responsibility-card';
-import { PrintOrderButton } from './print-order-button';
-import { PrintEstimateButton } from './print-estimate-button';
+import { ActionPageHeaderActions } from './action-page-header-actions';
 
 type ActionDetailPageProps = {
   params: {
@@ -92,11 +90,7 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
   return (
     <div>
       <PageHeader title={action.name} description={`Акция в рамках кампании: ${campaign.name}`}>
-        <div className="flex gap-2">
-            <PrintEstimateButton action={action} campaign={campaign} />
-            <PrintOrderButton action={action} campaign={campaign} />
-            <AiAnalyzerButton action={action} campaign={campaign} />
-        </div>
+        <ActionPageHeaderActions action={action} campaign={campaign} />
       </PageHeader>
 
       <div className="grid gap-8">

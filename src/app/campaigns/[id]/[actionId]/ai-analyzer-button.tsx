@@ -11,7 +11,7 @@ import { analyzeAction, type AnalyzeActionState } from '@/lib/actions';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 
-export function AiAnalyzerButton({ action, campaign }: { action: Action, campaign: Campaign }) {
+export function AiAnalyzerButton({ action, campaign, asChild = true }: { action: Action, campaign: Campaign, asChild?: boolean }) {
     const [open, setOpen] = useState(false);
     const [state, setState] = useState<AnalyzeActionState>({ status: 'idle' });
     const { toast } = useToast();
@@ -36,14 +36,18 @@ export function AiAnalyzerButton({ action, campaign }: { action: Action, campaig
             setState({ status: 'idle' });
         }
     }
+    
+    const TriggerButton = (
+        <Button variant={asChild ? "ghost" : "outline"} className={asChild ? "w-full justify-start p-2 h-auto" : ""}>
+            <Wand2 className="mr-2 h-4 w-4" />
+            AI Анализ
+        </Button>
+    );
 
     return (
         <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>
-                <Button variant="outline">
-                    <Wand2 className="mr-2 h-4 w-4" />
-                    AI Анализ
-                </Button>
+                {TriggerButton}
             </DialogTrigger>
             <DialogContent className="sm:max-w-2xl">
                 <DialogHeader>

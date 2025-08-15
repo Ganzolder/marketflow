@@ -113,7 +113,7 @@ function PrintContent({ action, campaign }: { action: Action, campaign: Campaign
 };
 
 
-export function PrintEstimateButton({ action, campaign }: { action: Action, campaign: Campaign }) {
+export function PrintEstimateButton({ action, campaign, asChild = true }: { action: Action, campaign: Campaign, asChild?: boolean }) {
     const componentRef = useRef<HTMLDivElement>(null);
     
     const handlePrint = () => {
@@ -146,14 +146,17 @@ export function PrintEstimateButton({ action, campaign }: { action: Action, camp
         }
     };
 
+    const TriggerButton = (
+        <Button variant={asChild ? "ghost" : "outline"} className={asChild ? "w-full justify-start p-2 h-auto" : ""}>
+            <FileText className="mr-2 h-4 w-4" />
+            Смета акции
+        </Button>
+    );
 
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button variant="outline">
-                    <FileText className="mr-2 h-4 w-4" />
-                    Смета акции
-                </Button>
+                {TriggerButton}
             </DialogTrigger>
             <DialogContent className="sm:max-w-4xl h-[90vh] flex flex-col">
                 <DialogHeader>
