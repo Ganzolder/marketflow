@@ -5,7 +5,7 @@ import React, { useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Printer, BarChart } from "lucide-react";
-import type { Action, Campaign } from '@/lib/types';
+import type { Action, Campaign, Expense } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 
 function PrintContent({ action, campaign }: { action: Action, campaign: Campaign }) {
@@ -60,6 +60,14 @@ function PrintContent({ action, campaign }: { action: Action, campaign: Campaign
       });
 
     const aggregatedKpisArray = Object.entries(aggregatedKpis).map(([name, data]) => ({ name, ...data }));
+    
+    type EnrichedExpense = Expense & { activityName?: string; };
+    const allExpenses: EnrichedExpense[] = [
+      ...(action.generalExpenses || []).map(exp => ({ ...exp, activityName: 'Общий расход' })),
+      ...(action.activities || []).flatMap(activity => 
+          (activity.expenses || []).map(exp => ({ ...exp, activityName: activity.name }))
+      )
+    ].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
 
     return (
@@ -155,6 +163,39 @@ function PrintContent({ action, campaign }: { action: Action, campaign: Campaign
                         ))}
                     </tbody>
                 </table>
+                
+                <h3 className="font-bold text-base mt-8 mb-2">3. Детализация расходов</h3>
+                {allExpenses.length > 0 ? (
+                    <table className="print-table">
+                        <thead>
+                            <tr>
+                                <th>Дата</th>
+                                <th>Описание</th>
+                                <th>Активность</th>
+                                <th className="text-right">Сумма</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {allExpenses.map(expense => (
+                                <tr key={expense.id}>
+                                    <td>{formatDate(expense.date)}</td>
+                                    <td>{expense.description}</td>
+                                    <td>{expense.activityName}</td>
+                                    <td className="text-right">{expense.amount.toLocaleString(locale)} ₽</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colSpan={3} className="text-right font-bold">Итого расходов:</td>
+                                <td className="text-right font-bold">{actualTotalSpent.toLocaleString(locale)} ₽</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                ) : (
+                    <p>Фактические расходы не зафиксированы.</p>
+                )}
+
 
                 <div className="mt-12 grid grid-cols-2 gap-8">
                     <div>
@@ -239,3 +280,5 @@ export function PrintReportButton({ action, campaign, asChild = true }: { action
         </Dialog>
     )
 }
+
+  
