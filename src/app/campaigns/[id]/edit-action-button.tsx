@@ -61,6 +61,8 @@ export function EditActionButton({ action, campaignId }: { action: Action, campa
         e.preventDefault();
         setOpen(true);
     }
+    
+    const stopPropagation = (e: React.MouseEvent) => e.stopPropagation();
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -70,7 +72,7 @@ export function EditActionButton({ action, campaignId }: { action: Action, campa
                     <span className="sr-only">Редактировать акцию</span>
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[625px]">
+            <DialogContent className="sm:max-w-[625px]" onClick={stopPropagation}>
                 <DialogHeader>
                     <DialogTitle>Редактировать акцию</DialogTitle>
                     <DialogDescription>
