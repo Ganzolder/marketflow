@@ -17,31 +17,18 @@ const ActionSchema = z.object({
   endDate: z.string().refine((date) => !isNaN(Date.parse(date)), { message: "Неверный формат даты окончания." }),
   status: z.enum(['planned', 'in-progress', 'completed']),
   campaignId: z.string(),
-  responsiblePerson: z.string().optional(),
-  marketingHead: z.string().optional(),
-  financeHead: z.string().optional(),
-  itHead: z.string().optional(),
-  curator: z.string().optional(),
-  salesHead: z.string().optional(),
+  responsiblePerson: z.string().optional().nullable(),
+  marketingHead: z.string().optional().nullable(),
+  financeHead: z.string().optional().nullable(),
+  itHead: z.string().optional().nullable(),
+  curator: z.string().optional().nullable(),
+  salesHead: z.string().optional().nullable(),
 });
 
-const AddActionSchema = ActionSchema.extend({
-  responsiblePerson: z.string().optional(),
-  marketingHead: z.string().optional(),
-  financeHead: z.string().optional(),
-  itHead: z.string().optional(),
-  curator: z.string().optional(),
-  salesHead: z.string().optional(),
-});
+const AddActionSchema = ActionSchema.extend({});
 
 const EditActionSchema = ActionSchema.extend({
   id: z.string(),
-  responsiblePerson: z.string().optional(),
-  marketingHead: z.string().optional(),
-  financeHead: z.string().optional(),
-  itHead: z.string().optional(),
-  curator: z.string().optional(),
-  salesHead: z.string().optional(),
 });
 
 export type ActionFormState = {
