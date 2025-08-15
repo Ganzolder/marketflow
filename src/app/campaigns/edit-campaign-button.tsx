@@ -38,11 +38,13 @@ export function EditCampaignButton({ campaign, asIcon = false }: { campaign: Cam
         }
     }, [state, toast]);
 
+    const stopPropagation = (e: React.MouseEvent) => e.stopPropagation();
+
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 {asIcon ? (
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" onClick={stopPropagation}>
                         <Edit className="h-4 w-4" />
                         <span className="sr-only">Редактировать кампанию</span>
                     </Button>
