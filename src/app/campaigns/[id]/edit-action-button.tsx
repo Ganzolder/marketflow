@@ -81,10 +81,10 @@ export function EditActionButton({ action, campaignId }: { action: Action, campa
                     </DialogDescription>
                 </DialogHeader>
                 <form action={dispatch} ref={formRef}>
-                    <input type="hidden" name="campaignId" value={campaignId} />
-                    <input type="hidden" name="actionId" value={action.id} />
                     <ScrollArea className="max-h-[70vh] p-1 pr-4">
                         <div className="grid gap-4 py-4">
+                            <input type="hidden" name="campaignId" value={campaignId} />
+                            <input type="hidden" name="actionId" value={action.id} />
                             <div className="grid gap-2">
                                 <Label htmlFor="action-name">Название акции</Label>
                                 <Input id="action-name" name="action-name" defaultValue={action.name} />
