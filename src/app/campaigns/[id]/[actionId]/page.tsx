@@ -26,6 +26,7 @@ import { ActionEffectivenessCard } from './action-effectiveness-card';
 import { UpdateActionStatus } from './update-action-status';
 import { AiAnalyzerButton } from './ai-analyzer-button';
 import { ActionResponsibilityCard } from './action-responsibility-card';
+import { PrintOrderButton } from './print-order-button';
 
 type ActionDetailPageProps = {
   params: {
@@ -90,7 +91,10 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
   return (
     <div>
       <PageHeader title={action.name} description={`Акция в рамках кампании: ${campaign.name}`}>
-        <AiAnalyzerButton action={action} campaign={campaign} />
+        <div className="flex gap-2">
+            <PrintOrderButton />
+            <AiAnalyzerButton action={action} campaign={campaign} />
+        </div>
       </PageHeader>
 
       <div className="grid gap-8">
