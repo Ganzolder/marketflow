@@ -98,9 +98,10 @@ function PrintContent({ action, campaign }: { action: Action, campaign: Campaign
                     .print-table {
                         width: 100%;
                         border-collapse: collapse;
+                        border: 1px solid black;
                     }
                     .print-table th, .print-table td {
-                        border: 1px solid #dee2e6;
+                        border: 1px solid black;
                         padding: 8px;
                         text-align: left;
                     }
