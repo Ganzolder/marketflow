@@ -1,4 +1,5 @@
 
+
 import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction, ActionStatus, CampaignStatus, KpiMetricLog, EnrichedActivity } from './types';
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, addDoc, writeBatch, runTransaction, deleteDoc } from "firebase/firestore";
@@ -845,6 +846,25 @@ export async function updateCampaignStatus(campaignId: string, status: CampaignS
         await updateDoc(campaignRef, { status: status });
     } catch (e) {
         console.error("Update campaign status failed: ", e);
+        throw e;
+    }
+}
+
+export async function createCampaign(data: Partial<Omit<Campaign, 'id' | 'actions' | 'goals'>>) {
+    const newCampaign: Omit<Campaign, 'id'> = {
+        name: data.name || 'Новая кампания',
+        description: data.description || '',
+        budget: data.budget || 0,
+        startDate: data.startDate || new Date().toISOString().split('T')[0],
+        endDate: data.endDate || new Date().toISOString().split('T')[0],
+        status: 'planned',
+        goals: [],
+        actions: [],
+    };
+    try {
+        await addDoc(collection(db, "campaigns"), newCampaign);
+    } catch (e) {
+        console.error("Create campaign failed: ", e);
         throw e;
     }
 }
