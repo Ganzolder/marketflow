@@ -36,6 +36,12 @@ const AddActionSchema = ActionSchema.extend({
 
 const EditActionSchema = ActionSchema.extend({
   id: z.string(),
+  responsiblePerson: z.string().optional(),
+  marketingHead: z.string().optional(),
+  financeHead: z.string().optional(),
+  itHead: z.string().optional(),
+  curator: z.string().optional(),
+  salesHead: z.string().optional(),
 });
 
 export type ActionFormState = {
@@ -1059,3 +1065,5 @@ export async function updateActionResponsibility(prevState: ResponsibilityFormSt
   revalidatePath(`/campaigns/${campaignId}/${actionId}`);
   return { message: "Ответственные лица обновлены." };
 }
+
+    
