@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/status-badge';
-import { Calendar as CalendarIcon, Target, Users, Landmark, ArrowRight, TrendingUp, CalendarDays, LocateFixed, History, Ruble } from 'lucide-react';
+import { Calendar as CalendarIcon, Target, Users, Landmark, ArrowRight, TrendingUp, CalendarDays, LocateFixed, History, Ruble, Edit } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { NewActivityButton } from './new-activity-button';
 import { EditActivityButton } from './edit-activity-button';
@@ -26,6 +26,7 @@ import { ActionEffectivenessCard } from './action-effectiveness-card';
 import { UpdateActionStatus } from './update-action-status';
 import { ActionResponsibilityCard } from './action-responsibility-card';
 import { ActionPageHeaderActions } from './action-page-header-actions';
+import { EditActionButton } from './edit-action-button';
 
 type ActionDetailPageProps = {
   params: {
@@ -95,8 +96,9 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
 
       <div className="grid gap-8">
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Информация об акции</CardTitle>
+            <EditActionButton action={action} campaignId={campaign.id} />
           </CardHeader>
           <CardContent>
              <div className="grid md:grid-cols-3 gap-6 text-sm mb-6">
