@@ -11,6 +11,7 @@ import { useReactToPrint } from 'react-to-print';
 const PrintContent = ({ action, campaign, forwardRef }: { action: Action, campaign: Campaign, forwardRef: React.Ref<HTMLDivElement> }) => {
     
     const formatDate = (dateString: string) => {
+        if (!dateString) return '__________';
         return new Date(dateString).toLocaleDateString('ru-RU', {
             day: '2-digit',
             month: '2-digit',
