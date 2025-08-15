@@ -494,7 +494,10 @@ export async function getCampaigns(): Promise<Campaign[]> {
   const campaignsCollection = collection(db, "campaigns");
   const campaignsSnapshot = await getDocs(campaignsCollection);
   if (campaignsSnapshot.empty) {
-    return await seedDatabase();
+    // Only seed if you truly want to. For this app, maybe it's better to start empty.
+    // If you want to seed, you can call it here, but it will re-seed if the user deletes everything.
+    // return await seedDatabase();
+    return [];
   }
   return campaignsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Campaign)).sort((a,b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
 }
@@ -537,12 +540,7 @@ export async function getCampaignById(id: string): Promise<Campaign | undefined>
   if (campaignSnap.exists()) {
     return processCampaignData(campaignSnap);
   } else {
-    // This should ideally not happen in a real app, but for seeding purposes:
-    await seedDatabase();
-    const campaignSnapAfterSeed = await getDoc(campaignRef);
-     if (campaignSnapAfterSeed.exists()) {
-        return processCampaignData(campaignSnapAfterSeed);
-    }
+    // This should ideally not happen in a real app. Returning undefined is better than re-seeding.
     return undefined;
   }
 }
@@ -992,3 +990,5 @@ export async function updateActionConditions(campaignId: string, actionId: strin
         throw new Error('Failed to update action conditions.');
     }
 }
+
+    
