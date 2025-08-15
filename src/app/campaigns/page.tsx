@@ -1,4 +1,5 @@
 
+
 import Link from 'next/link';
 import {
   Card,
@@ -18,8 +19,9 @@ import { EditCampaignButton } from './edit-campaign-button';
 import { DeleteCampaignButton } from './delete-campaign-button';
 import { NewCampaignButton } from './new-campaign-button';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, Landmark, TrendingUp, ShoppingCart, PiggyBank, BarChart, FilePlus } from 'lucide-react';
+import { Calendar, Landmark, TrendingUp, ShoppingCart, PiggyBank, BarChart, FilePlus, Eye, EyeOff } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { ArchiveCampaignButton } from './archive-campaign-button';
 
 type CampaignsPageProps = {
   searchParams: {
@@ -31,9 +33,16 @@ export default async function CampaignsPage({ searchParams }: CampaignsPageProps
   const campaigns = await getCampaigns();
   const selectedStatus = searchParams.status;
   
-  const filteredCampaigns = selectedStatus 
-    ? campaigns.filter(c => c.status === selectedStatus)
-    : campaigns;
+  const filteredCampaigns = campaigns.filter(c => {
+    if (selectedStatus && selectedStatus !== 'all') {
+        return c.status === selectedStatus;
+    }
+    // By default, hide archived campaigns
+    if (!selectedStatus || selectedStatus === 'all') {
+        return c.status !== 'archived';
+    }
+    return true;
+  });
 
   const locale = 'ru-RU';
   const currencyOptions = { style: 'currency', currency: 'RUB', minimumFractionDigits: 0, maximumFractionDigits: 0 };
@@ -119,6 +128,7 @@ export default async function CampaignsPage({ searchParams }: CampaignsPageProps
                      <CardDescription className="mt-1">{campaign.description}</CardDescription>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
+                    {campaign.status === 'completed' && <ArchiveCampaignButton campaignId={campaign.id} />}
                     <EditCampaignButton campaign={campaign} asIcon={true} />
                     <DeleteCampaignButton campaignId={campaign.id} asIcon={true} />
                   </div>

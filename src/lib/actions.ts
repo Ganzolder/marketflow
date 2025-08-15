@@ -350,7 +350,7 @@ export async function deleteActivity(prevState: DeleteFormState | null, formData
     try {
         await deleteActivityData(campaignId, actionId, activityId);
     } catch (e) {
-        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+        const errorMessage = e instanceof Error ? error.message : "Произошла неизвестная ошибка.";
         return { message: `Ошибка базы данных: не удалось удалить активность. ${errorMessage}`, error: true };
     }
 
@@ -777,7 +777,7 @@ export async function updateActionStatus(
 
 const UpdateCampaignStatusSchema = z.object({
   campaignId: z.string(),
-  status: z.enum(['active', 'planned', 'completed', 'paused']),
+  status: z.enum(['active', 'planned', 'completed', 'paused', 'archived']),
 });
 
 export type CampaignStatusFormState = {

@@ -17,6 +17,7 @@ const statusTranslations: Record<CampaignStatus, string> = {
   planned: "Запланирована",
   completed: "Завершена",
   paused: "Приостановлена",
+  archived: "Архивные",
 }
 
 export function CampaignStatusFilter() {
@@ -49,7 +50,7 @@ export function CampaignStatusFilter() {
             <SelectValue placeholder="Фильтр по статусу" />
         </SelectTrigger>
         <SelectContent>
-            <SelectItem value="all">Все статусы</SelectItem>
+            <SelectItem value="all">Все активные</SelectItem>
             {Object.entries(statusTranslations).map(([status, translation]) => (
                 <SelectItem key={status} value={status}>
                     {translation}

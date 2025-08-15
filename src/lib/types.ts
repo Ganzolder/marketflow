@@ -73,7 +73,7 @@ export type Action = {
   salesHead?: string;
 };
 
-export type CampaignStatus = 'active' | 'planned' | 'completed' | 'paused';
+export type CampaignStatus = 'active' | 'planned' | 'completed' | 'paused' | 'archived';
 
 export type Campaign = {
   id: string;
