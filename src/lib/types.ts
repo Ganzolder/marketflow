@@ -64,6 +64,11 @@ export type Action = {
   actualAverageCheck?: number;
   plannedMarginality?: number;
   actualMarginality?: number;
+  responsiblePerson?: string;
+  marketingHead?: string;
+  financeHead?: string;
+  itHead?: string;
+  curator?: string;
 };
 
 export type CampaignStatus = 'active' | 'planned' | 'completed' | 'paused';

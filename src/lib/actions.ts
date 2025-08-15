@@ -17,6 +17,11 @@ const ActionSchema = z.object({
   endDate: z.string().refine((date) => !isNaN(Date.parse(date)), { message: "Неверный формат даты окончания." }),
   status: z.enum(['planned', 'in-progress', 'completed']),
   campaignId: z.string(),
+  responsiblePerson: z.string().optional(),
+  marketingHead: z.string().optional(),
+  financeHead: z.string().optional(),
+  itHead: z.string().optional(),
+  curator: z.string().optional(),
 });
 
 const AddActionSchema = ActionSchema;
@@ -36,6 +41,11 @@ export type ActionFormState = {
     status?: string[];
     campaignId?: string[];
     id?: string[];
+    responsiblePerson?: string[];
+    marketingHead?: string[];
+    financeHead?: string[];
+    itHead?: string[];
+    curator?: string[];
   };
 };
 
@@ -52,6 +62,11 @@ export async function addActionToCampaign(
     endDate: formData.get('end-date'),
     status: formData.get('status'),
     campaignId: formData.get('campaignId'),
+    responsiblePerson: formData.get('responsiblePerson'),
+    marketingHead: formData.get('marketingHead'),
+    financeHead: formData.get('financeHead'),
+    itHead: formData.get('itHead'),
+    curator: formData.get('curator'),
   });
 
   if (!validatedFields.success) {
@@ -88,6 +103,11 @@ export async function editActionInCampaign(
     endDate: formData.get('end-date'),
     status: formData.get('status'),
     campaignId: formData.get('campaignId'),
+    responsiblePerson: formData.get('responsiblePerson'),
+    marketingHead: formData.get('marketingHead'),
+    financeHead: formData.get('financeHead'),
+    itHead: formData.get('itHead'),
+    curator: formData.get('curator'),
   });
 
   if (!validatedFields.success) {

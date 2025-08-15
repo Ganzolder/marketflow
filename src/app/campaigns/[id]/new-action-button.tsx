@@ -13,6 +13,7 @@ import { addActionToCampaign, type ActionFormState } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { Textarea } from '@/components/ui/textarea';
+import { Separator } from '@/components/ui/separator';
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -74,7 +75,7 @@ export function NewActionButton({ campaignId }: { campaignId: string }) {
                 </DialogHeader>
                 <form action={dispatch} ref={formRef}>
                     <input type="hidden" name="campaignId" value={campaignId} />
-                    <div className="grid gap-6 py-4">
+                    <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
                             <Label htmlFor="action-name">Название акции</Label>
                             <Input id="action-name" name="action-name" placeholder="например, Весенняя распродажа" />
@@ -116,6 +117,37 @@ export function NewActionButton({ campaignId }: { campaignId: string }) {
                                 {state.errors?.status && <p className="text-sm text-destructive">{state.errors.status[0]}</p>}
                             </div>
                         </div>
+
+                        <Separator className="my-2" />
+
+                        <div className="grid gap-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="responsiblePerson">ФИО, должность ответственного</Label>
+                                <Input id="responsiblePerson" name="responsiblePerson" placeholder="Иванов Иван Иванович, маркетолог" />
+                                {state.errors?.responsiblePerson && <p className="text-sm text-destructive">{state.errors.responsiblePerson[0]}</p>}
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="marketingHead">ФИО руководителя маркетингового отдела</Label>
+                                <Input id="marketingHead" name="marketingHead" placeholder="Петров Петр Петрович" />
+                                {state.errors?.marketingHead && <p className="text-sm text-destructive">{state.errors.marketingHead[0]}</p>}
+                            </div>
+                             <div className="grid gap-2">
+                                <Label htmlFor="financeHead">ФИО руководителя финансового отдела</Label>
+                                <Input id="financeHead" name="financeHead" placeholder="Сидорова Анна Викторовна" />
+                                {state.errors?.financeHead && <p className="text-sm text-destructive">{state.errors.financeHead[0]}</p>}
+                            </div>
+                             <div className="grid gap-2">
+                                <Label htmlFor="itHead">ФИО руководителя IT-отдела</Label>
+                                <Input id="itHead" name="itHead" placeholder="Козлов Дмитрий Сергеевич" />
+                                {state.errors?.itHead && <p className="text-sm text-destructive">{state.errors.itHead[0]}</p>}
+                            </div>
+                             <div className="grid gap-2">
+                                <Label htmlFor="curator">ФИО, должность куратора</Label>
+                                <Input id="curator" name="curator" placeholder="Васильев Василий Васильевич, директор по маркетингу" />
+                                {state.errors?.curator && <p className="text-sm text-destructive">{state.errors.curator[0]}</p>}
+                            </div>
+                        </div>
+
                     </div>
                     <DialogFooter>
                         <DialogClose asChild>
