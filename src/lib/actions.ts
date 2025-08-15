@@ -25,7 +25,14 @@ const ActionSchema = z.object({
   salesHead: z.string().optional(),
 });
 
-const AddActionSchema = ActionSchema;
+const AddActionSchema = ActionSchema.extend({
+  responsiblePerson: z.string().optional(),
+  marketingHead: z.string().optional(),
+  financeHead: z.string().optional(),
+  itHead: z.string().optional(),
+  curator: z.string().optional(),
+  salesHead: z.string().optional(),
+});
 
 const EditActionSchema = ActionSchema.extend({
   id: z.string(),
