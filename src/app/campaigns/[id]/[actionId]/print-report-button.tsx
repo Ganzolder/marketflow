@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Printer, BarChart } from "lucide-react";
 import type { Action, Campaign, Expense } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 function PrintContent({ action, campaign }: { action: Action, campaign: Campaign }) {
     const locale = 'ru-RU';
@@ -271,13 +272,15 @@ export function PrintReportButton({ action, campaign, asChild = true }: { action
                 <DialogHeader>
                     <DialogTitle>Предварительный просмотр: Отчёт об эффективности</DialogTitle>
                 </DialogHeader>
-                <div className="flex-1 overflow-auto bg-gray-200" >
-                   {/* The component to be printed */}
-                   <div ref={componentRef}>
-                        <PrintContent action={action} campaign={campaign} />
+                <ScrollArea className="flex-1 -mx-6">
+                   <div className="px-6 bg-gray-200">
+                       {/* The component to be printed */}
+                       <div ref={componentRef}>
+                            <PrintContent action={action} campaign={campaign} />
+                       </div>
                    </div>
-                </div>
-                 <DialogFooter className="mt-4">
+                </ScrollArea>
+                 <DialogFooter className="mt-4 shrink-0">
                     <DialogClose asChild>
                         <Button variant="outline">Закрыть</Button>
                     </DialogClose>
@@ -290,5 +293,3 @@ export function PrintReportButton({ action, campaign, asChild = true }: { action
         </Dialog>
     )
 }
-
-  
