@@ -16,6 +16,7 @@ import { PrintReportButton } from "./print-report-button";
 import { AiAnalyzerButton } from "./ai-analyzer-button";
 import type { Action, Campaign } from "@/lib/types";
 import { EditActionButton } from "./edit-action-button";
+import { EditActionResponsibilityButton } from "./edit-action-responsibility-button";
 
 export function ActionPageHeaderActions({ action, campaign }: { action: Action; campaign: Campaign }) {
   return (
@@ -28,8 +29,11 @@ export function ActionPageHeaderActions({ action, campaign }: { action: Action; 
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
          <DropdownMenuItem asChild>
-          <EditActionButton action={action} campaignId={campaign.id} asChild={true} />
-        </DropdownMenuItem>
+            <EditActionButton action={action} campaignId={campaign.id} asChild={true} />
+         </DropdownMenuItem>
+         <DropdownMenuItem asChild>
+            <EditActionResponsibilityButton action={action} campaignId={campaign.id} asChild={true} />
+         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <PrintReportButton action={action} campaign={campaign} />

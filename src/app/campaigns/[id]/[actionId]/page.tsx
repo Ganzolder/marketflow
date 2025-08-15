@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/status-badge';
-import { Calendar as CalendarIcon, Target, Users, Landmark, ArrowRight, TrendingUp, CalendarDays, LocateFixed, History, Ruble, Edit, User, Building2, Briefcase, Bot, UserCheck } from 'lucide-react';
+import { Calendar as CalendarIcon, Target, Users, Landmark, ArrowRight, TrendingUp, CalendarDays, LocateFixed, History, Ruble, Edit, User, Building2, Briefcase, Bot, UserCheck, ArrowLeft } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { NewActivityButton } from './new-activity-button';
 import { EditActivityButton } from './edit-activity-button';
@@ -26,6 +26,8 @@ import { ActionEffectivenessCard } from './action-effectiveness-card';
 import { UpdateActionStatus } from './update-action-status';
 import { ActionPageHeaderActions } from './action-page-header-actions';
 import { ActionResponsibilityCard } from './action-responsibility-card';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 type ActionDetailPageProps = {
   params: {
@@ -90,7 +92,15 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
   return (
     <div>
       <PageHeader title={action.name} description={`Акция в рамках кампании: ${campaign.name}`}>
-        <ActionPageHeaderActions action={action} campaign={campaign} />
+        <div className="flex items-center gap-2">
+            <Button variant="outline" asChild>
+                <Link href={`/campaigns/${campaign.id}`}>
+                    <ArrowLeft className="h-4 w-4" />
+                    <span className="hidden sm:inline ml-2">Назад</span>
+                </Link>
+            </Button>
+            <ActionPageHeaderActions action={action} campaign={campaign} />
+        </div>
       </PageHeader>
 
       <div className="grid gap-8">

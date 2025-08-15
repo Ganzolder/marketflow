@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Edit } from "lucide-react";
+import { Loader2, Edit, Users } from "lucide-react";
 import { updateActionResponsibility, type ResponsibilityFormState } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import type { Action } from '@/lib/types';
@@ -27,7 +27,7 @@ function SubmitButton() {
     )
 }
 
-export function EditActionResponsibilityButton({ action, campaignId }: { action: Action, campaignId: string }) {
+export function EditActionResponsibilityButton({ action, campaignId, asChild = false }: { action: Action, campaignId: string, asChild?: boolean }) {
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
@@ -53,12 +53,17 @@ export function EditActionResponsibilityButton({ action, campaignId }: { action:
         }
     }, [state, toast]);
 
+    const TriggerButton = (
+        <Button variant={asChild ? "ghost" : "outline"} size={asChild ? undefined : "icon"} className={asChild ? "w-full justify-start p-2 h-auto" : "h-8 w-8"}>
+            <Users className="h-4 w-4" />
+            {asChild && <span className="ml-2">Ответственные</span>}
+        </Button>
+    );
+
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline" size="icon" className="h-8 w-8">
-                    <Edit className="h-4 w-4" />
-                </Button>
+                {TriggerButton}
             </DialogTrigger>
             <DialogContent className="sm:max-w-[625px]">
                 <DialogHeader>
