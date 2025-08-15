@@ -83,8 +83,8 @@ export function EditActionButton({ action, campaignId }: { action: Action, campa
                 <form action={dispatch} ref={formRef}>
                     <input type="hidden" name="campaignId" value={campaignId} />
                     <input type="hidden" name="actionId" value={action.id} />
-                    <ScrollArea className="max-h-[70vh] p-1">
-                        <div className="grid gap-4 py-4 pr-4">
+                    <ScrollArea className="max-h-[70vh] p-1 pr-4">
+                        <div className="grid gap-4 py-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="action-name">Название акции</Label>
                                 <Input id="action-name" name="action-name" defaultValue={action.name} />
@@ -164,7 +164,7 @@ export function EditActionButton({ action, campaignId }: { action: Action, campa
                             </div>
                         </div>
                     </ScrollArea>
-                    <DialogFooter>
+                    <DialogFooter className="border-t pt-4 mt-4">
                         <DialogClose asChild>
                             <Button variant="outline">Отмена</Button>
                         </DialogClose>
@@ -175,5 +175,3 @@ export function EditActionButton({ action, campaignId }: { action: Action, campa
         </Dialog>
     );
 }
-
-    
