@@ -1331,6 +1331,7 @@ export async function addSocialPostToAction(prevState: SocialPostFormState, form
     plannedViews: postData.plannedViews || 0,
     plannedReach: postData.plannedReach || 0,
     plannedComments: postData.plannedComments || 0,
+    activityId: postData.activityId || '',
   }
 
   try {
