@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useRef, useActionState } from 'react';
+import { useState, useEffect, useRef, useActionState, useTransition } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -24,12 +24,13 @@ export function AddResourceButton({ actionId, campaignId, expenses }: { actionId
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
+    const [isPending, startTransition] = useTransition();
     
     const initialState: ResourceFormState = { message: "", errors: {} };
     const [state, dispatch] = useActionState(addResourceToAction, initialState);
     
     useEffect(() => {
-        if (state.message) {
+        if (state.message && !isPending) {
             if (state.error) {
                 toast({ variant: "destructive", title: "Ошибка", description: state.message });
             } else {
@@ -38,9 +39,15 @@ export function AddResourceButton({ actionId, campaignId, expenses }: { actionId
                 formRef.current?.reset();
             }
         }
-    }, [state, toast]);
-
-    const isPending = !!(state && !state.message); // A simple way to detect pending state from useActionState
+    }, [state, toast, isPending]);
+    
+    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        const formData = new FormData(event.currentTarget);
+        startTransition(() => {
+            dispatch(formData);
+        });
+    }
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -57,7 +64,7 @@ export function AddResourceButton({ actionId, campaignId, expenses }: { actionId
                         Заполните информацию о ресурсе, необходимом для акции.
                     </DialogDescription>
                 </DialogHeader>
-                <form action={dispatch} ref={formRef}>
+                <form onSubmit={handleSubmit} ref={formRef}>
                     <ScrollArea className="max-h-[70vh] p-1 pr-4">
                         <div className="grid gap-4 py-4">
                             <div className="grid gap-2">
