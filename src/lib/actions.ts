@@ -1055,6 +1055,7 @@ export async function updateActionResponsibility(prevState: ResponsibilityFormSt
   return { message: "Ответственные лица обновлены." };
 }
 
+
 const ConditionsSchema = z.object({
     campaignId: z.string(),
     actionId: z.string(),
@@ -1115,13 +1116,15 @@ export async function addResourceToAction(prevState: ResourceFormState, formData
   const campaignId = formData.get('campaignId') as string;
   const actionId = formData.get('actionId') as string;
 
-  const validatedFields = ResourceSchema.safeParse({
+  const rawData = {
     name: formData.get('name'),
     status: formData.get('status'),
     responsiblePerson: formData.get('responsiblePerson'),
     plannedDate: formData.get('plannedDate'),
-    linkedExpenseId: formData.get('linkedExpenseId') === 'none' ? undefined : formData.get('linkedExpenseId'),
-  });
+    linkedExpenseId: formData.get('linkedExpenseId') === 'none' ? '' : formData.get('linkedExpenseId'),
+  };
+
+  const validatedFields = ResourceSchema.safeParse(rawData);
 
   if (!validatedFields.success) {
     return {
@@ -1130,9 +1133,16 @@ export async function addResourceToAction(prevState: ResourceFormState, formData
       errors: validatedFields.error.flatten().fieldErrors,
     };
   }
+  
+  const dataToSave = {
+      ...validatedFields.data,
+      responsiblePerson: validatedFields.data.responsiblePerson || '',
+      plannedDate: validatedFields.data.plannedDate || '',
+      linkedExpenseId: validatedFields.data.linkedExpenseId || '',
+  }
 
   try {
-    await addResourceToActionData(campaignId, actionId, validatedFields.data as Omit<Resource, 'id'>);
+    await addResourceToActionData(campaignId, actionId, dataToSave as Omit<Resource, 'id'>);
   } catch (e) {
     const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
     return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
@@ -1147,13 +1157,16 @@ export async function updateResourceInAction(prevState: ResourceFormState, formD
   const actionId = formData.get('actionId') as string;
   const resourceId = formData.get('resourceId') as string;
 
-  const validatedFields = ResourceSchema.safeParse({
+  const rawData = {
     name: formData.get('name'),
     status: formData.get('status'),
     responsiblePerson: formData.get('responsiblePerson'),
     plannedDate: formData.get('plannedDate'),
-    linkedExpenseId: formData.get('linkedExpenseId') === 'none' ? undefined : formData.get('linkedExpenseId'),
-  });
+    linkedExpenseId: formData.get('linkedExpenseId') === 'none' ? '' : formData.get('linkedExpenseId'),
+  };
+
+  const validatedFields = ResourceSchema.safeParse(rawData);
+
 
   if (!validatedFields.success) {
     return {
@@ -1163,8 +1176,15 @@ export async function updateResourceInAction(prevState: ResourceFormState, formD
     };
   }
 
+  const dataToSave = {
+      ...validatedFields.data,
+      responsiblePerson: validatedFields.data.responsiblePerson || '',
+      plannedDate: validatedFields.data.plannedDate || '',
+      linkedExpenseId: validatedFields.data.linkedExpenseId || '',
+  };
+
   try {
-    await updateResourceInActionData(campaignId, actionId, { id: resourceId, ...validatedFields.data } as Resource);
+    await updateResourceInActionData(campaignId, actionId, { id: resourceId, ...dataToSave } as Resource);
   } catch (e) {
     const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
     return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
