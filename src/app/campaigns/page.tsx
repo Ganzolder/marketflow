@@ -22,6 +22,7 @@ import { Calendar, Landmark, TrendingUp, ShoppingCart, PiggyBank, BarChart, File
 import { Badge } from '@/components/ui/badge';
 import { ArchiveCampaignButton } from './archive-campaign-button';
 import { Button } from '@/components/ui/button';
+import { RestoreCampaignButton } from './restore-campaign-button';
 
 type CampaignsPageProps = {
   searchParams: {
@@ -140,6 +141,7 @@ export default async function CampaignsPage({ searchParams: searchParamsPromise 
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     {campaign.status === 'completed' && <ArchiveCampaignButton campaignId={campaign.id} />}
+                    {campaign.status === 'archived' && <RestoreCampaignButton campaignId={campaign.id} />}
                     <EditCampaignButton campaign={campaign} asIcon={true} />
                     <DeleteCampaignButton campaignId={campaign.id} asIcon={true} />
                   </div>
@@ -248,4 +250,5 @@ export default async function CampaignsPage({ searchParams: searchParamsPromise 
     </div>
   );
 }
+
 
