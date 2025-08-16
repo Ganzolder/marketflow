@@ -3,7 +3,7 @@
 "use server";
 
 import { z } from "zod";
-import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData, updateExpenseStatus as updateExpenseStatusData, addSocialPostToActivity as addSocialPostToActivityData } from "./data";
+import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData, updateExpenseStatus as updateExpenseStatusData, addSocialPostToAction as addSocialPostToActionData } from "./data";
 import { revalidatePath } from "next/cache";
 import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog, Campaign, ResponsibilityFormState, Resource, ResourceStatus, ResourceStatusFormState, ExpenseStatus, ExpenseStatusFormState, SocialPost, SocialPlatform, SocialPostStatus, SocialPostFormState } from "./types";
 import { redirect } from "next/navigation";
@@ -1291,7 +1291,7 @@ export async function updateExpenseStatus(prevState: ExpenseStatusFormState, for
 const SocialPostSchema = z.object({
   campaignId: z.string(),
   actionId: z.string(),
-  activityId: z.string(),
+  activityId: z.string().optional(),
   platforms: z.array(z.string()).min(1, "Выберите хотя бы одну платформу."),
   text: z.string().min(1, "Текст поста не может быть пустым."),
   plannedViews: z.coerce.number().min(0).optional(),
@@ -1301,11 +1301,12 @@ const SocialPostSchema = z.object({
   status: z.enum(['draft', 'ready', 'published']),
 });
 
-export async function addSocialPost(prevState: SocialPostFormState, formData: FormData): Promise<SocialPostFormState> {
-  const validatedFields = SocialPostSchema.safeParse({
+export async function addSocialPostToAction(prevState: SocialPostFormState, formData: FormData): Promise<SocialPostFormState> {
+    const rawActivityId = formData.get('activityId');
+    const validatedFields = SocialPostSchema.safeParse({
     campaignId: formData.get('campaignId'),
     actionId: formData.get('actionId'),
-    activityId: formData.get('activityId'),
+    activityId: rawActivityId === 'general' ? undefined : rawActivityId,
     platforms: formData.getAll('platforms'),
     text: formData.get('text'),
     plannedViews: formData.get('plannedViews'),
@@ -1323,7 +1324,7 @@ export async function addSocialPost(prevState: SocialPostFormState, formData: Fo
     };
   }
 
-  const { campaignId, actionId, activityId, ...postData } = validatedFields.data;
+  const { campaignId, actionId, ...postData } = validatedFields.data;
   const postToSave = {
     ...postData,
     platforms: postData.platforms as SocialPlatform[],
@@ -1333,7 +1334,7 @@ export async function addSocialPost(prevState: SocialPostFormState, formData: Fo
   }
 
   try {
-    await addSocialPostToActivityData(campaignId, actionId, activityId, postToSave as Omit<SocialPost, 'id'>);
+    await addSocialPostToActionData(campaignId, actionId, postToSave as Omit<SocialPost, 'id'>);
   } catch (e) {
     const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
     return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
@@ -1342,5 +1343,3 @@ export async function addSocialPost(prevState: SocialPostFormState, formData: Fo
   revalidatePath(`/campaigns/${campaignId}/${actionId}`);
   return { message: "Пост успешно добавлен." };
 }
-
-    

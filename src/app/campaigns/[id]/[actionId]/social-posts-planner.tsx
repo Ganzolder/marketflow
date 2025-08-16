@@ -1,13 +1,14 @@
 
+
 "use client";
 
 import { useState, useActionState, useRef, useTransition, useEffect } from 'react';
-import type { Activity, SocialPostStatus, SocialPlatform } from '@/lib/types';
+import type { Action, Activity, SocialPostStatus, SocialPlatform } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, Share2, PlusCircle, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
-import { addSocialPost, type SocialPostFormState } from '@/lib/actions';
+import { addSocialPostToAction, type SocialPostFormState } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -18,6 +19,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { SocialPlatforms } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 
 
 const statusTranslations: Record<SocialPostStatus, string> = {
@@ -26,7 +28,7 @@ const statusTranslations: Record<SocialPostStatus, string> = {
   published: "Опубликован",
 };
 
-const AddSocialPostButton = ({ activityId, actionId, campaignId }: { activityId: string, actionId: string, campaignId: string }) => {
+const AddSocialPostButton = ({ action, campaignId }: { action: Action, campaignId: string }) => {
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
@@ -34,7 +36,7 @@ const AddSocialPostButton = ({ activityId, actionId, campaignId }: { activityId:
     const [selectedPlatforms, setSelectedPlatforms] = useState<SocialPlatform[]>([]);
     
     const initialState: SocialPostFormState = { message: "", errors: {} };
-    const [state, dispatch] = useActionState(addSocialPost, initialState);
+    const [state, dispatch] = useActionState(addSocialPostToAction, initialState);
 
     useEffect(() => {
         if (state.message) {
@@ -61,7 +63,7 @@ const AddSocialPostButton = ({ activityId, actionId, campaignId }: { activityId:
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline" size="sm">
+                <Button size="sm">
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Запланировать пост
                 </Button>
@@ -70,12 +72,26 @@ const AddSocialPostButton = ({ activityId, actionId, campaignId }: { activityId:
                 <DialogHeader>
                     <DialogTitle>Запланировать новый пост</DialogTitle>
                     <DialogDescription>
-                        Заполните детали поста для этой активности.
+                        Заполните детали поста для акции.
                     </DialogDescription>
                 </DialogHeader>
                 <form ref={formRef} onSubmit={handleSubmit}>
                     <ScrollArea className="max-h-[70vh] p-1 pr-4 -mr-4">
                         <div className="grid gap-4 py-4 pr-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="activityId">Привязать к активности (необязательно)</Label>
+                                <Select name="activityId">
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Общий пост для акции" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="general">Общий пост для акции</SelectItem>
+                                        {(action.activities || []).map(activity => (
+                                            <SelectItem key={activity.id} value={activity.id}>{activity.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                             <div className="grid gap-2">
                                 <Label>Платформы</Label>
                                 <Popover>
@@ -151,8 +167,7 @@ const AddSocialPostButton = ({ activityId, actionId, campaignId }: { activityId:
                     </ScrollArea>
                     <DialogFooter className="border-t pt-4 mt-4">
                         <input type="hidden" name="campaignId" value={campaignId} />
-                        <input type="hidden" name="actionId" value={actionId} />
-                        <input type="hidden" name="activityId" value={activityId} />
+                        <input type="hidden" name="actionId" value={action.id} />
                         <DialogClose asChild>
                             <Button type="button" variant="outline">Отмена</Button>
                         </DialogClose>
@@ -167,64 +182,65 @@ const AddSocialPostButton = ({ activityId, actionId, campaignId }: { activityId:
 }
 
 
-export function SocialPostsPlanner({ activity, campaignId, actionId }: { activity: Activity, campaignId: string, actionId: string }) {
-  const [isOpen, setIsOpen] = useState(false);
+export function ActionSocialPostsPlanner({ action, campaignId }: { action: Action, campaignId: string }) {
   const locale = 'ru-RU';
   
+  const getActivityName = (activityId?: string) => {
+    if (!activityId) return 'Общий пост';
+    return (action.activities || []).find(a => a.id === activityId)?.name || 'Неизвестная активность';
+  }
+
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <div className="flex justify-between items-center">
-        <CollapsibleTrigger asChild>
-            <div className="flex items-center gap-2 cursor-pointer group">
-                <h4 className="font-semibold flex items-center gap-2">
-                    <Share2 className="w-4 h-4"/>
-                    Поддержка в соцсетях
-                </h4>
-                <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
+    <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+                <CardTitle>Поддержка в соцсетях</CardTitle>
+                <CardDescription>План постов для продвижения акции.</CardDescription>
             </div>
-        </CollapsibleTrigger>
-        <AddSocialPostButton activityId={activity.id} actionId={actionId} campaignId={campaignId} />
-      </div>
-      <CollapsibleContent>
-        <div className="mt-4 space-y-4">
-            {(activity.socialPosts || []).length > 0 ? (
-                activity.socialPosts.map(post => (
-                    <div key={post.id} className="p-4 border rounded-lg">
-                        <div className="flex justify-between items-start mb-2">
-                            <div>
-                                <p className="text-sm font-medium">{new Date(post.publicationDate).toLocaleDateString(locale, {day: '2-digit', month: 'long', year: 'numeric'})}</p>
-                                <div className="flex gap-1 mt-1">
-                                    {post.platforms.map(p => <Badge key={p} variant="secondary">{p}</Badge>)}
+            <AddSocialPostButton action={action} campaignId={campaignId} />
+        </CardHeader>
+        <CardContent>
+             <div className="space-y-4">
+                {(action.socialPosts || []).length > 0 ? (
+                    action.socialPosts.map(post => (
+                        <div key={post.id} className="p-4 border rounded-lg">
+                            <div className="flex justify-between items-start mb-2">
+                                <div>
+                                    <p className="text-sm font-medium">{new Date(post.publicationDate).toLocaleDateString(locale, {day: '2-digit', month: 'long', year: 'numeric'})}</p>
+                                    <div className="flex flex-wrap gap-1 mt-1">
+                                        {post.platforms.map(p => <Badge key={p} variant="secondary">{p}</Badge>)}
+                                    </div>
+                                </div>
+                                <div className="flex flex-col items-end gap-2">
+                                     <Badge variant="outline">{statusTranslations[post.status]}</Badge>
+                                     <Badge variant="default" className="text-xs">{getActivityName(post.activityId)}</Badge>
                                 </div>
                             </div>
-                            <Badge variant="outline">{statusTranslations[post.status]}</Badge>
+                             <p className="text-sm text-muted-foreground whitespace-pre-wrap">{post.text}</p>
+                             <div className="grid grid-cols-3 gap-4 text-xs mt-3 pt-3 border-t">
+                                <div className="text-center">
+                                    <p className="font-semibold">{post.plannedViews.toLocaleString(locale)}</p>
+                                    <p className="text-muted-foreground">Просмотры</p>
+                                </div>
+                                 <div className="text-center">
+                                    <p className="font-semibold">{post.plannedReach.toLocaleString(locale)}</p>
+                                    <p className="text-muted-foreground">Охват</p>
+                                </div>
+                                 <div className="text-center">
+                                    <p className="font-semibold">{post.plannedComments.toLocaleString(locale)}</p>
+                                    <p className="text-muted-foreground">Комментарии</p>
+                                </div>
+                             </div>
                         </div>
-                         <p className="text-sm text-muted-foreground whitespace-pre-wrap">{post.text}</p>
-                         <div className="grid grid-cols-3 gap-4 text-xs mt-3 pt-3 border-t">
-                            <div className="text-center">
-                                <p className="font-semibold">{post.plannedViews.toLocaleString(locale)}</p>
-                                <p className="text-muted-foreground">Просмотры</p>
-                            </div>
-                             <div className="text-center">
-                                <p className="font-semibold">{post.plannedReach.toLocaleString(locale)}</p>
-                                <p className="text-muted-foreground">Охват</p>
-                            </div>
-                             <div className="text-center">
-                                <p className="font-semibold">{post.plannedComments.toLocaleString(locale)}</p>
-                                <p className="text-muted-foreground">Комментарии</p>
-                            </div>
-                         </div>
+                    ))
+                ) : (
+                    <div className="text-center text-sm text-muted-foreground py-10 border-2 border-dashed rounded-lg">
+                        <Share2 className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                        <p>Запланированные посты еще не добавлены.</p>
                     </div>
-                ))
-            ) : (
-                <div className="text-center text-sm text-muted-foreground py-6 border-2 border-dashed rounded-lg">
-                    <p>Запланированные посты еще не добавлены.</p>
-                </div>
-            )}
-        </div>
-      </CollapsibleContent>
-    </Collapsible>
+                )}
+            </div>
+        </CardContent>
+    </Card>
   );
 }
-
-    

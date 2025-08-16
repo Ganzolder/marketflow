@@ -115,6 +115,7 @@ export async function addAction(campaignId: string, action: Omit<Action, 'id' | 
         activities: [],
         generalExpenses: [],
         summaryKpis: [],
+        socialPosts: [],
         plannedAverageCheck: 0,
         actualAverageCheck: 0,
         plannedMarginality: 0,
@@ -523,6 +524,7 @@ export async function getCampaignById(id: string): Promise<Campaign | undefined>
 
               if (!action.summaryKpis) action.summaryKpis = [];
               if (!action.resources) action.resources = [];
+              if (!action.socialPosts) action.socialPosts = [];
               if (!action.plannedAverageCheck) action.plannedAverageCheck = 0;
               if (!action.actualAverageCheck) action.actualAverageCheck = 0;
               if (!action.plannedMarginality) action.plannedMarginality = 0;
@@ -544,7 +546,6 @@ export async function getCampaignById(id: string): Promise<Campaign | undefined>
                           if (kpi.parentId === undefined) kpi.parentId = null;
                           if (kpi.multiplicity === undefined) kpi.multiplicity = 1;
                       });
-                      if (!activity.socialPosts) activity.socialPosts = [];
                   });
               }
           });
@@ -611,7 +612,6 @@ export async function getAllActions(): Promise<EnrichedAction[]> {
             if (kpi.parentId === undefined) kpi.parentId = null;
             if (kpi.multiplicity === undefined) kpi.multiplicity = 1;
           });
-          if (!activity.socialPosts) activity.socialPosts = [];
         });
       } else {
         enrichedAction.activities = [];
@@ -624,6 +624,7 @@ export async function getAllActions(): Promise<EnrichedAction[]> {
       if (!enrichedAction.actualAverageCheck) enrichedAction.actualAverageCheck = 0;
       if (!enrichedAction.plannedMarginality) enrichedAction.plannedMarginality = 0;
       if (!enrichedAction.actualMarginality) enrichedAction.actualMarginality = 0;
+      if (!enrichedAction.socialPosts) enrichedAction.socialPosts = [];
       
       allActions.push(enrichedAction);
     });
@@ -661,7 +662,6 @@ export async function getAllActivities(): Promise<EnrichedActivity[]> {
           if (kpi.parentId === undefined) kpi.parentId = null;
           if (kpi.multiplicity === undefined) kpi.multiplicity = 1;
         });
-        if (!enrichedActivity.socialPosts) enrichedActivity.socialPosts = [];
 
         allActivities.push(enrichedActivity);
       });
@@ -1152,7 +1152,7 @@ export async function updateExpenseStatus(campaignId: string, actionId: string, 
     }
 }
 
-export async function addSocialPostToActivityData(campaignId: string, actionId: string, activityId: string, postData: Omit<import('./types').SocialPost, 'id'>) {
+export async function addSocialPostToAction(campaignId: string, actionId: string, postData: Omit<import('./types').SocialPost, 'id'>) {
     const campaignRef = doc(db, 'campaigns', campaignId);
     try {
         await runTransaction(db, async (transaction) => {
@@ -1160,29 +1160,27 @@ export async function addSocialPostToActivityData(campaignId: string, actionId: 
             if (!campaignDoc.exists()) throw new Error("Campaign not found");
             const campaignData = campaignDoc.data() as Campaign;
 
-            const action = campaignData.actions.find(a => a.id === actionId);
-            if (!action) throw new Error("Action not found");
-            
-            const activity = action.activities.find(a => a.id === activityId);
-            if (!activity) throw new Error("Activity not found");
+            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
+            if (actionIndex === -1) throw new Error("Action not found");
 
-            if (!activity.socialPosts) {
-                activity.socialPosts = [];
+            const newActions = [...campaignData.actions];
+            const action = newActions[actionIndex];
+
+            if (!action.socialPosts) {
+                action.socialPosts = [];
             }
 
             const newPost = {
                 ...postData,
-                id: `post-${activityId.substring(0, 4)}-${Date.now()}`
+                id: `post-${actionId.substring(0, 4)}-${Date.now()}`
             };
 
-            activity.socialPosts.push(newPost);
+            action.socialPosts.push(newPost);
             
-            transaction.update(campaignRef, { actions: campaignData.actions });
+            transaction.update(campaignRef, { actions: newActions });
         });
     } catch (e) {
         console.error("Add social post transaction failed:", e);
         throw e;
     }
 }
-
-    

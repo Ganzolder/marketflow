@@ -62,7 +62,7 @@ export type SocialPost = {
   plannedComments: number;
   publicationDate: string;
   status: SocialPostStatus;
-  actionId: string; // To link back to the action
+  activityId?: string; // To link back to an activity (optional)
 };
 
 export type Activity = {
@@ -76,7 +76,6 @@ export type Activity = {
   endDate: string;
   kpis: KPI[];
   expenses: Expense[];
-  socialPosts?: SocialPost[];
 };
 
 export type Action = {
@@ -103,6 +102,7 @@ export type Action = {
   curator?: string;
   salesHead?: string;
   resources?: Resource[];
+  socialPosts?: SocialPost[];
 };
 
 export type CampaignStatus = 'active' | 'planned' | 'completed' | 'paused' | 'archived';
@@ -191,5 +191,6 @@ export type SocialPostFormState = {
     plannedComments?: string[];
     publicationDate?: string[];
     status?: string[];
+    activityId?: string[];
   }
 };

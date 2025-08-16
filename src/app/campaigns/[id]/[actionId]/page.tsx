@@ -30,7 +30,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ActionResourcesCard } from './action-resources-card';
-import { SocialPostsPlanner } from './social-posts-planner';
+import { ActionSocialPostsPlanner } from './social-posts-planner';
 
 type ActionDetailPageProps = {
   params: {
@@ -186,6 +186,8 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
         
         <ActionResourcesCard action={action} campaignId={campaign.id} />
 
+        <ActionSocialPostsPlanner action={action} campaignId={campaign.id} />
+
         <ActionEffectivenessCard action={action} campaignId={campaign.id} locale={locale} currencyOptions={currencyOptions} totalSpent={totalSpent} />
         
         <Card>
@@ -273,8 +275,6 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
                                 </CardHeader>
                                 <CardContent className="text-sm text-muted-foreground flex-1">
                                     <UpdateMetricsForm activity={activity} campaignId={campaign.id} actionId={action.id} />
-                                     <Separator className="my-4"/>
-                                     <SocialPostsPlanner activity={activity} campaignId={campaign.id} actionId={action.id} />
                                 </CardContent>
                                 {footerKpis.length > 0 && (
                                     <CardFooter className="flex-col items-start gap-2 pt-4 border-t">
