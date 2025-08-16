@@ -11,7 +11,8 @@ import {
   Rocket,
   Megaphone,
   Network,
-  HardDrive
+  HardDrive,
+  Share2
 } from 'lucide-react';
 import {
   Sidebar,
@@ -30,6 +31,7 @@ const menuItems = [
   { href: '/campaigns', label: 'Кампании', icon: ListChecks },
   { href: '/actions', label: 'Акции', icon: Megaphone },
   { href: '/activities', label: 'Активности', icon: Network },
+  { href: '/smm', label: 'SMM', icon: Share2 },
   { href: '/creatives', label: 'Креативы', icon: Sparkles },
   { href: '/calculator', label: 'Калькулятор', icon: Calculator },
   { href: '/database', label: 'База данных', icon: HardDrive },

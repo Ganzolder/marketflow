@@ -49,6 +49,22 @@ export type Resource = {
   linkedExpenseId?: string;
 };
 
+export type SocialPostStatus = 'draft' | 'ready' | 'published';
+export const SocialPlatforms = ["Telegram", "VK", "Instagram", "Facebook", "TikTok", "YouTube", "Одноклассники"] as const;
+export type SocialPlatform = typeof SocialPlatforms[number];
+
+export type SocialPost = {
+  id: string;
+  platforms: SocialPlatform[];
+  text: string;
+  plannedViews: number;
+  plannedReach: number;
+  plannedComments: number;
+  publicationDate: string;
+  status: SocialPostStatus;
+  actionId: string; // To link back to the action
+};
+
 export type Activity = {
   id: string;
   name: string;
@@ -60,6 +76,7 @@ export type Activity = {
   endDate: string;
   kpis: KPI[];
   expenses: Expense[];
+  socialPosts?: SocialPost[];
 };
 
 export type Action = {
@@ -161,4 +178,18 @@ export type ResourceStatusFormState = {
 export type ExpenseStatusFormState = {
   message: string;
   error?: boolean;
+};
+
+export type SocialPostFormState = {
+  message: string;
+  error?: boolean;
+  errors?: {
+    platforms?: string[];
+    text?: string[];
+    plannedViews?: string[];
+    plannedReach?: string[];
+    plannedComments?: string[];
+    publicationDate?: string[];
+    status?: string[];
+  }
 };
