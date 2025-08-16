@@ -1,4 +1,5 @@
 
+
 import { PageHeader } from "@/components/page-header";
 import { getCampaigns } from "@/lib/data";
 import {
@@ -22,10 +23,10 @@ import type { Action, Activity, Campaign } from "@/lib/types";
 import { UpdateCampaignStatus } from "../campaigns/update-campaign-status";
 
 
-const DataItem = ({ label, value }: { label: string, value: string | React.ReactNode }) => (
+const DataItem = ({ label, value, children }: { label: string, value?: string | React.ReactNode, children?: React.ReactNode }) => (
     <div className="flex justify-between items-center text-sm py-1">
         <span className="text-muted-foreground">{label}</span>
-        <span className="font-medium text-right">{value}</span>
+        {children ? <div className="text-right">{children}</div> : <span className="font-medium text-right">{value}</span>}
     </div>
 )
 
@@ -87,7 +88,6 @@ export default async function DatabasePage() {
             <AccordionTrigger className="hover:no-underline">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 text-left">
                     <h3 className="text-lg font-semibold">{campaign.name}</h3>
-                    <UpdateCampaignStatus campaign={campaign} />
                 </div>
             </AccordionTrigger>
             <AccordionContent>
@@ -101,6 +101,9 @@ export default async function DatabasePage() {
                             <DataItem label="Описание" value={campaign.description} />
                             <DataItem label="Бюджет" value={new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB' }).format(campaign.budget)} />
                             <DataItem label="Даты" value={`${new Date(campaign.startDate).toLocaleDateString(locale)} - ${new Date(campaign.endDate).toLocaleDateString(locale)}`} />
+                            <DataItem label="Статус">
+                                <UpdateCampaignStatus campaign={campaign} />
+                            </DataItem>
                         </CardContent>
                     </Card>
                     
