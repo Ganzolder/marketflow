@@ -58,8 +58,11 @@ export type SocialPost = {
   platforms: SocialPlatform[];
   text: string;
   plannedViews: number;
+  actualViews?: number;
   plannedReach: number;
+  actualReach?: number;
   plannedComments: number;
+  actualComments?: number;
   publicationDate: string;
   status: SocialPostStatus;
   activityId?: string; // To link back to an activity (optional)
@@ -189,6 +192,9 @@ export type SocialPostFormState = {
     plannedViews?: string[];
     plannedReach?: string[];
     plannedComments?: string[];
+    actualViews?: string[];
+    actualReach?: string[];
+    actualComments?: string[];
     publicationDate?: string[];
     status?: string[];
     activityId?: string[];

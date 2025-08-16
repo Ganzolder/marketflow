@@ -6,7 +6,7 @@ import { useState, useActionState, useRef, useTransition, useEffect } from 'reac
 import type { Action, Activity, SocialPostStatus, SocialPlatform } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, Share2, PlusCircle, Loader2 } from 'lucide-react';
+import { ChevronDown, Share2, PlusCircle, Loader2, ArrowUp, ArrowDown, Minus } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { addSocialPostToAction, type SocialPostFormState } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
@@ -19,13 +19,21 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { SocialPlatforms } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { EditSocialPostButton } from './edit-social-post-button';
+import { DeleteSocialPostButton } from './delete-social-post-button';
 
 
 const statusTranslations: Record<SocialPostStatus, string> = {
   draft: "Черновик",
   ready: "Готово",
   published: "Опубликован",
+};
+
+const statusStyles: Record<SocialPostStatus, string> = {
+  draft: "bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-100 dark:bg-gray-800/50 dark:text-gray-300 dark:border-gray-700/50",
+  ready: "bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700/50",
+  published: "bg-green-100 text-green-800 border-green-200 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700/50",
 };
 
 const AddSocialPostButton = ({ action, campaignId }: { action: Action, campaignId: string }) => {
@@ -181,6 +189,26 @@ const AddSocialPostButton = ({ action, campaignId }: { action: Action, campaignI
     )
 }
 
+const StatDisplay = ({ label, plan, fact, locale }: { label: string, plan: number, fact: number, locale: string }) => {
+    const difference = fact - plan;
+    const isOver = difference > 0;
+    const isUnder = difference < 0;
+    const isEqual = difference === 0;
+
+    return (
+        <div className="text-center">
+            <p className="text-xs text-muted-foreground">{label}</p>
+            <p className="font-semibold text-base">{fact.toLocaleString(locale)}</p>
+            <p className={`text-xs font-mono flex items-center justify-center ${isOver ? 'text-green-600' : isUnder ? 'text-red-500' : 'text-muted-foreground'}`}>
+                {isOver && <ArrowUp className="w-3 h-3" />}
+                {isUnder && <ArrowDown className="w-3 h-3" />}
+                {isEqual && <Minus className="w-3 h-3" />}
+                <span className="ml-1">{difference.toLocaleString(locale)}</span>
+            </p>
+        </div>
+    )
+}
+
 
 export function ActionSocialPostsPlanner({ action, campaignId }: { action: Action, campaignId: string }) {
   const locale = 'ru-RU';
@@ -189,6 +217,8 @@ export function ActionSocialPostsPlanner({ action, campaignId }: { action: Actio
     if (!activityId) return 'Общий пост';
     return (action.activities || []).find(a => a.id === activityId)?.name || 'Неизвестная активность';
   }
+  
+  const sortedPosts = (action.socialPosts || []).sort((a,b) => new Date(b.publicationDate).getTime() - new Date(a.publicationDate).getTime());
 
   return (
     <Card>
@@ -201,37 +231,34 @@ export function ActionSocialPostsPlanner({ action, campaignId }: { action: Actio
         </CardHeader>
         <CardContent>
              <div className="space-y-4">
-                {(action.socialPosts || []).length > 0 ? (
-                    action.socialPosts.map(post => (
-                        <div key={post.id} className="p-4 border rounded-lg">
-                            <div className="flex justify-between items-start mb-2">
-                                <div>
-                                    <p className="text-sm font-medium">{new Date(post.publicationDate).toLocaleDateString(locale, {day: '2-digit', month: 'long', year: 'numeric'})}</p>
-                                    <div className="flex flex-wrap gap-1 mt-1">
-                                        {post.platforms.map(p => <Badge key={p} variant="secondary">{p}</Badge>)}
-                                    </div>
+                {sortedPosts.length > 0 ? (
+                    sortedPosts.map(post => (
+                        <Card key={post.id} className="overflow-hidden">
+                           <CardHeader className="flex flex-row items-start justify-between gap-4 p-4 bg-muted/50">
+                             <div>
+                               <div className="flex flex-wrap gap-1">
+                                    {post.platforms.map(p => <Badge key={p} variant="secondary">{p}</Badge>)}
                                 </div>
-                                <div className="flex flex-col items-end gap-2">
-                                     <Badge variant="outline">{statusTranslations[post.status]}</Badge>
-                                     <Badge variant="default" className="text-xs">{getActivityName(post.activityId)}</Badge>
-                                </div>
-                            </div>
-                             <p className="text-sm text-muted-foreground whitespace-pre-wrap">{post.text}</p>
-                             <div className="grid grid-cols-3 gap-4 text-xs mt-3 pt-3 border-t">
-                                <div className="text-center">
-                                    <p className="font-semibold">{post.plannedViews.toLocaleString(locale)}</p>
-                                    <p className="text-muted-foreground">Просмотры</p>
-                                </div>
-                                 <div className="text-center">
-                                    <p className="font-semibold">{post.plannedReach.toLocaleString(locale)}</p>
-                                    <p className="text-muted-foreground">Охват</p>
-                                </div>
-                                 <div className="text-center">
-                                    <p className="font-semibold">{post.plannedComments.toLocaleString(locale)}</p>
-                                    <p className="text-muted-foreground">Комментарии</p>
-                                </div>
+                                <p className="text-sm font-medium mt-2">{new Date(post.publicationDate).toLocaleDateString(locale, {day: '2-digit', month: 'long', year: 'numeric'})}</p>
+                                <Badge variant="outline" className="text-xs mt-2">{getActivityName(post.activityId)}</Badge>
                              </div>
-                        </div>
+                              <div className="flex flex-col items-end gap-2">
+                                    <Badge variant="outline" className={statusStyles[post.status]}>{statusTranslations[post.status]}</Badge>
+                                    <div className="flex items-center">
+                                       <EditSocialPostButton post={post} actionId={action.id} campaignId={campaignId} activities={action.activities || []} />
+                                       <DeleteSocialPostButton postId={post.id} actionId={action.id} campaignId={campaignId} />
+                                    </div>
+                               </div>
+                           </CardHeader>
+                           <CardContent className="p-4">
+                             <p className="text-sm text-foreground whitespace-pre-wrap">{post.text}</p>
+                           </CardContent>
+                            <CardFooter className="bg-muted/50 p-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <StatDisplay label="Просмотры" plan={post.plannedViews} fact={post.actualViews || 0} locale={locale} />
+                                <StatDisplay label="Охват" plan={post.plannedReach} fact={post.actualReach || 0} locale={locale} />
+                                <StatDisplay label="Комментарии" plan={post.plannedComments} fact={post.actualComments || 0} locale={locale} />
+                            </CardFooter>
+                        </Card>
                     ))
                 ) : (
                     <div className="text-center text-sm text-muted-foreground py-10 border-2 border-dashed rounded-lg">
