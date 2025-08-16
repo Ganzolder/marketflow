@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileSymlink, Landmark } from "lucide-react";
+import { FileSymlink } from "lucide-react";
 import { AddGeneralExpenseButton } from "./add-general-expense-button";
 import { DeleteGeneralExpenseButton } from "./delete-general-expense-button";
 import { EditExpenseButton } from "./edit-expense-button";
@@ -62,94 +62,13 @@ export function GeneralExpensesList({ action, campaignId }: { action: Action; ca
       <CardContent>
         {allExpenses.length > 0 ? (
           <>
-            {/* Mobile View */}
-            <div className="space-y-4 md:hidden">
-              {allExpenses.map((expense) => (
-                <div key={expense.id} className="border rounded-lg p-4 space-y-3">
-                    <div className="flex justify-between items-start">
-                      <div className="font-medium pr-2">{expense.description}</div>
-                      <div className="flex items-center justify-end space-x-1 flex-shrink-0">
-                            <EditExpenseButton 
-                              expense={expense} 
-                              campaignId={campaignId} 
-                              actionId={action.id} 
-                              activities={action.activities || []} 
-                              originalActivityId={expense.activityId}
-                            />
-                            {expense.activityId === 'general' ? (
-                                <DeleteGeneralExpenseButton expenseId={expense.id} campaignId={campaignId} actionId={action.id} />
-                            ) : (
-                                <DeleteExpenseButton expenseId={expense.id} campaignId={campaignId} actionId={action.id} activityId={expense.activityId!} />
-                            )}
-                      </div>
-                    </div>
-                    <div className="text-lg font-bold text-right">{new Intl.NumberFormat(locale, currencyOptions).format(expense.amount)}</div>
-                    <Separator />
-                     <div className="text-sm text-muted-foreground space-y-2">
-                          <div className="flex justify-between items-center">
-                            <span>Статус:</span> 
-                            <UpdateExpenseStatus expense={expense} actionId={action.id} campaignId={campaignId} />
-                          </div>
-                          <div className="flex justify-between items-center"><span>Активность:</span> <Badge variant={expense.activityName === 'Общий расход' ? 'secondary' : 'outline'} className="text-right">{expense.activityName}</Badge></div>
-                          <div className="flex justify-between items-center"><span>Дата:</span> <span className="font-medium text-foreground">{new Date(expense.date).toLocaleDateString(locale, dateOptions)}</span></div>
-                          <div className="flex justify-between items-center"><span>Юр. лицо:</span> <span className="font-medium text-foreground">{expense.legalEntity || '—'}</span></div>
-                          <div className="flex justify-between items-center">
-                            <span>Подтверждение:</span>
-                            {expense.photoURL ? (
-                              <Button variant="outline" size="sm" asChild>
-                                <a href={expense.photoURL} target="_blank" rel="noopener noreferrer">
-                                  <FileSymlink className="mr-2 h-4 w-4" />
-                                  <span>Просмотр</span>
-                                </a>
-                              </Button>
-                            ) : '—'}
-                          </div>
-                     </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Desktop View */}
-            <div className="hidden md:block">
-              <ScrollArea className="w-full whitespace-nowrap">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Дата</TableHead>
-                      <TableHead>Описание</TableHead>
-                      <TableHead>Активность</TableHead>
-                      <TableHead>Статус</TableHead>
-                      <TableHead>Юр. лицо</TableHead>
-                      <TableHead>Подтверждение</TableHead>
-                      <TableHead className="text-right">Сумма</TableHead>
-                      <TableHead className="w-[100px]">Действия</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {allExpenses.map((expense) => (
-                      <TableRow key={expense.id}>
-                        <TableCell>{new Date(expense.date).toLocaleDateString(locale, dateOptions)}</TableCell>
-                        <TableCell className="font-medium">{expense.description}</TableCell>
-                        <TableCell>
-                            <Badge variant={expense.activityName === 'Общий расход' ? 'secondary' : 'outline'}>{expense.activityName}</Badge>
-                        </TableCell>
-                        <TableCell>
-                            <UpdateExpenseStatus expense={expense} actionId={action.id} campaignId={campaignId} />
-                        </TableCell>
-                        <TableCell>{expense.legalEntity || '—'}</TableCell>
-                        <TableCell>
-                          {expense.photoURL ? (
-                            <Button variant="outline" size="sm" asChild>
-                              <a href={expense.photoURL} target="_blank" rel="noopener noreferrer">
-                                <FileSymlink className="mr-2 h-4 w-4" />
-                                <span>Просмотр</span>
-                              </a>
-                            </Button>
-                          ) : '—'}
-                        </TableCell>
-                        <TableCell className="text-right">{new Intl.NumberFormat(locale, currencyOptions).format(expense.amount)}</TableCell>
-                         <TableCell className="text-right">
-                             <div className="flex items-center justify-end space-x-1">
+            {/* Unified View */}
+            <div className="md:hidden space-y-4">
+                {allExpenses.map((expense) => (
+                    <div key={expense.id} className="border rounded-lg p-4 space-y-3">
+                        <div className="flex justify-between items-start">
+                          <div className="font-medium pr-2">{expense.description}</div>
+                          <div className="flex items-center justify-end space-x-1 flex-shrink-0">
                                 <EditExpenseButton 
                                   expense={expense} 
                                   campaignId={campaignId} 
@@ -157,18 +76,95 @@ export function GeneralExpensesList({ action, campaignId }: { action: Action; ca
                                   activities={action.activities || []} 
                                   originalActivityId={expense.activityId}
                                 />
-                                 {expense.activityId === 'general' ? (
+                                {expense.activityId === 'general' ? (
                                     <DeleteGeneralExpenseButton expenseId={expense.id} campaignId={campaignId} actionId={action.id} />
                                 ) : (
                                     <DeleteExpenseButton expenseId={expense.id} campaignId={campaignId} actionId={action.id} activityId={expense.activityId!} />
                                 )}
-                             </div>
-                         </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </ScrollArea>
+                          </div>
+                        </div>
+                        <div className="text-lg font-bold text-right">{new Intl.NumberFormat(locale, currencyOptions).format(expense.amount)}</div>
+                        <Separator />
+                         <div className="text-sm text-muted-foreground space-y-2">
+                              <div className="flex justify-between items-center">
+                                <span>Статус:</span> 
+                                <UpdateExpenseStatus expense={expense} actionId={action.id} campaignId={campaignId} />
+                              </div>
+                              <div className="flex justify-between items-center"><span>Активность:</span> <Badge variant={expense.activityName === 'Общий расход' ? 'secondary' : 'outline'} className="text-right">{expense.activityName}</Badge></div>
+                              <div className="flex justify-between items-center"><span>Дата:</span> <span className="font-medium text-foreground">{new Date(expense.date).toLocaleDateString(locale, dateOptions)}</span></div>
+                              <div className="flex justify-between items-center"><span>Юр. лицо:</span> <span className="font-medium text-foreground">{expense.legalEntity || '—'}</span></div>
+                              <div className="flex justify-between items-center">
+                                <span>Подтверждение:</span>
+                                {expense.photoURL ? (
+                                  <Button variant="outline" size="sm" asChild>
+                                    <a href={expense.photoURL} target="_blank" rel="noopener noreferrer">
+                                      <FileSymlink className="mr-2 h-4 w-4" />
+                                      <span>Просмотр</span>
+                                    </a>
+                                  </Button>
+                                ) : '—'}
+                              </div>
+                         </div>
+                    </div>
+                ))}
+            </div>
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Дата</TableHead>
+                    <TableHead>Описание</TableHead>
+                    <TableHead>Активность</TableHead>
+                    <TableHead>Статус</TableHead>
+                    <TableHead>Юр. лицо</TableHead>
+                    <TableHead>Подтверждение</TableHead>
+                    <TableHead className="text-right">Сумма</TableHead>
+                    <TableHead className="w-[100px] text-right">Действия</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {allExpenses.map((expense) => (
+                    <TableRow key={expense.id}>
+                      <TableCell>{new Date(expense.date).toLocaleDateString(locale, dateOptions)}</TableCell>
+                      <TableCell className="font-medium">{expense.description}</TableCell>
+                      <TableCell>
+                          <Badge variant={expense.activityName === 'Общий расход' ? 'secondary' : 'outline'}>{expense.activityName}</Badge>
+                      </TableCell>
+                      <TableCell>
+                          <UpdateExpenseStatus expense={expense} actionId={action.id} campaignId={campaignId} />
+                      </TableCell>
+                      <TableCell>{expense.legalEntity || '—'}</TableCell>
+                      <TableCell>
+                        {expense.photoURL ? (
+                          <Button variant="outline" size="sm" asChild>
+                            <a href={expense.photoURL} target="_blank" rel="noopener noreferrer">
+                              <FileSymlink className="mr-2 h-4 w-4" />
+                              <span>Просмотр</span>
+                            </a>
+                          </Button>
+                        ) : '—'}
+                      </TableCell>
+                      <TableCell className="text-right">{new Intl.NumberFormat(locale, currencyOptions).format(expense.amount)}</TableCell>
+                       <TableCell className="text-right">
+                           <div className="flex items-center justify-end space-x-1">
+                              <EditExpenseButton 
+                                expense={expense} 
+                                campaignId={campaignId} 
+                                actionId={action.id} 
+                                activities={action.activities || []} 
+                                originalActivityId={expense.activityId}
+                              />
+                               {expense.activityId === 'general' ? (
+                                  <DeleteGeneralExpenseButton expenseId={expense.id} campaignId={campaignId} actionId={action.id} />
+                              ) : (
+                                  <DeleteExpenseButton expenseId={expense.id} campaignId={campaignId} actionId={action.id} activityId={expense.activityId!} />
+                              )}
+                           </div>
+                       </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           </>
         ) : (
