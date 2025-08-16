@@ -37,7 +37,7 @@ export function ActionResponsibilityCard({ action, campaignId }: { action: Actio
                 <EditActionResponsibilityButton action={action} campaignId={campaignId} />
             </CardHeader>
             <CardContent>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     <ResponsibilityItem icon={User} label="Ответственный" value={action.responsiblePerson} />
                     <ResponsibilityItem icon={Building2} label="Руководитель по маркетингу" value={action.marketingHead} />
                     <ResponsibilityItem icon={UserCheck} label="Руководитель отдела продаж" value={action.salesHead} />
@@ -49,3 +49,5 @@ export function ActionResponsibilityCard({ action, campaignId }: { action: Actio
         </Card>
     )
 }
+
+    

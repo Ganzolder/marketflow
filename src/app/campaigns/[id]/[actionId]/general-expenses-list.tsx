@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import type { Action, Expense, Activity } from "@/lib/types";
@@ -66,8 +65,8 @@ export function GeneralExpensesList({ action, campaignId }: { action: Action; ca
             {allExpenses.map((expense) => (
               <div key={expense.id} className="border rounded-lg p-4 space-y-3">
                   <div className="flex justify-between items-start">
-                    <div className="font-medium">{expense.description}</div>
-                    <div className="flex items-center justify-end space-x-1">
+                    <div className="font-medium pr-2">{expense.description}</div>
+                    <div className="flex items-center justify-end space-x-1 flex-shrink-0">
                           <EditExpenseButton 
                             expense={expense} 
                             campaignId={campaignId} 
@@ -89,9 +88,9 @@ export function GeneralExpensesList({ action, campaignId }: { action: Action; ca
                           <span>Статус:</span> 
                           <UpdateExpenseStatus expense={expense} actionId={action.id} campaignId={campaignId} />
                         </div>
-                        <div className="flex justify-between"><span>Активность:</span> <Badge variant={expense.activityName === 'Общий расход' ? 'secondary' : 'outline'} className="text-right">{expense.activityName}</Badge></div>
-                        <div className="flex justify-between"><span>Дата:</span> <span className="font-medium text-foreground">{new Date(expense.date).toLocaleDateString(locale, dateOptions)}</span></div>
-                        <div className="flex justify-between"><span>Юр. лицо:</span> <span className="font-medium text-foreground">{expense.legalEntity || '—'}</span></div>
+                        <div className="flex justify-between items-center"><span>Активность:</span> <Badge variant={expense.activityName === 'Общий расход' ? 'secondary' : 'outline'} className="text-right">{expense.activityName}</Badge></div>
+                        <div className="flex justify-between items-center"><span>Дата:</span> <span className="font-medium text-foreground">{new Date(expense.date).toLocaleDateString(locale, dateOptions)}</span></div>
+                        <div className="flex justify-between items-center"><span>Юр. лицо:</span> <span className="font-medium text-foreground">{expense.legalEntity || '—'}</span></div>
                         <div className="flex justify-between items-center">
                           <span>Подтверждение:</span>
                           {expense.photoURL ? (
@@ -180,3 +179,5 @@ export function GeneralExpensesList({ action, campaignId }: { action: Action; ca
     </Card>
   );
 }
+
+    

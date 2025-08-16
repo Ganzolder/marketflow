@@ -96,7 +96,7 @@ export function ActionEffectivenessCard({ action, campaignId, locale, currencyOp
                     <input type="hidden" name="campaignId" value={campaignId} />
                     <input type="hidden" name="actionId" value={action.id} />
                     
-                    <div className="grid lg:grid-cols-4 gap-6 items-end">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
                          <div className="grid gap-2">
                             <Label htmlFor="plannedAverageCheck">Планируемый средний чек (р.)</Label>
                             <Input 
@@ -156,7 +156,7 @@ export function ActionEffectivenessCard({ action, campaignId, locale, currencyOp
 
                 <Separator className="my-6" />
 
-                <div className="grid lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
                         <div className="p-3 bg-primary/10 rounded-lg">
                             <ShoppingCart className="w-6 h-6 text-primary" />
@@ -217,7 +217,7 @@ export function ActionEffectivenessCard({ action, campaignId, locale, currencyOp
                 
                 <Separator className="my-6" />
 
-                <div className="grid lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                      <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
                         <div className="p-3 bg-accent/10 rounded-lg">
                             <PiggyBank className="w-6 h-6 text-accent" />
@@ -252,3 +252,5 @@ export function ActionEffectivenessCard({ action, campaignId, locale, currencyOp
         </Card>
     );
 }
+
+    
