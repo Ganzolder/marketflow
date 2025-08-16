@@ -10,7 +10,8 @@ import {
   Sparkles,
   Rocket,
   Megaphone,
-  Network
+  Network,
+  HardDrive
 } from 'lucide-react';
 import {
   Sidebar,
@@ -31,6 +32,7 @@ const menuItems = [
   { href: '/activities', label: 'Активности', icon: Network },
   { href: '/creatives', label: 'Креативы', icon: Sparkles },
   { href: '/calculator', label: 'Калькулятор', icon: Calculator },
+  { href: '/database', label: 'База данных', icon: HardDrive },
 ];
 
 export function AppSidebar() {
