@@ -119,7 +119,7 @@ export async function addAction(campaignId: string, action: Omit<Action, 'id' | 
         actualAverageCheck: 0,
         plannedMarginality: 0,
         actualMarginality: 0,
-        conditions: '',
+        conditions: action.conditions || '',
     };
     await updateDoc(campaignRef, {
         actions: arrayUnion(newAction)
@@ -946,7 +946,7 @@ export async function deleteKpiMetric(campaignId: string, actionId: string, acti
     }
 }
 
-export async function updateActionResponsibility(campaignId: string, actionId: string, data: Partial<Pick<Action, 'responsiblePerson' | 'marketingHead' | 'financeHead' | 'itHead' | 'curator'>>) {
+export async function updateActionResponsibility(campaignId: string, actionId: string, data: Partial<Pick<Action, 'responsiblePerson' | 'marketingHead' | 'financeHead' | 'itHead' | 'curator' | 'salesHead'>>) {
     const campaignRef = doc(db, 'campaigns', campaignId);
     try {
         await runTransaction(db, async (transaction) => {
@@ -990,5 +990,3 @@ export async function updateActionConditions(campaignId: string, actionId: strin
         throw new Error('Failed to update action conditions.');
     }
 }
-
-    

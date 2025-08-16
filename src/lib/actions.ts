@@ -13,6 +13,7 @@ const ActionSchema = z.object({
   name: z.string().min(3, { message: "Название акции должно содержать не менее 3 символов." }),
   description: z.string().optional(),
   targetAudience: z.string().optional(),
+  conditions: z.string().optional(),
   startDate: z.string().refine((date) => !isNaN(Date.parse(date)), { message: "Неверный формат даты начала." }),
   endDate: z.string().refine((date) => !isNaN(Date.parse(date)), { message: "Неверный формат даты окончания." }),
   status: z.enum(['planned', 'in-progress', 'completed']),
@@ -32,6 +33,7 @@ export type ActionFormState = {
     name?: string[];
     description?: string[];
     targetAudience?: string[];
+    conditions?: string[];
     startDate?: string[];
     endDate?: string[];
     status?: string[];
@@ -55,6 +57,7 @@ export async function addActionToCampaign(
     name: formData.get('action-name'),
     description: formData.get('description'),
     targetAudience: formData.get('target-audience'),
+    conditions: formData.get('conditions'),
     startDate: formData.get('start-date'),
     endDate: formData.get('end-date'),
     status: formData.get('status'),
@@ -95,6 +98,7 @@ export async function editActionInCampaign(
     endDate: formData.get('end-date'),
     status: formData.get('status'),
     campaignId: formData.get('campaignId'),
+    conditions: formData.get('conditions'),
   });
 
   if (!validatedFields.success) {

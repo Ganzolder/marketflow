@@ -91,6 +91,11 @@ export function NewActionButton({ campaignId }: { campaignId: string }) {
                              <Input id="target-audience" name="target-audience" placeholder="например, Студенты, молодые специалисты... (необязательно)"/>
                              {state.errors?.targetAudience && <p className="text-sm text-destructive">{state.errors.targetAudience[0]}</p>}
                         </div>
+                        <div className="grid gap-2">
+                             <Label htmlFor="conditions">Условия акции</Label>
+                             <Textarea id="conditions" name="conditions" placeholder="Опишите условия проведения акции... (необязательно)"/>
+                             {state.errors?.conditions && <p className="text-sm text-destructive">{state.errors.conditions[0]}</p>}
+                        </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="start-date">Дата начала</Label>
