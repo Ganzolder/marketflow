@@ -1,24 +1,44 @@
 
-import { PageHeader } from "@/components/page-header";
-import { Card, CardContent } from "@/components/ui/card";
-import { Share2 } from "lucide-react";
 
-export default function SmmPage() {
+import { PageHeader } from "@/components/page-header";
+import { getAllSocialPosts } from "@/lib/data";
+import { SmmPlanner } from "./smm-planner";
+
+type SmmPageProps = {
+    searchParams: {
+        status?: 'draft' | 'ready' | 'published';
+        startDate?: string;
+        endDate?: string;
+    }
+}
+
+export default async function SmmPage({ searchParams }: SmmPageProps) {
+  const allPosts = await getAllSocialPosts();
+  
+  const filteredPosts = allPosts.filter(post => {
+      if (searchParams.status && post.status !== searchParams.status) {
+          return false;
+      }
+      if (searchParams.startDate) {
+          const postDate = new Date(post.publicationDate);
+          const filterDate = new Date(searchParams.startDate);
+          if (postDate < filterDate) return false;
+      }
+      if (searchParams.endDate) {
+          const postDate = new Date(post.publicationDate);
+          const filterDate = new Date(searchParams.endDate);
+          if (postDate > filterDate) return false;
+      }
+      return true;
+  });
+
   return (
     <div>
       <PageHeader
         title="SMM Планировщик"
         description="Управляйте всеми вашими публикациями в социальных сетях в одном месте."
       />
-      <Card>
-        <CardContent className="pt-6">
-            <div className="text-center text-muted-foreground py-12">
-                <Share2 className="mx-auto h-12 w-12 mb-4" />
-                <h3 className="text-lg font-semibold">Раздел в разработке</h3>
-                <p className="text-sm">Эта страница скоро будет доступна. Здесь вы сможете видеть календарь публикаций и сводную аналитику.</p>
-            </div>
-        </CardContent>
-      </Card>
+      <SmmPlanner posts={filteredPosts} />
     </div>
   );
 }

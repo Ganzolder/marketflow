@@ -131,6 +131,13 @@ export type EnrichedActivity = Activity & {
   campaignId: string;
 };
 
+export type EnrichedSocialPost = SocialPost & {
+  actionName: string;
+  actionId: string;
+  campaignName: string;
+  campaignId: string;
+}
+
 export type ActivityFormState = {
   message: string;
   error?: boolean;

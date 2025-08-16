@@ -1,6 +1,6 @@
 
 
-import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction, ActionStatus, CampaignStatus, KpiMetricLog, EnrichedActivity, Resource, ResourceStatus, ExpenseStatus, SocialPost } from './types';
+import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction, ActionStatus, CampaignStatus, KpiMetricLog, EnrichedActivity, Resource, ResourceStatus, ExpenseStatus, SocialPost, EnrichedSocialPost } from './types';
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, addDoc, writeBatch, runTransaction, deleteDoc } from "firebase/firestore";
 import { Combobox } from '@/components/ui/combobox';
@@ -669,6 +669,28 @@ export async function getAllActivities(): Promise<EnrichedActivity[]> {
   });
 
   return allActivities.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+}
+
+export async function getAllSocialPosts(): Promise<EnrichedSocialPost[]> {
+  const campaigns = await getCampaigns();
+  const allPosts: EnrichedSocialPost[] = [];
+
+  campaigns.forEach(campaign => {
+    (campaign.actions || []).forEach(action => {
+      (action.socialPosts || []).forEach(post => {
+        const enrichedPost: EnrichedSocialPost = {
+          ...post,
+          actionName: action.name,
+          actionId: action.id,
+          campaignName: campaign.name,
+          campaignId: campaign.id,
+        };
+        allPosts.push(enrichedPost);
+      });
+    });
+  });
+
+  return allPosts.sort((a, b) => new Date(b.publicationDate).getTime() - new Date(a.publicationDate).getTime());
 }
 
 
