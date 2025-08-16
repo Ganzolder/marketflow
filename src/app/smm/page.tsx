@@ -12,7 +12,8 @@ type SmmPageProps = {
     }
 }
 
-export default async function SmmPage({ searchParams }: SmmPageProps) {
+export default async function SmmPage({ searchParams: searchParamsPromise }: SmmPageProps) {
+  const searchParams = await searchParamsPromise;
   const allPosts = await getAllSocialPosts();
   
   const filteredPosts = allPosts.filter(post => {
@@ -42,3 +43,4 @@ export default async function SmmPage({ searchParams }: SmmPageProps) {
     </div>
   );
 }
+
