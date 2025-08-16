@@ -149,3 +149,8 @@ export type ResponsibilityFormState = {
         salesHead?: string[];
     }
 }
+
+export type ResourceStatusFormState = {
+  message: string;
+  error?: boolean;
+};

@@ -8,24 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, Package, FilePlus, BadgeRussianRuble } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { AddResourceButton } from './add-resource-button';
 import { EditResourceButton } from './edit-resource-button';
 import { DeleteResourceButton } from './delete-resource-button';
-
-const resourceStatusTranslations: Record<ResourceStatus, string> = {
-  draft: "Черновик",
-  planned: "Запланировано",
-  "in-progress": "В работе",
-  ready: "Готово",
-};
-
-const resourceStatusStyles: Record<ResourceStatus, string> = {
-  draft: "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800/50 dark:text-gray-300 dark:border-gray-700/50",
-  planned: "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-700/50",
-  "in-progress": "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700/50",
-  ready: "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700/50",
-};
+import { UpdateResourceStatus } from './update-resource-status';
 
 export function ActionResourcesCard({ action, campaignId }: { action: Action; campaignId: string; }) {
   const [isOpen, setIsOpen] = useState(true);
@@ -72,9 +58,7 @@ export function ActionResourcesCard({ action, campaignId }: { action: Action; ca
                         <TableRow key={resource.id}>
                             <TableCell className="font-medium">{resource.name}</TableCell>
                             <TableCell>
-                                <Badge variant="outline" className={resourceStatusStyles[resource.status]}>
-                                    {resourceStatusTranslations[resource.status]}
-                                </Badge>
+                                <UpdateResourceStatus resource={resource} actionId={action.id} campaignId={campaignId} />
                             </TableCell>
                             <TableCell>{resource.responsiblePerson || '—'}</TableCell>
                             <TableCell>{resource.plannedDate ? new Date(resource.plannedDate).toLocaleDateString('ru-RU') : '—'}</TableCell>

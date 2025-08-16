@@ -3,9 +3,9 @@
 "use server";
 
 import { z } from "zod";
-import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction } from "./data";
+import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData } from "./data";
 import { revalidatePath } from "next/cache";
-import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog, Campaign, ResponsibilityFormState, Resource } from "./types";
+import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog, Campaign, ResponsibilityFormState, Resource, ResourceStatus, ResourceStatusFormState } from "./types";
 import { redirect } from "next/navigation";
 import { analyzeActionPerformance, type AnalyzeActionPerformanceOutput } from "@/ai/flows/analyze-action-performance";
 
@@ -1212,4 +1212,40 @@ export async function deleteResource(prevState: DeleteFormState, formData: FormD
 
     revalidatePath(`/campaigns/${campaignId}/${actionId}`);
     return { message: "Ресурс успешно удален." };
+}
+
+const UpdateResourceStatusSchema = z.object({
+  campaignId: z.string(),
+  actionId: z.string(),
+  resourceId: z.string(),
+  status: z.enum(['draft', 'planned', 'in-progress', 'ready']),
+});
+
+
+export async function updateResourceStatus(prevState: ResourceStatusFormState, formData: FormData): Promise<ResourceStatusFormState> {
+  const validatedFields = UpdateResourceStatusSchema.safeParse({
+    campaignId: formData.get('campaignId'),
+    actionId: formData.get('actionId'),
+    resourceId: formData.get('resourceId'),
+    status: formData.get('status'),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      message: "Ошибка валидации.",
+      error: true,
+    };
+  }
+
+  const { campaignId, actionId, resourceId, status } = validatedFields.data;
+
+  try {
+    await updateResourceStatusData(campaignId, actionId, resourceId, status as ResourceStatus);
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+    return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
+  }
+
+  revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+  return { message: "Статус ресурса обновлен." };
 }

@@ -1,6 +1,6 @@
 
 
-import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction, ActionStatus, CampaignStatus, KpiMetricLog, EnrichedActivity, Resource } from './types';
+import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction, ActionStatus, CampaignStatus, KpiMetricLog, EnrichedActivity, Resource, ResourceStatus } from './types';
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, addDoc, writeBatch, runTransaction, deleteDoc } from "firebase/firestore";
 import { Combobox } from '@/components/ui/combobox';
@@ -1068,6 +1068,32 @@ export async function deleteResourceFromAction(campaignId: string, actionId: str
         });
     } catch (e) {
         console.error("Delete resource transaction failed:", e);
+        throw e;
+    }
+}
+
+export async function updateResourceStatus(campaignId: string, actionId: string, resourceId: string, status: ResourceStatus) {
+    const campaignRef = doc(db, 'campaigns', campaignId);
+    try {
+        await runTransaction(db, async (transaction) => {
+            const campaignDoc = await transaction.get(campaignRef);
+            if (!campaignDoc.exists()) throw new Error("Campaign not found");
+            const campaignData = campaignDoc.data() as Campaign;
+
+            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
+            if (actionIndex === -1) throw new Error("Action not found");
+
+            const newActions = [...campaignData.actions];
+            const resources = newActions[actionIndex].resources || [];
+            const resourceIndex = resources.findIndex(r => r.id === resourceId);
+            if (resourceIndex === -1) throw new Error("Resource not found");
+
+            resources[resourceIndex].status = status;
+            newActions[actionIndex].resources = resources;
+            transaction.update(campaignRef, { actions: newActions });
+        });
+    } catch (e) {
+        console.error("Update resource status transaction failed:", e);
         throw e;
     }
 }
