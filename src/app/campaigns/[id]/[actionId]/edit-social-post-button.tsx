@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useRef, useActionState, useTransition } from 'react';
@@ -119,18 +120,9 @@ export function EditSocialPostButton({ post, actionId, campaignId, activities }:
                             </div>
                              <div className="grid gap-2">
                                 <Label>Плановые показатели</Label>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <Input name="plannedViews" type="number" placeholder="Просмотры" defaultValue={post.plannedViews}/>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <Input name="plannedReach" type="number" placeholder="Охват" defaultValue={post.plannedReach} />
                                     <Input name="plannedComments" type="number" placeholder="Комментарии" defaultValue={post.plannedComments} />
-                                </div>
-                             </div>
-                             <div className="grid gap-2">
-                                <Label>Фактические показатели</Label>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <Input name="actualViews" type="number" placeholder="Просмотры" defaultValue={post.actualViews} />
-                                    <Input name="actualReach" type="number" placeholder="Охват" defaultValue={post.actualReach}/>
-                                    <Input name="actualComments" type="number" placeholder="Комментарии" defaultValue={post.actualComments}/>
                                 </div>
                              </div>
                              <div className="grid grid-cols-2 gap-4">
@@ -172,4 +164,3 @@ export function EditSocialPostButton({ post, actionId, campaignId, activities }:
         </Dialog>
     );
 }
-

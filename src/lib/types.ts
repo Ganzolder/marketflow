@@ -57,8 +57,6 @@ export type SocialPost = {
   id: string;
   platforms: SocialPlatform[];
   text: string;
-  plannedViews: number;
-  actualViews?: number;
   plannedReach: number;
   actualReach?: number;
   plannedComments: number;
@@ -189,14 +187,19 @@ export type SocialPostFormState = {
   errors?: {
     platforms?: string[];
     text?: string[];
-    plannedViews?: string[];
     plannedReach?: string[];
     plannedComments?: string[];
-    actualViews?: string[];
-    actualReach?: string[];
-    actualComments?: string[];
     publicationDate?: string[];
     status?: string[];
     activityId?: string[];
   }
 };
+
+export type SocialPostMetricsFormState = {
+  message: string;
+  error?: boolean;
+  errors?: {
+    actualReach?: string[];
+    actualComments?: string[];
+  }
+}

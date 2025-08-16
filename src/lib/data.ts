@@ -1,6 +1,6 @@
 
 
-import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction, ActionStatus, CampaignStatus, KpiMetricLog, EnrichedActivity, Resource, ResourceStatus, ExpenseStatus } from './types';
+import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction, ActionStatus, CampaignStatus, KpiMetricLog, EnrichedActivity, Resource, ResourceStatus, ExpenseStatus, SocialPost } from './types';
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, addDoc, writeBatch, runTransaction, deleteDoc } from "firebase/firestore";
 import { Combobox } from '@/components/ui/combobox';
@@ -1181,6 +1181,98 @@ export async function addSocialPostToAction(campaignId: string, actionId: string
         });
     } catch (e) {
         console.error("Add social post transaction failed:", e);
+        throw e;
+    }
+}
+
+
+export async function updateSocialPostInAction(campaignId: string, actionId: string, postData: SocialPost) {
+    const campaignRef = doc(db, 'campaigns', campaignId);
+    try {
+        await runTransaction(db, async (transaction) => {
+            const campaignDoc = await transaction.get(campaignRef);
+            if (!campaignDoc.exists()) throw new Error("Campaign not found");
+            const campaignData = campaignDoc.data() as Campaign;
+
+            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
+            if (actionIndex === -1) throw new Error("Action not found");
+            
+            const newActions = [...campaignData.actions];
+            const action = newActions[actionIndex];
+
+            if (!action.socialPosts) {
+                throw new Error("Social posts array does not exist");
+            }
+            
+            const postIndex = action.socialPosts.findIndex(p => p.id === postData.id);
+            if (postIndex === -1) {
+                throw new Error("Social post not found");
+            }
+
+            action.socialPosts[postIndex] = postData;
+            
+            transaction.update(campaignRef, { actions: newActions });
+        });
+    } catch (e) {
+        console.error("Update social post transaction failed:", e);
+        throw e;
+    }
+}
+
+export async function deleteSocialPostFromAction(campaignId: string, actionId: string, postId: string) {
+    const campaignRef = doc(db, 'campaigns', campaignId);
+    try {
+        await runTransaction(db, async (transaction) => {
+            const campaignDoc = await transaction.get(campaignRef);
+            if (!campaignDoc.exists()) throw new Error("Campaign not found");
+            const campaignData = campaignDoc.data() as Campaign;
+
+            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
+            if (actionIndex === -1) throw new Error("Action not found");
+
+            const newActions = [...campaignData.actions];
+            const action = newActions[actionIndex];
+
+            if (!action.socialPosts) {
+                return;
+            }
+            
+            action.socialPosts = action.socialPosts.filter(p => p.id !== postId);
+            
+            transaction.update(campaignRef, { actions: newActions });
+        });
+    } catch (e) {
+        console.error("Delete social post transaction failed:", e);
+        throw e;
+    }
+}
+
+export async function updateSocialPostMetricsData(campaignId: string, actionId: string, postId: string, metrics: { actualReach: number, actualComments: number }) {
+    const campaignRef = doc(db, 'campaigns', campaignId);
+    try {
+        await runTransaction(db, async (transaction) => {
+            const campaignDoc = await transaction.get(campaignRef);
+            if (!campaignDoc.exists()) throw new Error("Campaign not found");
+            const campaignData = campaignDoc.data() as Campaign;
+
+            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
+            if (actionIndex === -1) throw new Error("Action not found");
+
+            const newActions = [...campaignData.actions];
+            const action = newActions[actionIndex];
+            
+            if (!action.socialPosts) throw new Error("Social posts not found");
+
+            const postIndex = action.socialPosts.findIndex(p => p.id === postId);
+            if (postIndex === -1) throw new Error("Post not found");
+
+            action.socialPosts[postIndex].actualReach = metrics.actualReach;
+            action.socialPosts[postIndex].actualComments = metrics.actualComments;
+
+            transaction.update(campaignRef, { actions: newActions });
+        });
+    } catch (e) {
+        console.error("Update social post metrics transaction failed:", e);
         throw e;
     }
 }
