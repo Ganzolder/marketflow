@@ -29,6 +29,7 @@ import { ActionResponsibilityCard } from './action-responsibility-card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ActionResourcesCard } from './action-resources-card';
 
 type ActionDetailPageProps = {
   params: {
@@ -181,6 +182,8 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
         </Card>
 
         <ActionResponsibilityCard action={action} campaignId={campaign.id} />
+        
+        <ActionResourcesCard action={action} campaignId={campaign.id} />
 
         <ActionEffectivenessCard action={action} campaignId={campaign.id} locale={locale} currencyOptions={currencyOptions} totalSpent={totalSpent} />
         

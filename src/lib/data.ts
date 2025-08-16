@@ -1,6 +1,6 @@
 
 
-import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction, ActionStatus, CampaignStatus, KpiMetricLog, EnrichedActivity } from './types';
+import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction, ActionStatus, CampaignStatus, KpiMetricLog, EnrichedActivity, Resource } from './types';
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, addDoc, writeBatch, runTransaction, deleteDoc } from "firebase/firestore";
 import { Combobox } from '@/components/ui/combobox';
@@ -120,6 +120,7 @@ export async function addAction(campaignId: string, action: Omit<Action, 'id' | 
         plannedMarginality: 0,
         actualMarginality: 0,
         conditions: action.conditions || '',
+        resources: [],
     };
     await updateDoc(campaignRef, {
         actions: arrayUnion(newAction)
@@ -512,6 +513,7 @@ export async function getCampaignById(id: string): Promise<Campaign | undefined>
           campaignData.actions.forEach(action => {
               if (!action.generalExpenses) action.generalExpenses = [];
               if (!action.summaryKpis) action.summaryKpis = [];
+              if (!action.resources) action.resources = [];
               if (!action.plannedAverageCheck) action.plannedAverageCheck = 0;
               if (!action.actualAverageCheck) action.actualAverageCheck = 0;
               if (!action.plannedMarginality) action.plannedMarginality = 0;
@@ -988,5 +990,84 @@ export async function updateActionConditions(campaignId: string, actionId: strin
     } catch (e) {
         console.error("Transaction failed: ", e);
         throw new Error('Failed to update action conditions.');
+    }
+}
+
+
+export async function addResourceToAction(campaignId: string, actionId: string, resource: Omit<Resource, 'id'>) {
+    const campaignRef = doc(db, 'campaigns', campaignId);
+    try {
+        await runTransaction(db, async (transaction) => {
+            const campaignDoc = await transaction.get(campaignRef);
+            if (!campaignDoc.exists()) throw new Error("Campaign not found");
+            const campaignData = campaignDoc.data() as Campaign;
+
+            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
+            if (actionIndex === -1) throw new Error("Action not found");
+
+            const newActions = [...campaignData.actions];
+            if (!newActions[actionIndex].resources) {
+                newActions[actionIndex].resources = [];
+            }
+            
+            const newResource: Resource = {
+                ...resource,
+                id: `res-${actionId.substring(0, 4)}-${Date.now()}`,
+            };
+
+            newActions[actionIndex].resources!.push(newResource);
+            transaction.update(campaignRef, { actions: newActions });
+        });
+    } catch (e) {
+        console.error("Add resource transaction failed:", e);
+        throw e;
+    }
+}
+
+export async function updateResourceInAction(campaignId: string, actionId: string, resource: Resource) {
+    const campaignRef = doc(db, 'campaigns', campaignId);
+    try {
+        await runTransaction(db, async (transaction) => {
+            const campaignDoc = await transaction.get(campaignRef);
+            if (!campaignDoc.exists()) throw new Error("Campaign not found");
+            const campaignData = campaignDoc.data() as Campaign;
+
+            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
+            if (actionIndex === -1) throw new Error("Action not found");
+
+            const newActions = [...campaignData.actions];
+            const resources = newActions[actionIndex].resources || [];
+            const resourceIndex = resources.findIndex(r => r.id === resource.id);
+            if (resourceIndex === -1) throw new Error("Resource not found");
+
+            resources[resourceIndex] = resource;
+            newActions[actionIndex].resources = resources;
+            transaction.update(campaignRef, { actions: newActions });
+        });
+    } catch (e) {
+        console.error("Update resource transaction failed:", e);
+        throw e;
+    }
+}
+
+export async function deleteResourceFromAction(campaignId: string, actionId: string, resourceId: string) {
+    const campaignRef = doc(db, 'campaigns', campaignId);
+    try {
+        await runTransaction(db, async (transaction) => {
+            const campaignDoc = await transaction.get(campaignRef);
+            if (!campaignDoc.exists()) throw new Error("Campaign not found");
+            const campaignData = campaignDoc.data() as Campaign;
+
+            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
+            if (actionIndex === -1) throw new Error("Action not found");
+
+            const newActions = [...campaignData.actions];
+            const resources = newActions[actionIndex].resources || [];
+            newActions[actionIndex].resources = resources.filter(r => r.id !== resourceId);
+            transaction.update(campaignRef, { actions: newActions });
+        });
+    } catch (e) {
+        console.error("Delete resource transaction failed:", e);
+        throw e;
     }
 }

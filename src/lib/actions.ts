@@ -3,9 +3,9 @@
 "use server";
 
 import { z } from "zod";
-import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData } from "./data";
+import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction as deleteResourceFromActionData } from "./data";
 import { revalidatePath } from "next/cache";
-import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog, Campaign, ResponsibilityFormState } from "./types";
+import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog, Campaign, ResponsibilityFormState, Resource } from "./types";
 import { redirect } from "next/navigation";
 import { analyzeActionPerformance, type AnalyzeActionPerformanceOutput } from "@/ai/flows/analyze-action-performance";
 
@@ -1093,4 +1093,103 @@ export async function updateActionConditions(prevState: ConditionsFormState, for
 
     revalidatePath(`/campaigns/${campaignId}/${actionId}`);
     return { message: "Условия акции успешно обновлены." };
+}
+
+// --- Resource Actions ---
+
+const ResourceSchema = z.object({
+  name: z.string().min(1, "Название обязательно."),
+  status: z.enum(['draft', 'planned', 'in-progress', 'ready']),
+  responsiblePerson: z.string().optional(),
+  plannedDate: z.string().optional(),
+  linkedExpenseId: z.string().optional(),
+});
+
+export type ResourceFormState = {
+  message: string;
+  error?: boolean;
+  errors?: z.ZodError<z.infer<typeof ResourceSchema>>['formErrors']['fieldErrors']
+}
+
+export async function addResourceToAction(prevState: ResourceFormState, formData: FormData): Promise<ResourceFormState> {
+  const campaignId = formData.get('campaignId') as string;
+  const actionId = formData.get('actionId') as string;
+
+  const validatedFields = ResourceSchema.safeParse({
+    name: formData.get('name'),
+    status: formData.get('status'),
+    responsiblePerson: formData.get('responsiblePerson'),
+    plannedDate: formData.get('plannedDate'),
+    linkedExpenseId: formData.get('linkedExpenseId') === 'none' ? undefined : formData.get('linkedExpenseId'),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      message: "Ошибка валидации.",
+      error: true,
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+
+  try {
+    await addResourceToActionData(campaignId, actionId, validatedFields.data as Omit<Resource, 'id'>);
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+    return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
+  }
+
+  revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+  return { message: "Ресурс успешно добавлен." };
+}
+
+export async function updateResourceInAction(prevState: ResourceFormState, formData: FormData): Promise<ResourceFormState> {
+  const campaignId = formData.get('campaignId') as string;
+  const actionId = formData.get('actionId') as string;
+  const resourceId = formData.get('resourceId') as string;
+
+  const validatedFields = ResourceSchema.safeParse({
+    name: formData.get('name'),
+    status: formData.get('status'),
+    responsiblePerson: formData.get('responsiblePerson'),
+    plannedDate: formData.get('plannedDate'),
+    linkedExpenseId: formData.get('linkedExpenseId') === 'none' ? undefined : formData.get('linkedExpenseId'),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      message: "Ошибка валидации.",
+      error: true,
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+
+  try {
+    await updateResourceInActionData(campaignId, actionId, { id: resourceId, ...validatedFields.data } as Resource);
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+    return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
+  }
+
+  revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+  return { message: "Ресурс успешно обновлен." };
+}
+
+export async function deleteResource(prevState: DeleteFormState, formData: FormData): Promise<DeleteFormState> {
+    const campaignId = formData.get('campaignId') as string;
+    const actionId = formData.get('actionId') as string;
+    const resourceId = formData.get('resourceId') as string;
+
+    if (!campaignId || !actionId || !resourceId) {
+        return { message: "Отсутствуют необходимые идентификаторы.", error: true };
+    }
+    
+    try {
+        await deleteResourceFromAction(campaignId, actionId, resourceId);
+    } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+        return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
+    }
+
+    revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+    return { message: "Ресурс успешно удален." };
 }

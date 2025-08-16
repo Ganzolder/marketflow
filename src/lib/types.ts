@@ -35,6 +35,17 @@ export type Expense = {
     photoURL?: string;
 }
 
+export type ResourceStatus = 'draft' | 'planned' | 'in-progress' | 'ready';
+
+export type Resource = {
+  id: string;
+  name: string;
+  status: ResourceStatus;
+  responsiblePerson?: string;
+  plannedDate?: string;
+  linkedExpenseId?: string;
+};
+
 export type Activity = {
   id: string;
   name: string;
@@ -71,6 +82,7 @@ export type Action = {
   itHead?: string;
   curator?: string;
   salesHead?: string;
+  resources?: Resource[];
 };
 
 export type CampaignStatus = 'active' | 'planned' | 'completed' | 'paused' | 'archived';
