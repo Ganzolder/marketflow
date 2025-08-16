@@ -1309,8 +1309,8 @@ const UpdateSocialPostMetricsSchema = z.object({
 export async function addSocialPostToAction(prevState: SocialPostFormState, formData: FormData): Promise<SocialPostFormState> {
     const rawActivityId = formData.get('activityId');
     const validatedFields = SocialPostSchema.extend({
-        campaignId: z.string(),
-        actionId: z.string()
+        campaignId: z.string().min(1, "Необходимо выбрать кампанию."),
+        actionId: z.string().min(1, "Необходимо выбрать акцию."),
     }).safeParse({
     campaignId: formData.get('campaignId'),
     actionId: formData.get('actionId'),
@@ -1350,6 +1350,7 @@ export async function addSocialPostToAction(prevState: SocialPostFormState, form
   }
 
   revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+  revalidatePath('/smm');
   return { message: "Пост успешно добавлен." };
 }
 
@@ -1404,6 +1405,7 @@ export async function updateSocialPostInAction(prevState: SocialPostFormState, f
     }
     
     revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+    revalidatePath('/smm');
     return { message: "Пост успешно обновлен." };
 }
 
@@ -1424,6 +1426,7 @@ export async function deleteSocialPostFromAction(prevState: DeleteFormState, for
     }
 
     revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+    revalidatePath('/smm');
     return { message: "Пост успешно удален." };
 }
 
@@ -1458,5 +1461,6 @@ export async function updateSocialPostMetrics(prevState: SocialPostMetricsFormSt
     }
 
     revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+    revalidatePath('/smm');
     return { message: "Фактические показатели обновлены." };
 }

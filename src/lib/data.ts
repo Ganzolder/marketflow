@@ -43,6 +43,7 @@ async function seedDatabase() {
             actualAverageCheck: 0,
             plannedMarginality: 0,
             actualMarginality: 0,
+            socialPosts: [],
           },
           {
             id: 'act-c1-2',
@@ -60,6 +61,7 @@ async function seedDatabase() {
             actualAverageCheck: 0,
             plannedMarginality: 0,
             actualMarginality: 0,
+            socialPosts: [],
           }
         ],
       },

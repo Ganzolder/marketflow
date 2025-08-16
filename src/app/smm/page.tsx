@@ -1,8 +1,9 @@
 
 
 import { PageHeader } from "@/components/page-header";
-import { getAllSocialPosts } from "@/lib/data";
+import { getAllSocialPosts, getCampaigns, getAllActions } from "@/lib/data";
 import { SmmPlanner } from "./smm-planner";
+import { AddSmmPostButton } from "./add-smm-post-button";
 
 type SmmPageProps = {
     searchParams: {
@@ -15,6 +16,8 @@ type SmmPageProps = {
 export default async function SmmPage({ searchParams: searchParamsPromise }: SmmPageProps) {
   const searchParams = await searchParamsPromise;
   const allPosts = await getAllSocialPosts();
+  const allCampaigns = await getCampaigns();
+  const allActions = await getAllActions();
   
   const filteredPosts = allPosts.filter(post => {
       if (searchParams.status && post.status !== searchParams.status) {
@@ -38,9 +41,10 @@ export default async function SmmPage({ searchParams: searchParamsPromise }: Smm
       <PageHeader
         title="SMM Планировщик"
         description="Управляйте всеми вашими публикациями в социальных сетях в одном месте."
-      />
+      >
+        <AddSmmPostButton campaigns={allCampaigns} actions={allActions} />
+      </PageHeader>
       <SmmPlanner posts={filteredPosts} />
     </div>
   );
 }
-
