@@ -19,6 +19,7 @@ import { Separator } from "@/components/ui/separator";
 import { StatusBadge } from "@/components/status-badge";
 import { ArrowRight, Calendar, Landmark, Target } from "lucide-react";
 import type { Action, Activity, Campaign } from "@/lib/types";
+import { UpdateCampaignStatus } from "../campaigns/update-campaign-status";
 
 
 const DataItem = ({ label, value }: { label: string, value: string | React.ReactNode }) => (
@@ -86,7 +87,7 @@ export default async function DatabasePage() {
             <AccordionTrigger className="hover:no-underline">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 text-left">
                     <h3 className="text-lg font-semibold">{campaign.name}</h3>
-                    <StatusBadge status={campaign.status} />
+                    <UpdateCampaignStatus campaign={campaign} />
                 </div>
             </AccordionTrigger>
             <AccordionContent>
