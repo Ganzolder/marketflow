@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/status-badge';
-import { Calendar as CalendarIcon, Target, Users, Landmark, ArrowRight, TrendingUp, CalendarDays, LocateFixed, History, Ruble, Edit, User, Building2, Briefcase, Bot, UserCheck, ArrowLeft, ChevronDown, FileText } from 'lucide-react';
+import { Calendar as CalendarIcon, Target, Users, Landmark, ArrowRight, TrendingUp, CalendarDays, LocateFixed, History, Ruble, Edit, User, Building2, Briefcase, Bot, UserCheck, ArrowLeft, ChevronDown, FileText, Share2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { NewActivityButton } from './new-activity-button';
 import { EditActivityButton } from './edit-activity-button';
@@ -30,6 +30,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ActionResourcesCard } from './action-resources-card';
+import { SocialPostsPlanner } from './social-posts-planner';
 
 type ActionDetailPageProps = {
   params: {
@@ -272,6 +273,8 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
                                 </CardHeader>
                                 <CardContent className="text-sm text-muted-foreground flex-1">
                                     <UpdateMetricsForm activity={activity} campaignId={campaign.id} actionId={action.id} />
+                                     <Separator className="my-4"/>
+                                     <SocialPostsPlanner activity={activity} campaignId={campaign.id} actionId={action.id} />
                                 </CardContent>
                                 {footerKpis.length > 0 && (
                                     <CardFooter className="flex-col items-start gap-2 pt-4 border-t">
@@ -329,3 +332,5 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
     </div>
   );
 }
+
+    

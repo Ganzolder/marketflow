@@ -108,7 +108,7 @@ export function UpdateMetricsForm({ activity, campaignId, actionId }: { activity
     const budgetProgress = activity.budget > 0 ? (activity.spent / activity.budget) * 100 : 0;
     
     return (
-        <form action={dispatch} ref={formRef} className="space-y-6">
+        <form action={dispatch} ref={formRef} className="space-y-4">
             <input type="hidden" name="campaignId" value={campaignId} />
             <input type="hidden" name="actionId" value={actionId} />
             <input type="hidden" name="activityId" value={activity.id} />
@@ -157,3 +157,5 @@ export function UpdateMetricsForm({ activity, campaignId, actionId }: { activity
         </form>
     );
 }
+
+    

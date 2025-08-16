@@ -544,6 +544,7 @@ export async function getCampaignById(id: string): Promise<Campaign | undefined>
                           if (kpi.parentId === undefined) kpi.parentId = null;
                           if (kpi.multiplicity === undefined) kpi.multiplicity = 1;
                       });
+                      if (!activity.socialPosts) activity.socialPosts = [];
                   });
               }
           });
@@ -610,6 +611,7 @@ export async function getAllActions(): Promise<EnrichedAction[]> {
             if (kpi.parentId === undefined) kpi.parentId = null;
             if (kpi.multiplicity === undefined) kpi.multiplicity = 1;
           });
+          if (!activity.socialPosts) activity.socialPosts = [];
         });
       } else {
         enrichedAction.activities = [];
@@ -659,6 +661,7 @@ export async function getAllActivities(): Promise<EnrichedActivity[]> {
           if (kpi.parentId === undefined) kpi.parentId = null;
           if (kpi.multiplicity === undefined) kpi.multiplicity = 1;
         });
+        if (!enrichedActivity.socialPosts) enrichedActivity.socialPosts = [];
 
         allActivities.push(enrichedActivity);
       });
@@ -1148,3 +1151,38 @@ export async function updateExpenseStatus(campaignId: string, actionId: string, 
         throw e;
     }
 }
+
+export async function addSocialPostToActivityData(campaignId: string, actionId: string, activityId: string, postData: Omit<import('./types').SocialPost, 'id'>) {
+    const campaignRef = doc(db, 'campaigns', campaignId);
+    try {
+        await runTransaction(db, async (transaction) => {
+            const campaignDoc = await transaction.get(campaignRef);
+            if (!campaignDoc.exists()) throw new Error("Campaign not found");
+            const campaignData = campaignDoc.data() as Campaign;
+
+            const action = campaignData.actions.find(a => a.id === actionId);
+            if (!action) throw new Error("Action not found");
+            
+            const activity = action.activities.find(a => a.id === activityId);
+            if (!activity) throw new Error("Activity not found");
+
+            if (!activity.socialPosts) {
+                activity.socialPosts = [];
+            }
+
+            const newPost = {
+                ...postData,
+                id: `post-${activityId.substring(0, 4)}-${Date.now()}`
+            };
+
+            activity.socialPosts.push(newPost);
+            
+            transaction.update(campaignRef, { actions: campaignData.actions });
+        });
+    } catch (e) {
+        console.error("Add social post transaction failed:", e);
+        throw e;
+    }
+}
+
+    
