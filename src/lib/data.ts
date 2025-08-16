@@ -1,6 +1,6 @@
 
 
-import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction, ActionStatus, CampaignStatus, KpiMetricLog, EnrichedActivity, Resource, ResourceStatus } from './types';
+import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction, ActionStatus, CampaignStatus, KpiMetricLog, EnrichedActivity, Resource, ResourceStatus, ExpenseStatus } from './types';
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, addDoc, writeBatch, runTransaction, deleteDoc } from "firebase/firestore";
 import { Combobox } from '@/components/ui/combobox';
@@ -388,12 +388,16 @@ export async function updateExpense(campaignId: string, actionId: string, update
                 // 1. Remove from original location
                 if (originalActivityId === 'general') {
                      if (!action.generalExpenses) throw new Error("Original expense location (general) not found.");
+                     const originalExpense = action.generalExpenses.find(e => e.id === updatedExpense.id);
+                     updatedExpense.status = originalExpense?.status || 'planned';
                      action.generalExpenses = action.generalExpenses.filter(e => e.id !== updatedExpense.id);
                 } else {
                     const activityIndex = action.activities.findIndex(a => a.id === originalActivityId);
                     if (activityIndex === -1) throw new Error("Original activity not found.");
                     const activity = action.activities[activityIndex];
                     if (!activity.expenses) throw new Error("Original expense location (activity) not found.");
+                    const originalExpense = activity.expenses.find(e => e.id === updatedExpense.id);
+                    updatedExpense.status = originalExpense?.status || 'planned';
                     activity.expenses = activity.expenses.filter(e => e.id !== updatedExpense.id);
                     // Recalculate spent for original activity
                     activity.spent = activity.expenses.reduce((acc, exp) => acc + exp.amount, 0);
@@ -446,7 +450,8 @@ async function updateExpenseInActivity(campaignId: string, actionId: string, act
 
             const expenseIndex = activity.expenses.findIndex(e => e.id === updatedExpense.id);
             if (expenseIndex === -1) throw new Error("Expense not found!");
-
+            
+            updatedExpense.status = activity.expenses[expenseIndex].status || 'planned';
             activity.expenses[expenseIndex] = updatedExpense;
             activity.spent = activity.expenses.reduce((acc, exp) => acc + exp.amount, 0);
 
@@ -512,6 +517,10 @@ export async function getCampaignById(id: string): Promise<Campaign | undefined>
       if (campaignData.actions) {
           campaignData.actions.forEach(action => {
               if (!action.generalExpenses) action.generalExpenses = [];
+              action.generalExpenses.forEach(exp => {
+                if (!exp.status) exp.status = 'planned';
+              });
+
               if (!action.summaryKpis) action.summaryKpis = [];
               if (!action.resources) action.resources = [];
               if (!action.plannedAverageCheck) action.plannedAverageCheck = 0;
@@ -522,6 +531,9 @@ export async function getCampaignById(id: string): Promise<Campaign | undefined>
               if (action.activities) {
                   action.activities.forEach(activity => {
                       if (!activity.expenses) activity.expenses = [];
+                       activity.expenses.forEach(exp => {
+                         if (!exp.status) exp.status = 'planned';
+                       });
                       activity.spent = activity.expenses.reduce((acc, expense) => acc + expense.amount, 0);
 
                       if (!activity.kpis) activity.kpis = [];
@@ -587,6 +599,7 @@ export async function getAllActions(): Promise<EnrichedAction[]> {
       if (enrichedAction.activities) {
         enrichedAction.activities.forEach(activity => {
           if (!activity.expenses) activity.expenses = [];
+          activity.expenses.forEach(exp => { if (!exp.status) exp.status = 'planned'; });
           activity.spent = activity.expenses.reduce((acc, expense) => acc + expense.amount, 0);
 
           if (!activity.kpis) activity.kpis = [];
@@ -603,6 +616,7 @@ export async function getAllActions(): Promise<EnrichedAction[]> {
       }
       
       if (!enrichedAction.generalExpenses) enrichedAction.generalExpenses = [];
+      enrichedAction.generalExpenses.forEach(exp => { if (!exp.status) exp.status = 'planned'; });
       if (!enrichedAction.summaryKpis) enrichedAction.summaryKpis = [];
       if (!enrichedAction.plannedAverageCheck) enrichedAction.plannedAverageCheck = 0;
       if (!enrichedAction.actualAverageCheck) enrichedAction.actualAverageCheck = 0;
@@ -635,6 +649,7 @@ export async function getAllActivities(): Promise<EnrichedActivity[]> {
 
         // Ensure data consistency for the activity
         if (!enrichedActivity.expenses) enrichedActivity.expenses = [];
+        enrichedActivity.expenses.forEach(exp => { if (!exp.status) exp.status = 'planned'; });
         enrichedActivity.spent = enrichedActivity.expenses.reduce((acc, expense) => acc + expense.amount, 0);
         if (!enrichedActivity.kpis) enrichedActivity.kpis = [];
         enrichedActivity.kpis.forEach(kpi => {
@@ -706,6 +721,7 @@ async function updateGeneralExpenseInAction(campaignId: string, actionId: string
             const expenseIndex = action.generalExpenses.findIndex(e => e.id === updatedExpense.id);
             if (expenseIndex === -1) throw new Error("Expense not found!");
 
+            updatedExpense.status = action.generalExpenses[expenseIndex].status || 'planned';
             action.generalExpenses[expenseIndex] = updatedExpense;
 
             transaction.update(campaignRef, { actions: newActions });
@@ -1094,6 +1110,41 @@ export async function updateResourceStatus(campaignId: string, actionId: string,
         });
     } catch (e) {
         console.error("Update resource status transaction failed:", e);
+        throw e;
+    }
+}
+
+
+export async function updateExpenseStatus(campaignId: string, actionId: string, expenseId: string, activityId: string, status: ExpenseStatus) {
+    const campaignRef = doc(db, 'campaigns', campaignId);
+    try {
+        await runTransaction(db, async (transaction) => {
+            const campaignDoc = await transaction.get(campaignRef);
+            if (!campaignDoc.exists()) throw new Error("Campaign not found");
+            const campaignData = campaignDoc.data() as Campaign;
+
+            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
+            if (actionIndex === -1) throw new Error("Action not found");
+
+            const newActions = [...campaignData.actions];
+            const action = newActions[actionIndex];
+            
+            if (activityId === 'general') {
+                const expenseIndex = action.generalExpenses.findIndex(e => e.id === expenseId);
+                if (expenseIndex === -1) throw new Error("General expense not found");
+                action.generalExpenses[expenseIndex].status = status;
+            } else {
+                const activityIndex = action.activities.findIndex(a => a.id === activityId);
+                if (activityIndex === -1) throw new Error("Activity not found");
+                const expenseIndex = action.activities[activityIndex].expenses.findIndex(e => e.id === expenseId);
+                if (expenseIndex === -1) throw new Error("Activity expense not found");
+                action.activities[activityIndex].expenses[expenseIndex].status = status;
+            }
+
+            transaction.update(campaignRef, { actions: newActions });
+        });
+    } catch (e) {
+        console.error("Update expense status transaction failed:", e);
         throw e;
     }
 }

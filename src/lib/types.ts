@@ -26,11 +26,14 @@ export type KPI = {
   multiplicity: number; // For cost calculation, e.g. 1000 for CPM
 }
 
+export type ExpenseStatus = 'planned' | 'invoice-received' | 'pending-payment' | 'paid';
+
 export type Expense = {
     id: string;
     description: string;
     amount: number;
     date: string;
+    status: ExpenseStatus;
     legalEntity?: string;
     photoURL?: string;
 }
@@ -151,6 +154,11 @@ export type ResponsibilityFormState = {
 }
 
 export type ResourceStatusFormState = {
+  message: string;
+  error?: boolean;
+};
+
+export type ExpenseStatusFormState = {
   message: string;
   error?: boolean;
 };

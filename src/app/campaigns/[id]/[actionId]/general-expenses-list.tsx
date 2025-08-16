@@ -27,6 +27,7 @@ import { EditExpenseButton } from "./edit-expense-button";
 import { DeleteExpenseButton } from "./delete-expense-button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { UpdateExpenseStatus } from "./update-expense-status";
 
 type EnrichedExpense = Expense & {
     activityName?: string;
@@ -39,7 +40,7 @@ export function GeneralExpensesList({ action, campaignId }: { action: Action; ca
   const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
   
   const allExpenses: EnrichedExpense[] = [
-      ...(action.generalExpenses || []).map(exp => ({ ...exp, activityName: 'Общий расход' })),
+      ...(action.generalExpenses || []).map(exp => ({ ...exp, activityName: 'Общий расход', activityId: 'general' })),
       ...(action.activities || []).flatMap(activity => 
           (activity.expenses || []).map(exp => ({ ...exp, activityName: activity.name, activityId: activity.id }))
       )
@@ -74,16 +75,20 @@ export function GeneralExpensesList({ action, campaignId }: { action: Action; ca
                             activities={action.activities || []} 
                             originalActivityId={expense.activityId}
                           />
-                          {expense.activityId ? (
-                              <DeleteExpenseButton expenseId={expense.id} campaignId={campaignId} actionId={action.id} activityId={expense.activityId} />
-                          ) : (
+                          {expense.activityId === 'general' ? (
                               <DeleteGeneralExpenseButton expenseId={expense.id} campaignId={campaignId} actionId={action.id} />
+                          ) : (
+                              <DeleteExpenseButton expenseId={expense.id} campaignId={campaignId} actionId={action.id} activityId={expense.activityId!} />
                           )}
                     </div>
                   </div>
                   <div className="text-lg font-bold text-right">{new Intl.NumberFormat(locale, currencyOptions).format(expense.amount)}</div>
                   <Separator />
                    <div className="text-sm text-muted-foreground space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span>Статус:</span> 
+                          <UpdateExpenseStatus expense={expense} actionId={action.id} campaignId={campaignId} />
+                        </div>
                         <div className="flex justify-between"><span>Активность:</span> <Badge variant={expense.activityName === 'Общий расход' ? 'secondary' : 'outline'} className="text-right">{expense.activityName}</Badge></div>
                         <div className="flex justify-between"><span>Дата:</span> <span className="font-medium text-foreground">{new Date(expense.date).toLocaleDateString(locale, dateOptions)}</span></div>
                         <div className="flex justify-between"><span>Юр. лицо:</span> <span className="font-medium text-foreground">{expense.legalEntity || '—'}</span></div>
@@ -112,6 +117,7 @@ export function GeneralExpensesList({ action, campaignId }: { action: Action; ca
                 <TableHead>Дата</TableHead>
                 <TableHead>Описание</TableHead>
                 <TableHead>Активность</TableHead>
+                <TableHead>Статус</TableHead>
                 <TableHead>Юр. лицо</TableHead>
                 <TableHead>Подтверждение</TableHead>
                 <TableHead className="text-right">Сумма</TableHead>
@@ -125,6 +131,9 @@ export function GeneralExpensesList({ action, campaignId }: { action: Action; ca
                   <TableCell className="font-medium">{expense.description}</TableCell>
                   <TableCell>
                       <Badge variant={expense.activityName === 'Общий расход' ? 'secondary' : 'outline'}>{expense.activityName}</Badge>
+                  </TableCell>
+                  <TableCell>
+                      <UpdateExpenseStatus expense={expense} actionId={action.id} campaignId={campaignId} />
                   </TableCell>
                   <TableCell>{expense.legalEntity || '—'}</TableCell>
                   <TableCell>
@@ -147,10 +156,10 @@ export function GeneralExpensesList({ action, campaignId }: { action: Action; ca
                             activities={action.activities || []} 
                             originalActivityId={expense.activityId}
                           />
-                          {expense.activityId ? (
-                              <DeleteExpenseButton expenseId={expense.id} campaignId={campaignId} actionId={action.id} activityId={expense.activityId} />
-                          ) : (
+                           {expense.activityId === 'general' ? (
                               <DeleteGeneralExpenseButton expenseId={expense.id} campaignId={campaignId} actionId={action.id} />
+                          ) : (
+                              <DeleteExpenseButton expenseId={expense.id} campaignId={campaignId} actionId={action.id} activityId={expense.activityId!} />
                           )}
                        </div>
                    </TableCell>

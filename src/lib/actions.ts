@@ -3,9 +3,9 @@
 "use server";
 
 import { z } from "zod";
-import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData } from "./data";
+import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData, updateExpenseStatus as updateExpenseStatusData } from "./data";
 import { revalidatePath } from "next/cache";
-import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog, Campaign, ResponsibilityFormState, Resource, ResourceStatus, ResourceStatusFormState } from "./types";
+import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog, Campaign, ResponsibilityFormState, Resource, ResourceStatus, ResourceStatusFormState, ExpenseStatus, ExpenseStatusFormState } from "./types";
 import { redirect } from "next/navigation";
 import { analyzeActionPerformance, type AnalyzeActionPerformanceOutput } from "@/ai/flows/analyze-action-performance";
 
@@ -472,7 +472,7 @@ export async function addExpense(prevState: ExpenseFormState | null, formData: F
     const { campaignId, actionId, activityId, ...expenseData } = validatedFields.data;
 
     try {
-       await addExpenseToActivityData(campaignId, actionId, activityId!, expenseData);
+       await addExpenseToActivityData(campaignId, actionId, activityId!, {...expenseData, status: 'planned'});
     } catch (e) {
         const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
         return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
@@ -505,7 +505,7 @@ export async function updateExpense(prevState: ExpenseFormState | null, formData
     }
     
     const { campaignId, actionId, expenseId, originalActivityId, newActivityId, ...expenseData } = validatedFields.data;
-    const expenseToUpdate: Expense = { id: expenseId, ...expenseData };
+    const expenseToUpdate: Expense = { id: expenseId, ...expenseData, status: 'planned' }; // Status is not editable here, so we get it from original or default
 
     try {
         await updateExpenseData(campaignId, actionId, expenseToUpdate, originalActivityId, newActivityId);
@@ -573,10 +573,10 @@ export async function addGeneralExpense(prevState: ExpenseFormState | null, form
     try {
         if (activityId) {
              // Add to a specific activity
-            await addExpenseToActivityData(campaignId, actionId, activityId, expenseData);
+            await addExpenseToActivityData(campaignId, actionId, activityId, {...expenseData, status: 'planned'});
         } else {
             // Add as a general expense
-            await addGeneralExpenseToAction(campaignId, actionId, expenseData);
+            await addGeneralExpenseToAction(campaignId, actionId, {...expenseData, status: 'planned'});
         }
     } catch (e) {
         const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
@@ -1248,4 +1248,40 @@ export async function updateResourceStatus(prevState: ResourceStatusFormState, f
 
   revalidatePath(`/campaigns/${campaignId}/${actionId}`);
   return { message: "Статус ресурса обновлен." };
+}
+
+
+// --- Expense Status Action ---
+const UpdateExpenseStatusSchema = z.object({
+  campaignId: z.string(),
+  actionId: z.string(),
+  expenseId: z.string(),
+  activityId: z.string(), // Can be 'general' or an activity ID
+  status: z.enum(['planned', 'invoice-received', 'pending-payment', 'paid']),
+});
+
+export async function updateExpenseStatus(prevState: ExpenseStatusFormState, formData: FormData): Promise<ExpenseStatusFormState> {
+  const validatedFields = UpdateExpenseStatusSchema.safeParse({
+    campaignId: formData.get('campaignId'),
+    actionId: formData.get('actionId'),
+    expenseId: formData.get('expenseId'),
+    activityId: formData.get('activityId'),
+    status: formData.get('status'),
+  });
+
+  if (!validatedFields.success) {
+    return { message: "Ошибка валидации: неверные данные.", error: true };
+  }
+
+  const { campaignId, actionId, expenseId, activityId, status } = validatedFields.data;
+
+  try {
+    await updateExpenseStatusData(campaignId, actionId, expenseId, activityId, status);
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+    return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
+  }
+
+  revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+  return { message: "Статус расхода обновлен." };
 }
