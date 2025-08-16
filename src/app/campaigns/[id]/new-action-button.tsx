@@ -66,7 +66,7 @@ export function NewActionButton({ campaignId }: { campaignId: string }) {
                     Добавить
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[625px]">
+            <DialogContent className="sm:max-w-2xl">
                 <DialogHeader>
                     <DialogTitle>Создать новую акцию</DialogTitle>
                     <DialogDescription>
