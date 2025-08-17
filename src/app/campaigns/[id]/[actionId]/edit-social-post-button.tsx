@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Edit, Wand2 } from "lucide-react";
-import { updateSocialPostInAction, type SocialPostFormState, generatePostTextAction } from '@/lib/actions';
+import { updateSocialPost, type SocialPostFormState, generatePostTextAction } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { SocialPost, SocialPlatform, SocialPostStatus, Action } from '@/lib/types';
@@ -25,7 +25,7 @@ const statusTranslations: Record<SocialPostStatus, string> = {
 };
 
 
-export function EditSocialPostButton({ post, action, campaignId }: { post: SocialPost; action: Action; campaignId: string; }) {
+export function EditSocialPostButton({ post, action, campaignId }: { post: SocialPost; action?: Action; campaignId?: string; }) {
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
@@ -37,14 +37,17 @@ export function EditSocialPostButton({ post, action, campaignId }: { post: Socia
     const [isGenerating, setIsGenerating] = useState(false);
 
     const initialState: SocialPostFormState = { message: "", errors: {} };
-    const [state, dispatch] = useActionState(updateSocialPostInAction, initialState);
+    const [state, dispatch] = useActionState(updateSocialPost, initialState);
     
     useEffect(() => {
         if (state.message) {
-            if (state.error) {
-                const errorMessages = state.errors ? Object.values(state.errors).flat().join("\n") : state.message;
-                toast({ variant: "destructive", title: "Ошибка", description: errorMessages });
-            } else {
+            if (state.error && state.errors) {
+                const errorMessages = Object.values(state.errors).flat().join("\n");
+                toast({ variant: "destructive", title: "Ошибка валидации", description: errorMessages });
+            } else if (state.error) {
+                toast({ variant: "destructive", title: "Ошибка", description: state.message });
+            }
+             else {
                 toast({ title: "Успех", description: state.message });
                 setOpen(false);
             }
@@ -60,8 +63,8 @@ export function EditSocialPostButton({ post, action, campaignId }: { post: Socia
         try {
             const result = await generatePostTextAction({
                 topic: aiTopic,
-                productName: action.name,
-                targetAudience: action.targetAudience || 'широкая аудитория',
+                productName: action?.name || 'наш продукт',
+                targetAudience: action?.targetAudience || 'широкая аудитория',
                 tone: 'дружелюбный'
             });
             if (result.postText) {
@@ -104,20 +107,22 @@ export function EditSocialPostButton({ post, action, campaignId }: { post: Socia
                 <form ref={formRef} onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
                     <ScrollArea className="flex-1 pr-6 -mr-6">
                         <div className="grid gap-4 py-4 pr-6">
-                            <div className="grid gap-2">
-                                <Label htmlFor="activityId">Привязка к активности</Label>
-                                <Select name="activityId" defaultValue={post.activityId || 'general'}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Общий пост для акции" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="general">Общий пост для акции</SelectItem>
-                                        {(action.activities || []).map(activity => (
-                                            <SelectItem key={activity.id} value={activity.id}>{activity.name}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                            {action && (
+                                <div className="grid gap-2">
+                                    <Label htmlFor="activityId">Привязка к активности</Label>
+                                    <Select name="activityId" defaultValue={post.activityId || 'general'}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Общий пост для акции" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="general">Общий пост для акции</SelectItem>
+                                            {(action.activities || []).map(activity => (
+                                                <SelectItem key={activity.id} value={activity.id}>{activity.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            )}
                             <div className="grid gap-2">
                                 <Label>Платформы</Label>
                                 <Popover>
@@ -157,7 +162,7 @@ export function EditSocialPostButton({ post, action, campaignId }: { post: Socia
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="text">Текст поста</Label>
-                                <Textarea ref={textRef} id="text" name="text" defaultValue={post.text} rows={6} />
+                                <Textarea ref={textRef} id="text" name="text" defaultValue={post.text || ''} rows={6} />
                                 {state.errors?.text && <p className="text-sm text-destructive">{state.errors.text[0]}</p>}
                             </div>
                              <div className="grid gap-2">
@@ -199,8 +204,8 @@ export function EditSocialPostButton({ post, action, campaignId }: { post: Socia
                         </div>
                     </ScrollArea>
                     <DialogFooter className="border-t pt-4 mt-auto">
-                        <input type="hidden" name="campaignId" value={campaignId} />
-                        <input type="hidden" name="actionId" value={action.id} />
+                        <input type="hidden" name="campaignId" value={campaignId || post.campaignId || ''} />
+                        <input type="hidden" name="actionId" value={action?.id || post.actionId || ''} />
                         <input type="hidden" name="postId" value={post.id} />
                         {/* Hidden inputs to carry over actual values */}
                         <input type="hidden" name="actualReach" value={post.actualReach || 0} />
