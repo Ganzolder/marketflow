@@ -240,9 +240,9 @@ export default async function CampaignsPage({ searchParams: searchParamsPromise 
             <Card className="md:col-span-1 lg:col-span-2 xl:col-span-2">
                 <CardContent className="text-center h-48 flex flex-col items-center justify-center text-muted-foreground">
                     <FilePlus className="w-8 h-8 mb-2" />
-                    <p>
+                    <div>
                         {view === 'archived' ? 'Нет кампаний в архиве.' : 'Кампании еще не созданы.'}
-                    </p>
+                    </div>
                 </CardContent>
             </Card>
         )}
@@ -250,5 +250,6 @@ export default async function CampaignsPage({ searchParams: searchParamsPromise 
     </div>
   );
 }
+
 
 
