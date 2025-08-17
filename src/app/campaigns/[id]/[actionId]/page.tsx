@@ -1,4 +1,5 @@
 
+
 import { notFound } from 'next/navigation';
 import { getCampaignById, getSocialPostsForAction } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
@@ -34,7 +35,8 @@ type ActionDetailPageProps = {
     params: { id: string; actionId: string };
 };
 
-export default async function ActionDetailPage({ params }: ActionDetailPageProps) {
+export default async function ActionDetailPage({ params: paramsPromise }: ActionDetailPageProps) {
+  const params = await paramsPromise;
   const { id, actionId } = params;
   
   const campaign = await getCampaignById(id);

@@ -21,7 +21,8 @@ type CampaignDetailPageProps = {
     searchParams: { startDate?: string; endDate?: string; }
 };
 
-export default async function CampaignDetailPage({ params, searchParams }: CampaignDetailPageProps) {
+export default async function CampaignDetailPage({ params: paramsPromise, searchParams }: CampaignDetailPageProps) {
+  const params = await paramsPromise;
   const { id } = params;
 
   const campaign = await getCampaignById(id);
