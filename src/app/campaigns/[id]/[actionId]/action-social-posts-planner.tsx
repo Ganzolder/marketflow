@@ -5,9 +5,9 @@
 import { useState, useActionState, useRef, useTransition, useEffect } from 'react';
 import type { Action, Activity, SocialPostStatus, SocialPlatform } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, Share2, PlusCircle, Loader2, Save, MessageSquare, Users, ArrowUp, ArrowDown, Minus, Wand2 } from 'lucide-react';
+import { Share2, PlusCircle, Loader2, Save, MessageSquare, Users, ArrowUp, ArrowDown, Minus, Wand2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
-import { addSocialPostToAction, type SocialPostFormState, type SocialPostMetricsFormState, generatePostTextAction } from '@/lib/actions';
+import { addSocialPostToAction, type SocialPostFormState, type SocialPostMetricsFormState, updateSocialPostMetrics, generatePostTextAction } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -178,9 +178,17 @@ const AddSocialPostButton = ({ action, campaignId }: { action: Action, campaignI
                              <div className="grid gap-2">
                                 <Label>Плановые показатели</Label>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <Input name="plannedReach" type="number" placeholder="Охват" />
-                                    <Input name="plannedComments" type="number" placeholder="Комментарии" />
+                                    <div className="grid gap-1.5">
+                                      <Label htmlFor="plannedReach" className="text-xs">Охват</Label>
+                                      <Input id="plannedReach" name="plannedReach" type="number" placeholder="8000" />
+                                    </div>
+                                    <div className="grid gap-1.5">
+                                      <Label htmlFor="plannedComments" className="text-xs">Комментарии</Label>
+                                      <Input id="plannedComments" name="plannedComments" type="number" placeholder="50" />
+                                    </div>
                                 </div>
+                                {state.errors?.plannedReach && <p className="text-sm text-destructive">{state.errors.plannedReach[0]}</p>}
+                                {state.errors?.plannedComments && <p className="text-sm text-destructive">{state.errors.plannedComments[0]}</p>}
                              </div>
                              <div className="grid grid-cols-2 gap-4">
                                 <div className="grid gap-2">

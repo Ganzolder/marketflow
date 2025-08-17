@@ -162,9 +162,17 @@ export function EditSocialPostButton({ post, action, campaignId }: { post: Socia
                              <div className="grid gap-2">
                                 <Label>Плановые показатели</Label>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <Input name="plannedReach" type="number" placeholder="Охват" defaultValue={post.plannedReach} />
-                                    <Input name="plannedComments" type="number" placeholder="Комментарии" defaultValue={post.plannedComments} />
+                                    <div className="grid gap-1.5">
+                                        <Label htmlFor="plannedReach" className="text-xs">Охват</Label>
+                                        <Input id="plannedReach" name="plannedReach" type="number" placeholder="Охват" defaultValue={post.plannedReach} />
+                                    </div>
+                                    <div className="grid gap-1.5">
+                                        <Label htmlFor="plannedComments" className="text-xs">Комментарии</Label>
+                                        <Input id="plannedComments" name="plannedComments" type="number" placeholder="Комментарии" defaultValue={post.plannedComments} />
+                                    </div>
                                 </div>
+                                 {state.errors?.plannedReach && <p className="text-sm text-destructive">{state.errors.plannedReach[0]}</p>}
+                                {state.errors?.plannedComments && <p className="text-sm text-destructive">{state.errors.plannedComments[0]}</p>}
                              </div>
                              <div className="grid grid-cols-2 gap-4">
                                 <div className="grid gap-2">
@@ -193,6 +201,9 @@ export function EditSocialPostButton({ post, action, campaignId }: { post: Socia
                         <input type="hidden" name="campaignId" value={campaignId} />
                         <input type="hidden" name="actionId" value={action.id} />
                         <input type="hidden" name="postId" value={post.id} />
+                        {/* Hidden inputs to carry over actual values */}
+                        <input type="hidden" name="actualReach" value={post.actualReach || 0} />
+                        <input type="hidden" name="actualComments" value={post.actualComments || 0} />
                         <DialogClose asChild>
                             <Button type="button" variant="outline">Отмена</Button>
                         </DialogClose>
