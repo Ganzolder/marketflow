@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
 import { getAllActions, getCampaigns } from '@/lib/data';
 import {
@@ -21,18 +22,12 @@ import { StatusFilter } from './status-filter';
 import type { ActionStatus, Campaign, EnrichedAction } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
-type ActionsPageProps = {
-  searchParams: {
-    campaignId?: string;
-    status?: ActionStatus;
-  };
-};
-
-export default function ActionsPage({ searchParams }: ActionsPageProps) {
+export default function ActionsPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [actions, setActions] = useState<EnrichedAction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [today, setToday] = useState(new Date());
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     async function fetchData() {
@@ -43,12 +38,15 @@ export default function ActionsPage({ searchParams }: ActionsPageProps) {
       ]);
       setCampaigns(allCampaigns);
       
+      const campaignId = searchParams.get('campaignId');
+      const status = searchParams.get('status') as ActionStatus | null;
+
       let filteredActions = allActions;
-      if (searchParams.campaignId) {
-        filteredActions = filteredActions.filter((action) => action.campaignId === searchParams.campaignId);
+      if (campaignId) {
+        filteredActions = filteredActions.filter((action) => action.campaignId === campaignId);
       }
-      if (searchParams.status) {
-          filteredActions = filteredActions.filter((action) => action.status === searchParams.status);
+      if (status) {
+          filteredActions = filteredActions.filter((action) => action.status === status);
       }
       
       setActions(filteredActions);
@@ -272,7 +270,7 @@ export default function ActionsPage({ searchParams }: ActionsPageProps) {
           <CardContent className="py-10">
             <div className="text-center text-sm text-muted-foreground">
               <FilePlus className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-              {searchParams.campaignId || searchParams.status
+              {searchParams.has('campaignId') || searchParams.has('status')
                 ? 'Нет акций, соответствующих вашим фильтрам.'
                 : 'Акции еще не созданы.'}
             </div>
