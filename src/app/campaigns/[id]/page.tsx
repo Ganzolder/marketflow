@@ -4,8 +4,8 @@ import { notFound } from 'next/navigation';
 import { getCampaignById } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { Calendar as CalendarIcon, Target, FilePlus, Eye, TrendingUp, Landmark, CalendarDays } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Calendar as CalendarIcon, Target, FilePlus, Eye, TrendingUp, Landmark, CalendarDays, ShoppingCart, PiggyBank, BarChart, Archive, ArchiveRestore } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/status-badge';
 import { NewActionButton } from './new-action-button';
@@ -21,8 +21,9 @@ type CampaignDetailPageProps = {
     searchParams: { startDate?: string; endDate?: string; }
 };
 
-export default async function CampaignDetailPage({ params: paramsPromise, searchParams }: CampaignDetailPageProps) {
+export default async function CampaignDetailPage({ params: paramsPromise, searchParams: searchParamsPromise }: CampaignDetailPageProps) {
   const params = await paramsPromise;
+  const searchParams = await searchParamsPromise;
   const { id } = params;
 
   const campaign = await getCampaignById(id);
