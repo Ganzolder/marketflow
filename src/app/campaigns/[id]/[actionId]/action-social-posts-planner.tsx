@@ -53,7 +53,8 @@ const AddSocialPostButton = ({ action, campaignId }: { action: Action, campaignI
     useEffect(() => {
         if (state.message) {
             if (state.error) {
-                toast({ variant: "destructive", title: "Ошибка", description: state.message });
+                const errorMessages = state.errors ? Object.values(state.errors).flat().join("\n") : state.message;
+                toast({ variant: "destructive", title: "Ошибка", description: errorMessages });
             } else {
                 toast({ title: "Успех", description: state.message });
                 setOpen(false);
@@ -266,7 +267,8 @@ function ActualMetricsForm({ post, actionId, campaignId }: { post: any, actionId
 
     useEffect(() => {
         if (state.message && state.error) {
-            toast({ variant: "destructive", title: "Ошибка", description: state.message });
+            const errorMessages = state.errors ? Object.values(state.errors).flat().join("\n") : state.message;
+            toast({ variant: "destructive", title: "Ошибка", description: errorMessages });
         } else if (state.message) {
             toast({ title: "Успех", description: state.message });
         }
@@ -366,5 +368,3 @@ export function ActionSocialPostsPlanner({ action, campaignId }: { action: Actio
     </Card>
   );
 }
-
-

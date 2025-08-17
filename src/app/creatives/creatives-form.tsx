@@ -50,8 +50,8 @@ export function CreativesForm() {
     if (state.message && state.issues) {
       toast({
         variant: "destructive",
-        title: "Ошибка",
-        description: state.message,
+        title: "Ошибка валидации",
+        description: state.issues.join("\n"),
       });
     }
     if (state.adCopies && state.adCopies.length > 0) {

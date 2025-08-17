@@ -40,13 +40,14 @@ export function NewActionButton({ campaignId }: { campaignId: string }) {
 
     useEffect(() => {
         if (state.message) {
-            if (state.errors) {
+            if (state.errors && Object.keys(state.errors).length > 0) {
+                const errorMessages = Object.values(state.errors).flat().join("\n");
                 toast({
                     variant: "destructive",
-                    title: "Ошибка",
-                    description: state.message,
+                    title: "Ошибка валидации",
+                    description: errorMessages,
                 });
-            } else {
+            } else if (!state.errors) {
                  toast({
                     title: "Успех",
                     description: state.message,

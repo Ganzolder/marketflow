@@ -37,10 +37,11 @@ export function NewCampaignButton() {
 
     useEffect(() => {
         if (state.message && state.error) {
+            const errorMessages = state.errors ? Object.values(state.errors).flat().join("\n") : state.message;
             toast({
                 variant: "destructive",
-                title: "Ошибка",
-                description: state.message,
+                title: "Ошибка валидации",
+                description: errorMessages,
             });
         } else if(state.message) {
              toast({
