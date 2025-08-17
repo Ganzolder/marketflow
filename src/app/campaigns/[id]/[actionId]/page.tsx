@@ -43,14 +43,12 @@ type ActionDetailPageProps = {
   };
 };
 
-export default function ActionDetailPage({ params }: ActionDetailPageProps) {
+export default function ActionDetailPage({ params: { id, actionId } }: ActionDetailPageProps) {
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [action, setAction] = useState<Action | null>(null);
   const [socialPosts, setSocialPosts] = useState<SocialPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [today, setToday] = useState(new Date());
-
-  const { id, actionId } = params;
+  const [today, setToday] = useState<Date | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -71,7 +69,7 @@ export default function ActionDetailPage({ params }: ActionDetailPageProps) {
   }, [id, actionId]);
 
 
-  if (isLoading) {
+  if (isLoading || !today) {
     return (
       <div>
         <PageHeader title={<Skeleton className="h-8 w-48" />} description={<Skeleton className="h-4 w-72" />}>

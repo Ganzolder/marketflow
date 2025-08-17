@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -26,14 +27,12 @@ type CampaignDetailPageProps = {
   }
 }
 
-export default function CampaignDetailPage({ params }: CampaignDetailPageProps) {
+export default function CampaignDetailPage({ params: { id } }: CampaignDetailPageProps) {
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [filteredActions, setFilteredActions] = useState<Action[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [today, setToday] = useState(new Date());
-
+  const [today, setToday] = useState<Date | null>(null);
   const searchParams = useSearchParams();
-  const { id } = params;
 
   useEffect(() => {
     async function fetchData() {
@@ -41,8 +40,8 @@ export default function CampaignDetailPage({ params }: CampaignDetailPageProps) 
         const fetchedCampaign = await getCampaignById(id);
 
         if (!fetchedCampaign) {
-          // You might want to handle this case, e.g. redirect or show a not found component
           setIsLoading(false);
+          notFound();
           return;
         }
         
@@ -74,7 +73,7 @@ export default function CampaignDetailPage({ params }: CampaignDetailPageProps) 
     fetchData();
   }, [id, searchParams]);
 
-  if (isLoading) {
+  if (isLoading || !today) {
       return (
          <div>
             <PageHeader title={<Skeleton className="h-8 w-64" />}>
@@ -320,7 +319,9 @@ export default function CampaignDetailPage({ params }: CampaignDetailPageProps) 
                  {filteredActions.length === 0 && (
                         <div className="text-center text-sm text-muted-foreground py-10">
                             <FilePlus className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                             {campaign.actions.length > 0 ? 'Нет акций, соответствующих фильтру.' : 'Акции еще не добавлены.'}
+                            <div>
+                                {campaign.actions.length > 0 ? 'Нет акций, соответствующих фильтру.' : 'Акции еще не добавлены.'}
+                            </div>
                         </div>
                     )}
             </CardContent>
