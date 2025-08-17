@@ -17,9 +17,11 @@ import {
 import { Loader2, Trash2 } from "lucide-react";
 import { deleteCampaign } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 export function DeleteCampaignButton({ campaignId, asIcon = false }: { campaignId: string, asIcon?: boolean }) {
     const { toast } = useToast();
+    const router = useRouter();
     const [isPending, startTransition] = useTransition();
 
     const handleDelete = async () => {
@@ -39,7 +41,7 @@ export function DeleteCampaignButton({ campaignId, asIcon = false }: { campaignI
                     title: "Успех",
                     description: "Кампания успешно удалена.",
                 });
-                // Redirect is handled by the server action
+                router.push('/campaigns');
             }
         })
     };
@@ -85,3 +87,5 @@ export function DeleteCampaignButton({ campaignId, asIcon = false }: { campaignI
         </AlertDialog>
     );
 }
+
+    

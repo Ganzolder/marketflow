@@ -11,7 +11,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PlusCircle, Loader2 } from "lucide-react";
 import { addActionToCampaign, type ActionFormState } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 
@@ -33,7 +32,6 @@ export function NewActionButton({ campaignId }: { campaignId: string }) {
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
-    const router = useRouter();
     
     const initialState: ActionFormState = { message: "", errors: {} };
     const [state, dispatch] = useActionState(addActionToCampaign, initialState);
@@ -54,10 +52,9 @@ export function NewActionButton({ campaignId }: { campaignId: string }) {
                 });
                 setOpen(false);
                 formRef.current?.reset();
-                router.refresh();
             }
         }
-    }, [state, toast, router]);
+    }, [state, toast]);
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -136,3 +133,5 @@ export function NewActionButton({ campaignId }: { campaignId: string }) {
         </Dialog>
     );
 }
+
+    

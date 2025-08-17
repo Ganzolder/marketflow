@@ -85,6 +85,7 @@ export async function addActionToCampaign(
   }
 
   revalidatePath(`/campaigns/${campaignId}`);
+  revalidatePath('/actions');
   return { message: "Акция успешно добавлена." };
 }
 
@@ -126,6 +127,7 @@ export async function editActionInCampaign(
 
   revalidatePath(`/campaigns/${campaignId}`);
   revalidatePath(`/campaigns/${campaignId}/${actionData.id}`);
+  revalidatePath('/actions');
   return { message: "Акция успешно обновлена." };
 }
 
@@ -253,6 +255,7 @@ export async function addActivityToAction(
   }
 
   revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+  revalidatePath('/activities');
   return { message: "Активность успешно добавлена." };
 }
 
@@ -322,6 +325,7 @@ export async function updateActivity(
   }
 
   revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+  revalidatePath('/activities');
   return { message: "Активность успешно обновлена." };
 }
 
@@ -349,6 +353,7 @@ export async function deleteActivity(prevState: DeleteFormState | null, formData
     }
 
     revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+    revalidatePath('/activities');
     return { message: "Активность успешно удалена." };
 }
 
@@ -408,6 +413,8 @@ export async function updateActivityMetrics(
     }
 
     revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+    revalidatePath('/actions');
+    revalidatePath('/activities');
     return { message: "Метрики успешно обновлены." };
 }
 
@@ -618,7 +625,7 @@ export async function deleteGeneralExpense(prevState: DeleteFormState | null, fo
         await deleteGeneralExpenseFromAction(campaignId, actionId, expenseId);
     } catch (e) {
         const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
-        return { message: `Ошибка базы данных: не удалось удалить общий расход. ${errorMessage}`, error: true };
+        return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
     }
 
     revalidatePath(`/campaigns/${campaignId}/${actionId}`);
@@ -667,6 +674,7 @@ export async function updateActionSummaryKpis(
 
     revalidatePath(`/campaigns/${campaignId}/${actionId}`);
     revalidatePath(`/campaigns/${campaignId}`); // Also revalidate the campaign page
+    revalidatePath('/actions');
     return { message: "Настройки отображения KPI обновлены." };
 }
 
@@ -860,7 +868,7 @@ export async function createCampaign(prevState: CampaignFormState, formData: For
         };
     }
 
-    revalidatePath(`/campaigns`);
+    revalidatePath('/campaigns');
     return { message: "Кампания успешно создана." };
 }
 
@@ -901,7 +909,7 @@ export async function editCampaign(prevState: CampaignFormState, formData: FormD
         };
     }
 
-    revalidatePath(`/campaigns`);
+    revalidatePath('/campaigns');
     revalidatePath(`/campaigns/${campaignId}`);
     return { message: "Кампания успешно обновлена." };
 }
@@ -919,7 +927,7 @@ export async function deleteCampaign(formData: FormData): Promise<DeleteFormStat
         return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
     }
     
-    // Redirect after deletion
+    revalidatePath('/campaigns');
     redirect('/campaigns');
 }
 
@@ -1564,3 +1572,5 @@ export async function generatePostTextAction(input: GeneratePostTextInput): Prom
         return { message: `Ошибка генерации: ${errorMessage}` };
     }
 }
+
+    
