@@ -103,9 +103,10 @@ export async function editActionInCampaign(
   });
 
   if (!validatedFields.success) {
+    const errorMessages = validatedFields.error.issues.map((issue) => issue.message).join("\n");
     return {
-      message: "Ошибка валидации. Не удалось обновить акцию.",
-      errors: validatedFields.error.flatten().fieldErrors,
+        message: "Ошибка валидации. Не удалось обновить акцию.",
+        errors: validatedFields.error.flatten().fieldErrors,
     };
   }
   
@@ -498,6 +499,7 @@ export async function updateExpense(prevState: ExpenseFormState | null, formData
     });
 
     if (!validatedFields.success) {
+        const errorMessages = validatedFields.error.issues.map((issue) => issue.message).join("\n");
         return {
             message: "Ошибка валидации.",
             error: true,
@@ -691,6 +693,7 @@ export async function updateActionEffectiveness(
   });
 
   if (!validatedFields.success) {
+    const errorMessages = validatedFields.error.issues.map((issue) => issue.message).join("\n");
     return {
       message: "Ошибка валидации.",
       error: true,
@@ -940,6 +943,7 @@ export async function editKpiMetric(prevState: KpiMetricFormState, formData: For
     });
 
     if (!validatedFields.success) {
+        const errorMessages = validatedFields.error.issues.map((issue) => issue.message).join("\n");
         return {
             message: "Ошибка валидации.",
             error: true,
@@ -1036,6 +1040,7 @@ export async function updateActionResponsibility(prevState: ResponsibilityFormSt
   });
 
   if (!validatedFields.success) {
+    const errorMessages = validatedFields.error.issues.map((issue) => issue.message).join("\n");
     return {
       message: "Ошибка валидации.",
       error: true,
@@ -1077,6 +1082,7 @@ export async function updateActionConditions(prevState: ConditionsFormState, for
     });
 
     if (!validatedFields.success) {
+        const errorMessages = validatedFields.error.issues.map((issue) => issue.message).join("\n");
         return {
             message: "Ошибка валидации.",
             error: true,
@@ -1291,10 +1297,10 @@ export async function updateExpenseStatus(prevState: ExpenseStatusFormState, for
 // --- Social Post Actions ---
 const SocialPostSchema = z.object({
   platforms: z.array(z.string()).optional(),
-  text: z.string().optional(),
+  text: z.string().nullable().optional(),
   plannedReach: z.coerce.number().min(0).optional(),
   plannedComments: z.coerce.number().min(0).optional(),
-  publicationDate: z.string().optional(),
+  publicationDate: z.string().nullable().optional(),
   status: z.enum(['draft', 'ready', 'published']),
   activityId: z.string().optional(),
 });
@@ -1325,6 +1331,7 @@ export async function addSocialPostToAction(prevState: SocialPostFormState, form
   });
   
   if (!validatedFields.success) {
+    const errorMessages = validatedFields.error.issues.map((issue) => issue.message).join("\n");
     return {
       message: "Ошибка валидации.",
       error: true,
@@ -1336,6 +1343,7 @@ export async function addSocialPostToAction(prevState: SocialPostFormState, form
   const postToSave = {
     ...postData,
     platforms: postData.platforms as SocialPlatform[] || [],
+    text: postData.text || '',
     plannedReach: postData.plannedReach || 0,
     plannedComments: postData.plannedComments || 0,
     actualReach: 0,
@@ -1380,6 +1388,7 @@ export async function updateSocialPostInAction(prevState: SocialPostFormState, f
     });
 
     if (!validatedFields.success) {
+        const errorMessages = validatedFields.error.issues.map((issue) => issue.message).join("\n");
         return {
             message: "Ошибка валидации.",
             error: true,
@@ -1392,6 +1401,7 @@ export async function updateSocialPostInAction(prevState: SocialPostFormState, f
         id: postId,
         ...postData,
         platforms: postData.platforms as SocialPlatform[] || [],
+        text: postData.text || '',
         plannedReach: postData.plannedReach || 0,
         plannedComments: postData.plannedComments || 0,
         actualReach: postData.actualReach || 0,
@@ -1444,6 +1454,7 @@ export async function updateSocialPostMetrics(prevState: SocialPostMetricsFormSt
     });
 
     if (!validatedFields.success) {
+        const errorMessages = validatedFields.error.issues.map((issue) => issue.message).join("\n");
         return {
             message: "Ошибка валидации.",
             error: true,
@@ -1498,4 +1509,5 @@ export async function generatePostTextAction(input: GeneratePostTextInput): Prom
         return { message: `Ошибка генерации: ${errorMessage}` };
     }
 }
+
 
