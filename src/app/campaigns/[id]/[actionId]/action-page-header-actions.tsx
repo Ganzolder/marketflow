@@ -14,12 +14,12 @@ import { PrintEstimateButton } from "./print-estimate-button";
 import { PrintOrderButton } from "./print-order-button";
 import { PrintReportButton } from "./print-report-button";
 import { AiAnalyzerButton } from "./ai-analyzer-button";
-import type { Action, Campaign } from "@/lib/types";
+import type { Action, Campaign, SocialPost } from "@/lib/types";
 import { EditActionButton } from "./edit-action-button";
 import { EditActionResponsibilityButton } from "./edit-action-responsibility-button";
 import { EditActionConditionsButton } from "./edit-action-conditions-button";
 
-export function ActionPageHeaderActions({ action, campaign }: { action: Action; campaign: Campaign }) {
+export function ActionPageHeaderActions({ action, campaign, socialPosts }: { action: Action; campaign: Campaign; socialPosts: SocialPost[] }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -50,7 +50,7 @@ export function ActionPageHeaderActions({ action, campaign }: { action: Action; 
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <AiAnalyzerButton action={action} campaign={campaign} />
+          <AiAnalyzerButton action={action} campaign={campaign} socialPosts={socialPosts} />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

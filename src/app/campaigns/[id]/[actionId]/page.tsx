@@ -140,7 +140,7 @@ export default function ActionDetailPage() {
                     <span className="hidden sm:inline ml-2">Назад</span>
                 </Link>
             </Button>
-            <ActionPageHeaderActions action={action} campaign={campaign} />
+            <ActionPageHeaderActions action={action} campaign={campaign} socialPosts={socialPosts} />
         </div>
       </PageHeader>
 
@@ -222,8 +222,6 @@ export default function ActionDetailPage() {
 
         <ActionResponsibilityCard action={action} campaignId={campaign.id} />
         
-        <ActionResourcesCard action={action} campaignId={campaign.id} />
-
         <ActionEffectivenessCard action={action} campaignId={campaign.id} locale={locale} currencyOptions={currencyOptions} totalSpent={totalSpent} />
         
         <Card>
@@ -364,6 +362,8 @@ export default function ActionDetailPage() {
                  )}
             </CardContent>
         </Card>
+        
+        <ActionResourcesCard action={action} campaignId={campaign.id} />
 
         <ActionSocialPostsPlanner action={action} campaignId={campaign.id} posts={socialPosts} />
       </div>

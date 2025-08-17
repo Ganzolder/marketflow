@@ -1001,15 +1001,14 @@ export type AnalyzeActionState =
     | { status: 'success'; analysis: AnalyzeActionPerformanceOutput }
     | { status: 'error'; error: string };
 
-export async function analyzeAction(action: Action, campaign: Campaign): Promise<AnalyzeActionState> {
-    const socialPosts = await getSocialPostsForAction(action.id);
+export async function analyzeAction(action: Action, campaign: Campaign, socialPosts: SocialPost[]): Promise<AnalyzeActionState> {
     const actionContext = {
         campaignName: campaign.name,
         campaignBudget: campaign.budget,
         campaignStartDate: campaign.startDate,
         campaignEndDate: campaign.endDate,
         ...action,
-        socialPosts: socialPosts, // Add social posts to the context
+        socialPosts: socialPosts,
     };
 
     try {
