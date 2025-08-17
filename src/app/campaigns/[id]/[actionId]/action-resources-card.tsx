@@ -12,6 +12,7 @@ import { AddResourceButton } from './add-resource-button';
 import { EditResourceButton } from './edit-resource-button';
 import { DeleteResourceButton } from './delete-resource-button';
 import { UpdateResourceStatus } from './update-resource-status';
+import { Separator } from '@/components/ui/separator';
 
 export function ActionResourcesCard({ action, campaignId }: { action: Action; campaignId: string; }) {
   const [isOpen, setIsOpen] = useState(true);
@@ -40,47 +41,85 @@ export function ActionResourcesCard({ action, campaignId }: { action: Action; ca
         <CollapsibleContent>
           <CardContent>
             {action.resources && action.resources.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Название</TableHead>
-                    <TableHead>Статус</TableHead>
-                    <TableHead>Ответственный</TableHead>
-                    <TableHead>Дата</TableHead>
-                    <TableHead>Связанный расход</TableHead>
-                    <TableHead className="text-right w-[100px]">Действия</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              <>
+                 {/* Mobile View */}
+                <div className="md:hidden space-y-4">
                   {action.resources.map(resource => {
                     const linkedExpense = allExpenses.find(e => e.id === resource.linkedExpenseId);
                     return (
-                        <TableRow key={resource.id}>
-                            <TableCell className="font-medium">{resource.name}</TableCell>
-                            <TableCell>
-                                <UpdateResourceStatus resource={resource} actionId={action.id} campaignId={campaignId} />
-                            </TableCell>
-                            <TableCell>{resource.responsiblePerson || '—'}</TableCell>
-                            <TableCell>{resource.plannedDate ? new Date(resource.plannedDate).toLocaleDateString('ru-RU') : '—'}</TableCell>
-                            <TableCell>
-                                {linkedExpense ? (
-                                    <div className="flex items-center gap-2 text-xs">
-                                        <BadgeRussianRuble className="w-3.5 h-3.5" />
-                                        <span>{linkedExpense.description} ({linkedExpense.amount.toLocaleString('ru-RU')} ₽)</span>
-                                    </div>
-                                ) : '—'}
-                            </TableCell>
-                            <TableCell className="text-right">
-                                <div className="flex items-center justify-end gap-1">
-                                    <EditResourceButton resource={resource} actionId={action.id} campaignId={campaignId} expenses={allExpenses} />
-                                    <DeleteResourceButton resourceId={resource.id} actionId={action.id} campaignId={campaignId} />
+                      <div key={resource.id} className="border rounded-lg p-4 space-y-3">
+                        <div className="flex justify-between items-start">
+                          <div className="font-medium pr-2">{resource.name}</div>
+                          <div className="flex items-center justify-end space-x-1 flex-shrink-0">
+                            <EditResourceButton resource={resource} actionId={action.id} campaignId={campaignId} expenses={allExpenses} />
+                            <DeleteResourceButton resourceId={resource.id} actionId={action.id} campaignId={campaignId} />
+                          </div>
+                        </div>
+                        <Separator />
+                        <div className="text-sm text-muted-foreground space-y-2">
+                          <div className="flex justify-between items-center"><span>Статус:</span> <UpdateResourceStatus resource={resource} actionId={action.id} campaignId={campaignId} /></div>
+                          <div className="flex justify-between items-center"><span>Ответственный:</span> <span className="font-medium text-foreground">{resource.responsiblePerson || '—'}</span></div>
+                          <div className="flex justify-between items-center"><span>Дата:</span> <span className="font-medium text-foreground">{resource.plannedDate ? new Date(resource.plannedDate).toLocaleDateString('ru-RU') : '—'}</span></div>
+                          <div className="flex justify-between items-center">
+                            <span>Расход:</span>
+                            {linkedExpense ? (
+                                <div className="flex items-center gap-2 text-xs text-right">
+                                    <BadgeRussianRuble className="w-3.5 h-3.5" />
+                                    <span className="font-medium text-foreground truncate">{linkedExpense.description} ({linkedExpense.amount.toLocaleString('ru-RU')} ₽)</span>
                                 </div>
-                            </TableCell>
-                        </TableRow>
+                            ) : '—'}
+                          </div>
+                        </div>
+                      </div>
                     )
                   })}
-                </TableBody>
-              </Table>
+                </div>
+                
+                {/* Desktop View */}
+                <div className="hidden md:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Название</TableHead>
+                        <TableHead>Статус</TableHead>
+                        <TableHead>Ответственный</TableHead>
+                        <TableHead>Дата</TableHead>
+                        <TableHead>Связанный расход</TableHead>
+                        <TableHead className="text-right w-[100px]">Действия</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {action.resources.map(resource => {
+                        const linkedExpense = allExpenses.find(e => e.id === resource.linkedExpenseId);
+                        return (
+                            <TableRow key={resource.id}>
+                                <TableCell className="font-medium">{resource.name}</TableCell>
+                                <TableCell>
+                                    <UpdateResourceStatus resource={resource} actionId={action.id} campaignId={campaignId} />
+                                </TableCell>
+                                <TableCell>{resource.responsiblePerson || '—'}</TableCell>
+                                <TableCell>{resource.plannedDate ? new Date(resource.plannedDate).toLocaleDateString('ru-RU') : '—'}</TableCell>
+                                <TableCell>
+                                    {linkedExpense ? (
+                                        <div className="flex items-center gap-2 text-xs">
+                                            <BadgeRussianRuble className="w-3.5 h-3.5" />
+                                            <span>{linkedExpense.description} ({linkedExpense.amount.toLocaleString('ru-RU')} ₽)</span>
+                                        </div>
+                                    ) : '—'}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                    <div className="flex items-center justify-end gap-1">
+                                        <EditResourceButton resource={resource} actionId={action.id} campaignId={campaignId} expenses={allExpenses} />
+                                        <DeleteResourceButton resourceId={resource.id} actionId={action.id} campaignId={campaignId} />
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        )
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
             ) : (
               <div className="text-center text-sm text-muted-foreground py-10 border-2 border-dashed rounded-lg">
                 <Package className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
