@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useTransition, useActionState } from 'react';
-import type { SocialPostStatus } from '@/lib/types';
+import type { SocialPostStatus, Campaign, Action } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { addSocialPost, type SocialPostFormState, generatePostTextAction } from '@/lib/actions';
@@ -17,6 +17,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { SocialPlatforms } from '@/lib/types';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Loader2, PlusCircle, Wand2 } from 'lucide-react';
+import { getCampaigns } from '@/lib/data';
 
 const statusTranslations: Record<SocialPostStatus, string> = {
   draft: "Черновик",
@@ -30,6 +31,11 @@ export function AddSmmPostButton() {
     const formRef = useRef<HTMLFormElement>(null);
     const textRef = useRef<HTMLTextAreaElement>(null);
     const [isPending, startTransition] = useTransition();
+    
+    const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+    const [selectedCampaignId, setSelectedCampaignId] = useState('');
+    const [actionsForCampaign, setActionsForCampaign] = useState<Action[]>([]);
+    
     const [selectedPlatforms, setSelectedPlatforms] = useState<SocialPlatform[]>([]);
 
     const [aiTopic, setAiTopic] = useState('');
@@ -37,6 +43,12 @@ export function AddSmmPostButton() {
     
     const initialState: SocialPostFormState = { message: "", errors: {} };
     const [state, dispatch] = useActionState(addSocialPost, initialState);
+
+    useEffect(() => {
+        if(open) {
+            getCampaigns().then(setCampaigns);
+        }
+    }, [open]);
 
     useEffect(() => {
         if (state.message) {
@@ -49,6 +61,8 @@ export function AddSmmPostButton() {
                 formRef.current?.reset();
                 setSelectedPlatforms([]);
                 setAiTopic('');
+                setSelectedCampaignId('');
+                setActionsForCampaign([]);
             }
         }
     }, [state, toast]);
@@ -91,6 +105,13 @@ export function AddSmmPostButton() {
         });
     }
 
+    const handleCampaignChange = (campaignId: string) => {
+        setSelectedCampaignId(campaignId);
+        const campaign = campaigns.find(c => c.id === campaignId);
+        setActionsForCampaign(campaign?.actions || []);
+    };
+
+
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -109,7 +130,34 @@ export function AddSmmPostButton() {
                 <form ref={formRef} onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
                     <ScrollArea className="flex-1 pr-6 -mr-6">
                         <div className="grid gap-4 py-4 pr-6">
-                           
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                               <div className="grid gap-2">
+                                    <Label htmlFor="campaignId">Кампания (необязательно)</Label>
+                                    <Select name="campaignId" onValueChange={handleCampaignChange}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Выберите кампанию" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {campaigns.map(c => (
+                                                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="actionId">Акция (необязательно)</Label>
+                                    <Select name="actionId" disabled={!selectedCampaignId}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Выберите акцию" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {actionsForCampaign.map(a => (
+                                                <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                           </div>
                             <div className="grid gap-2">
                                 <Label>Платформы</Label>
                                 <Popover>

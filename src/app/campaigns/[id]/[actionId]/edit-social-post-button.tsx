@@ -11,12 +11,13 @@ import { Loader2, Edit, Wand2 } from "lucide-react";
 import { updateSocialPost, type SocialPostFormState, generatePostTextAction } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { SocialPost, SocialPlatform, SocialPostStatus, Action } from '@/lib/types';
+import type { SocialPost, SocialPlatform, SocialPostStatus, Action, Campaign } from '@/lib/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { SocialPlatforms } from '@/lib/types';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
+import { getCampaigns } from '@/lib/data';
 
 const statusTranslations: Record<SocialPostStatus, string> = {
   draft: "Черновик",
@@ -31,6 +32,12 @@ export function EditSocialPostButton({ post, action, campaignId }: { post: Socia
     const formRef = useRef<HTMLFormElement>(null);
     const textRef = useRef<HTMLTextAreaElement>(null);
     const [isPending, startTransition] = useTransition();
+    
+    const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+    const [selectedCampaignId, setSelectedCampaignId] = useState(post.campaignId || '');
+    const [actionsForCampaign, setActionsForCampaign] = useState<Action[]>([]);
+    const [selectedActionId, setSelectedActionId] = useState(post.actionId || '');
+
     const [selectedPlatforms, setSelectedPlatforms] = useState<SocialPlatform[]>(post.platforms || []);
     
     const [aiTopic, setAiTopic] = useState('');
@@ -38,6 +45,18 @@ export function EditSocialPostButton({ post, action, campaignId }: { post: Socia
 
     const initialState: SocialPostFormState = { message: "", errors: {} };
     const [state, dispatch] = useActionState(updateSocialPost, initialState);
+
+    useEffect(() => {
+        if (open) {
+            getCampaigns().then(data => {
+                setCampaigns(data);
+                const initialCampaign = data.find(c => c.id === selectedCampaignId);
+                if (initialCampaign) {
+                    setActionsForCampaign(initialCampaign.actions || []);
+                }
+            });
+        }
+    }, [open, selectedCampaignId]);
     
     useEffect(() => {
         if (state.message) {
@@ -90,6 +109,14 @@ export function EditSocialPostButton({ post, action, campaignId }: { post: Socia
             dispatch(formData);
         });
     }
+
+    const handleCampaignChange = (campaignId: string) => {
+        const newCampaignId = campaignId === 'none' ? '' : campaignId;
+        setSelectedCampaignId(newCampaignId);
+        setSelectedActionId(''); // Reset action selection
+        const campaign = campaigns.find(c => c.id === newCampaignId);
+        setActionsForCampaign(campaign?.actions || []);
+    };
     
     const stopPropagation = (e: React.MouseEvent) => e.stopPropagation();
 
@@ -107,22 +134,36 @@ export function EditSocialPostButton({ post, action, campaignId }: { post: Socia
                 <form ref={formRef} onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
                     <ScrollArea className="flex-1 pr-6 -mr-6">
                         <div className="grid gap-4 py-4 pr-6">
-                            {action && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="grid gap-2">
-                                    <Label htmlFor="activityId">Привязка к активности</Label>
-                                    <Select name="activityId" defaultValue={post.activityId || 'general'}>
+                                    <Label htmlFor="campaignId">Кампания (необязательно)</Label>
+                                    <Select name="campaignId" onValueChange={handleCampaignChange} value={selectedCampaignId || 'none'}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Общий пост для акции" />
+                                            <SelectValue placeholder="Выберите кампанию" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="general">Общий пост для акции</SelectItem>
-                                            {(action.activities || []).map(activity => (
-                                                <SelectItem key={activity.id} value={activity.id}>{activity.name}</SelectItem>
+                                            <SelectItem value="none">Без кампании</SelectItem>
+                                            {campaigns.map(c => (
+                                                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
                                 </div>
-                            )}
+                                <div className="grid gap-2">
+                                    <Label htmlFor="actionId">Акция (необязательно)</Label>
+                                    <Select name="actionId" value={selectedActionId || 'none'} onValueChange={setSelectedActionId} disabled={!selectedCampaignId}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Выберите акцию" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="none">Без акции</SelectItem>
+                                            {actionsForCampaign.map(a => (
+                                                <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
                             <div className="grid gap-2">
                                 <Label>Платформы</Label>
                                 <Popover>
@@ -204,8 +245,6 @@ export function EditSocialPostButton({ post, action, campaignId }: { post: Socia
                         </div>
                     </ScrollArea>
                     <DialogFooter className="border-t pt-4 mt-auto">
-                        <input type="hidden" name="campaignId" value={campaignId || post.campaignId || ''} />
-                        <input type="hidden" name="actionId" value={action?.id || post.actionId || ''} />
                         <input type="hidden" name="postId" value={post.id} />
                         {/* Hidden inputs to carry over actual values */}
                         <input type="hidden" name="actualReach" value={post.actualReach || 0} />
