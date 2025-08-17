@@ -33,11 +33,12 @@ export default function CampaignDetailPage({ params }: CampaignDetailPageProps) 
   const [today, setToday] = useState(new Date());
 
   const searchParams = useSearchParams();
+  const { id } = params;
 
   useEffect(() => {
     async function fetchData() {
         setIsLoading(true);
-        const fetchedCampaign = await getCampaignById(params.id);
+        const fetchedCampaign = await getCampaignById(id);
 
         if (!fetchedCampaign) {
           // You might want to handle this case, e.g. redirect or show a not found component
@@ -71,7 +72,7 @@ export default function CampaignDetailPage({ params }: CampaignDetailPageProps) 
         setIsLoading(false);
     }
     fetchData();
-  }, [params.id, searchParams]);
+  }, [id, searchParams]);
 
   if (isLoading) {
       return (

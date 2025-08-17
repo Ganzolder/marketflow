@@ -1,5 +1,8 @@
 
 
+"use client";
+
+import { useState, useEffect } from 'react';
 import { notFound } from 'next/navigation';
 import { getCampaignById, getSocialPostsForAction } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
@@ -11,7 +14,7 @@ import { Progress } from '@/components/ui/progress';
 import { NewActivityButton } from './new-activity-button';
 import { EditActivityButton } from './edit-activity-button';
 import { DeleteActivityButton } from './delete-activity-button';
-import type { KPI } from '@/lib/types';
+import type { Action, Campaign, SocialPost } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import {
   Tooltip,
@@ -31,6 +34,7 @@ import Link from 'next/link';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ActionResourcesCard } from './action-resources-card';
 import { ActionSocialPostsPlanner } from './action-social-posts-planner';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type ActionDetailPageProps = {
   params: {
@@ -39,17 +43,55 @@ type ActionDetailPageProps = {
   };
 };
 
-export default async function ActionDetailPage({ params: paramsPromise }: ActionDetailPageProps) {
-  const params = await paramsPromise;
-  const campaign = await getCampaignById(params.id);
-  const action = campaign?.actions.find((a) => a.id === params.actionId);
+export default function ActionDetailPage({ params }: ActionDetailPageProps) {
+  const [campaign, setCampaign] = useState<Campaign | null>(null);
+  const [action, setAction] = useState<Action | null>(null);
+  const [socialPosts, setSocialPosts] = useState<SocialPost[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [today, setToday] = useState(new Date());
+
+  const { id, actionId } = params;
+
+  useEffect(() => {
+    async function fetchData() {
+      setIsLoading(true);
+      const fetchedCampaign = await getCampaignById(id);
+      const fetchedPosts = await getSocialPostsForAction(actionId);
+
+      if (fetchedCampaign) {
+        const currentAction = fetchedCampaign.actions.find(a => a.id === actionId);
+        setCampaign(fetchedCampaign);
+        setAction(currentAction || null);
+      }
+      setSocialPosts(fetchedPosts);
+      setToday(new Date()); // Set date on client
+      setIsLoading(false);
+    }
+    fetchData();
+  }, [id, actionId]);
+
+
+  if (isLoading) {
+    return (
+      <div>
+        <PageHeader title={<Skeleton className="h-8 w-48" />} description={<Skeleton className="h-4 w-72" />}>
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-10 w-24" />
+            <Skeleton className="h-10 w-10" />
+          </div>
+        </PageHeader>
+        <div className="grid gap-8">
+          <Skeleton className="h-64 w-full" />
+          <Skeleton className="h-48 w-full" />
+          <Skeleton className="h-96 w-full" />
+        </div>
+      </div>
+    );
+  }
   
   if (!campaign || !action) {
     notFound();
   }
-
-  const socialPosts = await getSocialPostsForAction(action.id);
-
 
   const locale = 'ru-RU';
   const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -89,7 +131,6 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
   
   const startDate = new Date(action.startDate);
   const endDate = new Date(action.endDate);
-  const today = new Date();
   const totalDuration = Math.max(1, endDate.getTime() - startDate.getTime());
   const elapsedDuration = Math.max(0, today.getTime() - startDate.getTime());
   let durationProgress = Math.min(100, (elapsedDuration / totalDuration) * 100);
