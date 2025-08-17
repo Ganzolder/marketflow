@@ -14,6 +14,7 @@ import { useCallback } from 'react';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { EditSocialPostButton } from '../campaigns/[id]/[actionId]/edit-social-post-button';
+import { PublicationCalendar } from './publication-calendar';
 
 const statusTranslations: Record<SocialPostStatus, string> = {
   draft: "Черновик",
@@ -95,16 +96,9 @@ export function SmmPlanner({ posts }: { posts: SocialPost[] }) {
         <div>
             <Filters />
 
-            {/* Placeholder for chart */}
-            <Card className="mb-8">
-                <CardHeader>
-                    <CardTitle>График публикаций</CardTitle>
-                    <CardDescription>Визуализация плотности постов по дням. В разработке.</CardDescription>
-                </CardHeader>
-                <CardContent className="h-64 flex items-center justify-center text-muted-foreground">
-                    [Диаграмма публикаций]
-                </CardContent>
-            </Card>
+            <div className="mb-8">
+              <PublicationCalendar posts={posts} />
+            </div>
 
             <div className="space-y-4">
                 {posts.map(post => {
@@ -114,7 +108,7 @@ export function SmmPlanner({ posts }: { posts: SocialPost[] }) {
                         <CardHeader className="flex flex-row items-start justify-between gap-4 p-4 bg-muted/50">
                             <div>
                             <div className="flex flex-wrap gap-1">
-                                {post.platforms.map(p => <Badge key={p} variant="secondary">{p}</Badge>)}
+                                {(post.platforms || []).map(p => <Badge key={p} variant="secondary">{p}</Badge>)}
                             </div>
                             <p className="text-sm font-medium mt-2">{new Date(post.publicationDate).toLocaleDateString(locale, {day: '2-digit', month: 'long', year: 'numeric'})}</p>
                             {post.actionName && post.campaignId && post.actionId && (
