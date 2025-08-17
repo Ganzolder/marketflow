@@ -1201,17 +1201,3 @@ export async function updateExpenseStatus(campaignId: string, actionId: string, 
         throw e;
     }
 }
-
-
-export async function updateSocialPostMetrics(postId: string, metrics: { actualReach: number, actualComments: number }) {
-    const postRef = doc(db, "socialPosts", postId);
-    try {
-        await updateDoc(postRef, {
-            actualReach: metrics.actualReach,
-            actualComments: metrics.actualComments,
-        });
-    } catch (e) {
-        console.error("Update social post metrics transaction failed:", e);
-        throw e;
-    }
-}

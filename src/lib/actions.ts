@@ -3,7 +3,7 @@
 "use server";
 
 import { z } from "zod";
-import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData, updateExpenseStatus as updateExpenseStatusData, deleteSocialPost, getSocialPostById, addSocialPost as addSocialPostData, updateSocialPost as updateSocialPostData, updateSocialPostMetrics as updateSocialPostMetricsData } from "./data";
+import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData, updateExpenseStatus as updateExpenseStatusData, deleteSocialPost, getSocialPostById } from "./data";
 import { revalidatePath } from "next/cache";
 import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog, Campaign, ResponsibilityFormState, Resource, ResourceStatus, ResourceStatusFormState, ExpenseStatus, ExpenseStatusFormState, SocialPost, SocialPlatform, SocialPostStatus, SocialPostFormState, SocialPostMetricsFormState } from "./types";
 import { redirect } from "next/navigation";
@@ -1307,10 +1307,10 @@ export async function updateExpenseStatus(prevState: ExpenseStatusFormState, for
 const SocialPostSchema = z.object({
   platforms: z.array(z.string()).min(1, "Выберите хотя бы одну платформу").optional(),
   text: z.string().optional().nullable(),
-  plannedReach: z.coerce.number().min(0).optional(),
-  plannedComments: z.coerce.number().min(0).optional(),
-  publicationDate: z.string().refine((date) => !isNaN(Date.parse(date)), "Неверный формат даты.").optional(),
-  status: z.enum(['draft', 'ready', 'published']).optional(),
+  plannedReach: z.coerce.number().min(0).optional().nullable(),
+  plannedComments: z.coerce.number().min(0).optional().nullable(),
+  publicationDate: z.string().refine((date) => !isNaN(Date.parse(date)), "Неверный формат даты.").optional().nullable(),
+  status: z.enum(['draft', 'ready', 'published']).optional().nullable(),
   campaignId: z.string().optional().nullable(),
   actionId: z.string().optional().nullable(),
   activityId: z.string().optional().nullable(),
@@ -1358,7 +1358,7 @@ export async function addSocialPost(prevState: SocialPostFormState, formData: Fo
     }
     
     try {
-        await addSocialPostData(postToSave);
+        await addDoc(collection(db, "socialPosts"), postToSave);
     } catch (e) {
         const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
         return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
@@ -1407,7 +1407,8 @@ export async function updateSocialPost(prevState: SocialPostFormState, formData:
     const { postId, ...postData } = validatedFields.data;
     
     try {
-        await updateSocialPostData(postId, {
+        const postRef = doc(db, "socialPosts", postId);
+        await updateDoc(postRef, {
             ...postData,
             platforms: postData.platforms as SocialPlatform[],
             plannedReach: postData.plannedReach || 0,
@@ -1479,7 +1480,8 @@ export async function updateSocialPostMetrics(prevState: SocialPostMetricsFormSt
     };
 
     try {
-        await updateSocialPostMetricsData(postId, dataToUpdate);
+        const postRef = doc(db, "socialPosts", postId);
+        await updateDoc(postRef, dataToUpdate);
     } catch (e) {
         const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
         return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
