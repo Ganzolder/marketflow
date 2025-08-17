@@ -1,4 +1,7 @@
 
+"use client";
+
+import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { getAllActions, getCampaigns } from '@/lib/data';
 import {
@@ -15,7 +18,8 @@ import { Progress } from '@/components/ui/progress';
 import { Eye, FilePlus, Landmark, TrendingUp, CalendarDays } from 'lucide-react';
 import { CampaignFilter } from './campaign-filter';
 import { StatusFilter } from './status-filter';
-import type { ActionStatus } from '@/lib/types';
+import type { ActionStatus, Campaign, EnrichedAction } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type ActionsPageProps = {
   searchParams: {
@@ -24,25 +28,64 @@ type ActionsPageProps = {
   };
 };
 
-export default async function ActionsPage({ searchParams: searchParamsPromise }: ActionsPageProps) {
-  const searchParams = await searchParamsPromise;
-  const allCampaigns = await getCampaigns();
-  const allActions = await getAllActions();
-  const selectedCampaignId = searchParams.campaignId;
-  const selectedStatus = searchParams.status;
+export default function ActionsPage({ searchParams }: ActionsPageProps) {
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [actions, setActions] = useState<EnrichedAction[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [today, setToday] = useState(new Date());
 
-  let filteredActions = allActions;
-
-  if (selectedCampaignId) {
-    filteredActions = filteredActions.filter((action) => action.campaignId === selectedCampaignId);
-  }
-
-  if (selectedStatus) {
-      filteredActions = filteredActions.filter((action) => action.status === selectedStatus);
-  }
+  useEffect(() => {
+    async function fetchData() {
+      setIsLoading(true);
+      const [allCampaigns, allActions] = await Promise.all([
+        getCampaigns(),
+        getAllActions(),
+      ]);
+      setCampaigns(allCampaigns);
+      
+      let filteredActions = allActions;
+      if (searchParams.campaignId) {
+        filteredActions = filteredActions.filter((action) => action.campaignId === searchParams.campaignId);
+      }
+      if (searchParams.status) {
+          filteredActions = filteredActions.filter((action) => action.status === searchParams.status);
+      }
+      
+      setActions(filteredActions);
+      setToday(new Date()); // Set date on client
+      setIsLoading(false);
+    }
+    fetchData();
+  }, [searchParams]);
 
   const locale = 'ru-RU';
-  const today = new Date();
+
+  if (isLoading) {
+    return (
+        <div>
+            <PageHeader title="Все акции" description="Просматривайте и управляйте всеми акциями в одном месте.">
+                 <div className="flex flex-wrap gap-2 w-full md:w-auto">
+                    <Skeleton className="h-10 w-full md:w-64" />
+                    <Skeleton className="h-10 w-full md:w-64" />
+                </div>
+            </PageHeader>
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {[...Array(3)].map((_, i) => (
+                    <Card key={i}>
+                        <CardHeader>
+                            <Skeleton className="h-5 w-3/4" />
+                            <Skeleton className="h-4 w-1/2" />
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <Skeleton className="h-16 w-full" />
+                            <Skeleton className="h-16 w-full" />
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+        </div>
+    )
+  }
 
   return (
     <div>
@@ -51,12 +94,12 @@ export default async function ActionsPage({ searchParams: searchParamsPromise }:
         description="Просматривайте и управляйте всеми акциями в одном месте."
       >
         <div className="flex flex-wrap gap-2 w-full md:w-auto">
-            <CampaignFilter campaigns={allCampaigns} />
+            <CampaignFilter campaigns={campaigns} />
             <StatusFilter />
         </div>
       </PageHeader>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {filteredActions.map((action) => {
+        {actions.map((action) => {
           const allKpis =
             action.activities?.flatMap(
               (a) => a.kpis?.filter((k) => k.includeInActionGoals !== false) || []
@@ -224,12 +267,12 @@ export default async function ActionsPage({ searchParams: searchParamsPromise }:
           );
         })}
       </div>
-      {filteredActions.length === 0 && (
+      {actions.length === 0 && !isLoading && (
         <Card>
           <CardContent className="py-10">
             <div className="text-center text-sm text-muted-foreground">
               <FilePlus className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-              {selectedCampaignId || selectedStatus
+              {searchParams.campaignId || searchParams.status
                 ? 'Нет акций, соответствующих вашим фильтрам.'
                 : 'Акции еще не созданы.'}
             </div>
