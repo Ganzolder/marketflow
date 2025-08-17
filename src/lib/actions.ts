@@ -1306,9 +1306,9 @@ export async function updateExpenseStatus(prevState: ExpenseStatusFormState, for
 
 // --- Social Post Actions ---
 const SocialPostSchema = z.object({
-  title: z.string().min(1, "Заголовок обязателен.").nullable().optional(),
+  title: z.string().min(1, "Заголовок обязателен."),
   platforms: z.array(z.string()).min(1, "Выберите хотя бы одну платформу").optional(),
-  text: z.string().nullable().optional(),
+  text: z.string(),
   plannedReach: z.coerce.number().min(0).optional().nullable(),
   plannedComments: z.coerce.number().min(0).optional().nullable(),
   publicationDate: z.string().refine((date) => !isNaN(Date.parse(date)), "Неверный формат даты.").optional().nullable(),
@@ -1329,9 +1329,9 @@ export async function addSocialPost(prevState: SocialPostFormState, formData: Fo
     const rawCampaignId = formData.get('campaignId');
 
     const data = {
-        title: formData.get('title') || '',
+        title: formData.get('title'),
         platforms: formData.getAll('platforms'),
-        text: formData.get('text') || '',
+        text: formData.get('text'),
         plannedReach: formData.get('plannedReach') || '0',
         plannedComments: formData.get('plannedComments') || '0',
         publicationDate: formData.get('publicationDate') || new Date().toISOString().split('T')[0],
@@ -1341,9 +1341,9 @@ export async function addSocialPost(prevState: SocialPostFormState, formData: Fo
     };
     
     const postToSave: Omit<SocialPost, 'id'> = {
-        title: data.title as string,
+        title: (data.title as string) || '',
         platforms: (data.platforms as SocialPlatform[]) || [],
-        text: data.text as string,
+        text: (data.text as string) || '',
         plannedReach: Number(data.plannedReach),
         actualReach: 0,
         plannedComments: Number(data.plannedComments),
@@ -1385,9 +1385,9 @@ export async function updateSocialPost(prevState: SocialPostFormState, formData:
         campaignId: rawCampaignId === 'none' ? undefined : rawCampaignId,
         actionId: rawActionId === 'none' ? undefined : rawActionId,
         activityId: rawActivityId === 'general' || rawActivityId === 'none' ? undefined : rawActivityId,
-        title: formData.get('title') || '',
+        title: formData.get('title'),
         platforms: formData.getAll('platforms'),
-        text: formData.get('text') || '', 
+        text: formData.get('text'), 
         plannedReach: formData.get('plannedReach'),
         plannedComments: formData.get('plannedComments'),
         actualReach: formData.get('actualReach'),
@@ -1444,8 +1444,10 @@ export async function updateSocialPost(prevState: SocialPostFormState, formData:
     return { message: "Пост успешно обновлен." };
 }
 
-export async function deleteSocialPost(prevState: DeleteFormState, formData: FormData): Promise<DeleteFormState> {
+export async function deleteSocialPostFromAction(prevState: DeleteFormState, formData: FormData): Promise<DeleteFormState> {
     const postId = formData.get('postId') as string;
+    const campaignId = formData.get('campaignId') as string;
+    const actionId = formData.get('actionId') as string;
 
     if (!postId) {
         return { message: "Отсутствуют необходимые идентификаторы.", error: true };
@@ -1459,7 +1461,9 @@ export async function deleteSocialPost(prevState: DeleteFormState, formData: For
     }
 
     revalidatePath('/smm');
-    revalidatePath(`/campaigns`); // Revalidate all campaigns pages just in case
+    if (campaignId && actionId) {
+      revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+    }
     return { message: "Пост успешно удален." };
 }
 
