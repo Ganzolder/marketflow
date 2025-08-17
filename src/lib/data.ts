@@ -1,4 +1,5 @@
 
+"use server";
 
 import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction, ActionStatus, CampaignStatus, KpiMetricLog, EnrichedActivity, Resource, ResourceStatus, ExpenseStatus, SocialPost, EnrichedSocialPost } from './types';
 import { db } from './firebase';
@@ -673,26 +674,57 @@ export async function getAllActivities(): Promise<EnrichedActivity[]> {
   return allActivities.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
 }
 
+export async function getSocialPosts(): Promise<SocialPost[]> {
+    const postsCollection = collection(db, "socialPosts");
+    const postsSnapshot = await getDocs(postsCollection);
+    return postsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SocialPost));
+}
+
 export async function getAllSocialPosts(): Promise<EnrichedSocialPost[]> {
-  const campaigns = await getCampaigns();
-  const allPosts: EnrichedSocialPost[] = [];
-
-  campaigns.forEach(campaign => {
-    (campaign.actions || []).forEach(action => {
-      (action.socialPosts || []).forEach(post => {
-        const enrichedPost: EnrichedSocialPost = {
-          ...post,
-          actionName: action.name,
-          actionId: action.id,
-          campaignName: campaign.name,
-          campaignId: campaign.id,
+    const posts = await getSocialPosts();
+    const campaigns = await getCampaigns();
+    
+    return posts.map(post => {
+        let campaignName = '';
+        let actionName = '';
+        if (post.campaignId && post.actionId) {
+            const campaign = campaigns.find(c => c.id === post.campaignId);
+            if (campaign) {
+                campaignName = campaign.name;
+                const action = campaign.actions.find(a => a.id === post.actionId);
+                if (action) {
+                    actionName = action.name;
+                }
+            }
+        }
+        return {
+            ...post,
+            campaignName,
+            actionName,
         };
-        allPosts.push(enrichedPost);
-      });
-    });
-  });
+    }).sort((a, b) => new Date(b.publicationDate).getTime() - new Date(a.publicationDate).getTime());
+}
 
-  return allPosts.sort((a, b) => new Date(b.publicationDate).getTime() - new Date(a.publicationDate).getTime());
+
+export async function getSocialPostsForAction(actionId: string): Promise<SocialPost[]> {
+    const allPosts = await getSocialPosts();
+    return allPosts.filter(post => post.actionId === actionId);
+}
+
+export async function addSocialPost(postData: Omit<SocialPost, 'id'>): Promise<SocialPost> {
+    const postsCollection = collection(db, "socialPosts");
+    const docRef = await addDoc(postsCollection, postData);
+    return { id: docRef.id, ...postData };
+}
+
+export async function updateSocialPost(postData: SocialPost) {
+    const postRef = doc(db, "socialPosts", postData.id);
+    await updateDoc(postRef, postData);
+}
+
+export async function deleteSocialPost(postId: string) {
+    const postRef = doc(db, "socialPosts", postId);
+    await deleteDoc(postRef);
 }
 
 
