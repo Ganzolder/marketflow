@@ -93,17 +93,19 @@ export async function editActionInCampaign(
   formData: FormData
 ): Promise<ActionFormState> {
   
-  const validatedFields = EditActionSchema.safeParse({
+  const rawData = {
     id: formData.get('actionId'),
     name: formData.get('action-name'),
-    description: formData.get('description'),
-    targetAudience: formData.get('target-audience'),
+    description: formData.get('description') || '',
+    targetAudience: formData.get('target-audience') || '',
     startDate: formData.get('start-date'),
     endDate: formData.get('end-date'),
     status: formData.get('status'),
     campaignId: formData.get('campaignId'),
-    conditions: formData.get('conditions'),
-  });
+    conditions: formData.get('conditions') || '',
+  };
+
+  const validatedFields = EditActionSchema.safeParse(rawData);
 
   if (!validatedFields.success) {
     const errorMessages = Object.values(validatedFields.error.flatten().fieldErrors).flat().join("\n");
