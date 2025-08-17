@@ -1,8 +1,9 @@
 
+
 "use client";
 
 import { useState } from 'react';
-import type { EnrichedSocialPost, SocialPostStatus } from "@/lib/types";
+import type { EnrichedSocialPost, SocialPostStatus, Action } from "@/lib/types";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +13,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback } from 'react';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
+import { EditSocialPostButton } from '../campaigns/[id]/[actionId]/edit-social-post-button';
 
 const statusTranslations: Record<SocialPostStatus, string> = {
   draft: "Черновик",
@@ -86,7 +88,7 @@ function Filters() {
     )
 }
 
-export function SmmPlanner({ posts }: { posts: EnrichedSocialPost[] }) {
+export function SmmPlanner({ posts, actions }: { posts: EnrichedSocialPost[], actions: Action[] }) {
     const locale = 'ru-RU';
 
     return (
@@ -105,7 +107,11 @@ export function SmmPlanner({ posts }: { posts: EnrichedSocialPost[] }) {
             </Card>
 
             <div className="space-y-4">
-                {posts.map(post => (
+                {posts.map(post => {
+                    const postAction = actions.find(a => a.id === post.actionId);
+                    const postActivities = postAction?.activities || [];
+
+                    return (
                      <Card key={post.id} className="overflow-hidden">
                         <CardHeader className="flex flex-row items-start justify-between gap-4 p-4 bg-muted/50">
                             <div>
@@ -121,13 +127,19 @@ export function SmmPlanner({ posts }: { posts: EnrichedSocialPost[] }) {
                             </div>
                             <div className="flex flex-col items-end gap-2">
                                 <Badge variant="outline" className={statusStyles[post.status]}>{statusTranslations[post.status]}</Badge>
+                                <EditSocialPostButton 
+                                    post={post} 
+                                    actionId={post.actionId} 
+                                    campaignId={post.campaignId} 
+                                    activities={postActivities}
+                                />
                             </div>
                         </CardHeader>
                         <CardContent className="p-4">
                             <p className="text-sm text-foreground whitespace-pre-wrap">{post.text}</p>
                         </CardContent>
                     </Card>
-                ))}
+                )})}
             </div>
              {posts.length === 0 && (
                 <Card>

@@ -13,8 +13,7 @@ type SmmPageProps = {
     }
 }
 
-export default async function SmmPage({ searchParams: searchParamsPromise }: SmmPageProps) {
-  const searchParams = await searchParamsPromise;
+export default async function SmmPage({ searchParams }: SmmPageProps) {
   const allPosts = await getAllSocialPosts();
   const allCampaigns = await getCampaigns();
   const allActions = await getAllActions();
@@ -44,7 +43,7 @@ export default async function SmmPage({ searchParams: searchParamsPromise }: Smm
       >
         <AddSmmPostButton campaigns={allCampaigns} actions={allActions} />
       </PageHeader>
-      <SmmPlanner posts={filteredPosts} />
+      <SmmPlanner posts={filteredPosts} actions={allActions} />
     </div>
   );
 }
