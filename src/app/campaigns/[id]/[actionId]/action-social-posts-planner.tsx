@@ -5,7 +5,7 @@
 import { useState, useActionState, useRef, useTransition, useEffect } from 'react';
 import type { Action, Activity, SocialPostStatus, SocialPlatform } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Share2, PlusCircle, Loader2, Save, MessageSquare, Users, ArrowUp, ArrowDown, Minus, Wand2, Info } from 'lucide-react';
+import { Share2, PlusCircle, Loader2, Save, MessageSquare, Users, ArrowUp, ArrowDown, Minus, Wand2, Info, ChevronDown } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { addSocialPost, type SocialPostFormState, type SocialPostMetricsFormState, updateSocialPostMetrics, generatePostTextAction } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
@@ -22,6 +22,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { EditSocialPostButton } from './edit-social-post-button';
 import { DeleteSocialPostButton } from './delete-social-post-button';
 import { useFormStatus } from 'react-dom';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 
 const statusTranslations: Record<SocialPostStatus, string> = {
@@ -350,13 +351,23 @@ export function ActionSocialPostsPlanner({ action, campaignId, posts }: { action
                              </div>
                               <div className="flex flex-col items-end gap-2">
                                     <div className="flex items-center">
-                                       <EditSocialPostButton post={post} />
-                                       <DeleteSocialPostButton postId={post.id} />
+                                       <EditSocialPostButton post={post} action={action} />
+                                       <DeleteSocialPostButton postId={post.id} campaignId={campaignId} actionId={action.id} />
                                     </div>
                                </div>
                            </CardHeader>
                            <CardContent className="p-4">
-                             <p className="text-sm text-foreground whitespace-pre-wrap">{post.text}</p>
+                             <Collapsible>
+                                <CollapsibleTrigger asChild>
+                                    <Button variant="link" size="sm" className="p-0 h-auto text-muted-foreground group">
+                                        Показать/скрыть текст поста
+                                        <ChevronDown className="h-4 w-4 ml-1 transition-transform group-data-[state=open]:rotate-180" />
+                                    </Button>
+                                </CollapsibleTrigger>
+                                <CollapsibleContent className="pt-2">
+                                    <p className="text-sm text-foreground whitespace-pre-wrap bg-muted/50 p-3 rounded-md">{post.text}</p>
+                                </CollapsibleContent>
+                             </Collapsible>
                            </CardContent>
                            <CardFooter className="bg-muted/50 p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="grid grid-cols-2 gap-4 items-center">

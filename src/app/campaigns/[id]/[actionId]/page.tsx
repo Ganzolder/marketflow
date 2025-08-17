@@ -224,8 +224,6 @@ export default function ActionDetailPage() {
         
         <ActionResourcesCard action={action} campaignId={campaign.id} />
 
-        <ActionSocialPostsPlanner action={action} campaignId={campaign.id} posts={socialPosts} />
-
         <ActionEffectivenessCard action={action} campaignId={campaign.id} locale={locale} currencyOptions={currencyOptions} totalSpent={totalSpent} />
         
         <Card>
@@ -366,6 +364,8 @@ export default function ActionDetailPage() {
                  )}
             </CardContent>
         </Card>
+
+        <ActionSocialPostsPlanner action={action} campaignId={campaign.id} posts={socialPosts} />
       </div>
     </div>
   );
