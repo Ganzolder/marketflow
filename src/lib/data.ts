@@ -707,6 +707,15 @@ export async function getSocialPostsForAction(actionId: string): Promise<SocialP
     return allPosts.filter(post => post.actionId === actionId);
 }
 
+export async function getSocialPostById(postId: string): Promise<SocialPost | undefined> {
+    const postRef = doc(db, "socialPosts", postId);
+    const postSnap = await getDoc(postRef);
+    if (postSnap.exists()) {
+        return { id: postSnap.id, ...postSnap.data() } as SocialPost;
+    }
+    return undefined;
+}
+
 export async function deleteSocialPost(postId: string) {
     const postRef = doc(db, "socialPosts", postId);
     await deleteDoc(postRef);
