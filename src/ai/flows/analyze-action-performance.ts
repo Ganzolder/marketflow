@@ -61,7 +61,7 @@ Your analysis should consider:
 - **Overall Cohesion:** Do the numbers tell a consistent story? For example, if spending is high but KPIs are low, that's a red flag.
 
 **SMM Analysis (if applicable):**
-- If the action data includes a 'socialPosts' array, analyze the provided posts.
+- If the action data includes a 'socialPosts' array, analyze the provided posts. When referring to a specific post in your recommendations, please use its 'title' field, not its 'id'.
 - Assess the quality of the post texts and their alignment with the action's goals and target audience.
 - Provide recommendations for improving the existing posts.
 - Generate a few new, creative ideas for additional posts that would support this action.
