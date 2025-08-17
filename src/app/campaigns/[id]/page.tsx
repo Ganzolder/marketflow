@@ -7,18 +7,18 @@ import { notFound, useSearchParams, useParams } from 'next/navigation';
 import { getCampaignById } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { Edit, Calendar as CalendarIcon, Target, FilePlus, Eye, TrendingUp, Landmark, CalendarDays } from 'lucide-react';
+import { Calendar as CalendarIcon, Target, FilePlus, Eye, TrendingUp, Landmark, CalendarDays } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/status-badge';
 import { NewActionButton } from './new-action-button';
-import { EditActionButton } from './edit-action-button';
 import Link from 'next/link';
 import { Progress } from '@/components/ui/progress';
 import { UpdateCampaignStatus } from '../update-campaign-status';
 import { EditCampaignButton } from '../edit-campaign-button';
 import type { Campaign, Action } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EditActionButton } from '../[id]/[actionId]/edit-action-button';
 
 
 export default function CampaignDetailPage() {
@@ -234,7 +234,7 @@ export default function CampaignDetailPage() {
                                 <CardHeader>
                                     <CardTitle className="text-lg flex justify-between items-start">
                                         <span>{action.name}</span>
-                                        <EditActionButton action={action} campaignId={campaign.id}/>
+                                        <EditActionButton action={action} campaignId={campaign.id} asChild={true}/>
                                     </CardTitle>
                                     <CardDescription>{action.description}</CardDescription>
                                 </CardHeader>
