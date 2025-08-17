@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { notFound, useSearchParams } from 'next/navigation';
+import { notFound, useSearchParams, useParams } from 'next/navigation';
 import { getCampaignById } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -21,13 +21,10 @@ import type { Campaign, Action } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
 
-type CampaignDetailPageProps = {
-  params: {
-    id: string;
-  }
-}
+export default function CampaignDetailPage() {
+  const params = useParams() as { id: string };
+  const { id } = params;
 
-export default function CampaignDetailPage({ params: { id } }: CampaignDetailPageProps) {
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [filteredActions, setFilteredActions] = useState<Action[]>([]);
   const [isLoading, setIsLoading] = useState(true);

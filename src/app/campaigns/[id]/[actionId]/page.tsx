@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 import { getCampaignById, getSocialPostsForAction } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -36,14 +36,10 @@ import { ActionResourcesCard } from './action-resources-card';
 import { ActionSocialPostsPlanner } from './action-social-posts-planner';
 import { Skeleton } from '@/components/ui/skeleton';
 
-type ActionDetailPageProps = {
-  params: {
-    id: string;
-    actionId: string;
-  };
-};
-
-export default function ActionDetailPage({ params: { id, actionId } }: ActionDetailPageProps) {
+export default function ActionDetailPage() {
+  const params = useParams() as { id: string; actionId: string };
+  const { id, actionId } = params;
+  
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [action, setAction] = useState<Action | null>(null);
   const [socialPosts, setSocialPosts] = useState<SocialPost[]>([]);
