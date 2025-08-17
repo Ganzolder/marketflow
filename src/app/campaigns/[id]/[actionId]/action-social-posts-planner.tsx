@@ -266,17 +266,21 @@ function ActualMetricsForm({ post, actionId, campaignId }: { post: any, actionId
     const { toast } = useToast();
 
     useEffect(() => {
-        if (state.message && state.error) {
-            const errorMessages = state.errors ? Object.values(state.errors).flat().join("\n") : state.message;
-            toast({ variant: "destructive", title: "Ошибка", description: errorMessages });
-        } else if (state.message) {
-            toast({ title: "Успех", description: state.message });
+        if (state.message) {
+            if (state.error) {
+                const errorMessages = state.errors ? Object.values(state.errors).flat().join("\n") : state.message;
+                toast({ variant: "destructive", title: "Ошибка", description: errorMessages });
+            } else {
+                toast({ title: "Успех", description: state.message });
+            }
         }
     }, [state, toast]);
 
     return (
         <form action={formAction} className="flex-1 space-y-4">
              <input type="hidden" name="postId" value={post.id} />
+             <input type="hidden" name="campaignId" value={campaignId} />
+             <input type="hidden" name="actionId" value={actionId} />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>

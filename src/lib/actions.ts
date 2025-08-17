@@ -9,7 +9,7 @@ import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiM
 import { redirect } from "next/navigation";
 import { analyzeActionPerformance, type AnalyzeActionPerformanceOutput } from "@/ai/flows/analyze-action-performance";
 import { generatePostText, type GeneratePostTextInput } from "@/ai/flows/generate-post-text";
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection, doc } from "firebase/firestore";
 import { db } from "./firebase";
 
 const ActionSchema = z.object({
@@ -1306,6 +1306,7 @@ const SocialPostSchema = z.object({
   status: z.enum(['draft', 'ready', 'published']),
   campaignId: z.string().optional(),
   actionId: z.string().optional(),
+  activityId: z.string().optional(),
 });
 
 const UpdateSocialPostMetricsSchema = z.object({
@@ -1317,15 +1318,17 @@ const UpdateSocialPostMetricsSchema = z.object({
 });
 
 export async function addSocialPost(prevState: SocialPostFormState, formData: FormData): Promise<SocialPostFormState> {
+  const rawActivityId = formData.get('activityId');
   const validatedFields = SocialPostSchema.safeParse({
     platforms: formData.getAll('platforms'),
-    text: formData.get('text') || '',
+    text: formData.get('text') || null,
     plannedReach: formData.get('plannedReach'),
     plannedComments: formData.get('plannedComments'),
     publicationDate: formData.get('publicationDate') || new Date().toISOString().split('T')[0],
     status: formData.get('status'),
     campaignId: formData.get('campaignId') || undefined,
     actionId: formData.get('actionId') || undefined,
+    activityId: rawActivityId === 'general' ? undefined : rawActivityId,
   });
 
   if (!validatedFields.success) {
@@ -1347,13 +1350,15 @@ export async function addSocialPost(prevState: SocialPostFormState, formData: Fo
     actualReach: 0,
     actualComments: 0,
     publicationDate: postData.publicationDate || new Date().toISOString().split('T')[0],
-    campaignId: postData.campaignId || '',
-    actionId: postData.actionId || '',
+    campaignId: postData.campaignId,
+    actionId: postData.actionId,
+    activityId: postData.activityId,
   };
   
   try {
     const postsCollection = collection(db, "socialPosts");
-    await addDoc(postsCollection, postToSave);
+    const docRef = doc(postsCollection); // Create a new doc with a generated ID
+    await addDoc(postsCollection, { ...postToSave, id: docRef.id });
   } catch (e) {
     const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
     return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
@@ -1373,8 +1378,8 @@ export async function updateSocialPostInAction(prevState: SocialPostFormState, f
         actualReach: z.coerce.number().min(0).optional(),
         actualComments: z.coerce.number().min(0).optional(),
     }).safeParse({
-        campaignId: formData.get('campaignId'),
-        actionId: formData.get('actionId'),
+        campaignId: formData.get('campaignId') || undefined,
+        actionId: formData.get('actionId') || undefined,
         postId: formData.get('postId'),
         activityId: rawActivityId === 'general' ? undefined : rawActivityId,
         platforms: formData.getAll('platforms'),
