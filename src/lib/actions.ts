@@ -3,7 +3,7 @@
 "use server";
 
 import { z } from "zod";
-import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData, updateExpenseStatus as updateExpenseStatusData, updateSocialPost, deleteSocialPost, updateSocialPostMetrics as updateSocialPostMetricsData } from "./data";
+import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData, updateExpenseStatus as updateExpenseStatusData, updateSocialPost, deleteSocialPost, updateSocialPostMetricsData } from "./data";
 import { revalidatePath } from "next/cache";
 import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog, Campaign, ResponsibilityFormState, Resource, ResourceStatus, ResourceStatusFormState, ExpenseStatus, ExpenseStatusFormState, SocialPost, SocialPlatform, SocialPostStatus, SocialPostFormState, SocialPostMetricsFormState } from "./types";
 import { redirect } from "next/navigation";
@@ -1317,7 +1317,7 @@ const UpdateSocialPostMetricsSchema = z.object({
     actualComments: z.coerce.number().min(0, 'Значение должно быть положительным').optional(),
 });
 
-export async function addSocialPost(prevState: SocialPostFormState, formData: FormData): Promise<SocialPostFormState> {
+export async function addSocialPostToAction(prevState: SocialPostFormState, formData: FormData): Promise<SocialPostFormState> {
   const rawActivityId = formData.get('activityId');
   const validatedFields = SocialPostSchema.safeParse({
     platforms: formData.getAll('platforms'),
@@ -1369,6 +1369,11 @@ export async function addSocialPost(prevState: SocialPostFormState, formData: Fo
     revalidatePath(`/campaigns/${postToSave.campaignId}/${postToSave.actionId}`);
   }
   return { message: "Пост успешно добавлен." };
+}
+
+
+export async function addSocialPost(prevState: SocialPostFormState, formData: FormData): Promise<SocialPostFormState> {
+  return addSocialPostToAction(prevState, formData);
 }
 
 export async function updateSocialPostInAction(prevState: SocialPostFormState, formData: FormData): Promise<SocialPostFormState> {
