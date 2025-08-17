@@ -5,7 +5,7 @@
 import { useState, useActionState, useRef, useTransition, useEffect } from 'react';
 import type { Action, Activity, SocialPostStatus, SocialPlatform } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, Share2, PlusCircle, Loader2, Save, MessageSquare, Users } from 'lucide-react';
+import { ChevronDown, Share2, PlusCircle, Loader2, Save, MessageSquare, Users, ArrowUp, ArrowDown, Minus } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { addSocialPostToAction, updateSocialPostMetrics, type SocialPostFormState, type SocialPostMetricsFormState } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
@@ -76,16 +76,16 @@ const AddSocialPostButton = ({ action, campaignId }: { action: Action, campaignI
                     Запланировать пост
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-2xl">
+            <DialogContent className="sm:max-w-2xl h-[90vh] flex flex-col sm:h-auto sm:max-h-[85vh]">
                 <DialogHeader>
                     <DialogTitle>Запланировать новый пост</DialogTitle>
                     <DialogDescription>
                         Заполните детали поста для акции.
                     </DialogDescription>
                 </DialogHeader>
-                <form ref={formRef} onSubmit={handleSubmit}>
-                    <ScrollArea className="max-h-[70vh] p-1 pr-4 -mr-4">
-                        <div className="grid gap-4 py-4 pr-4">
+                <form ref={formRef} onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
+                    <ScrollArea className="flex-1 pr-6 -mr-6">
+                        <div className="grid gap-4 py-4 pr-6">
                             <div className="grid gap-2">
                                 <Label htmlFor="activityId">Привязать к активности (необязательно)</Label>
                                 <Select name="activityId">
@@ -163,7 +163,7 @@ const AddSocialPostButton = ({ action, campaignId }: { action: Action, campaignI
                             </div>
                         </div>
                     </ScrollArea>
-                    <DialogFooter className="border-t pt-4 mt-4">
+                    <DialogFooter className="border-t pt-4 mt-auto">
                         <input type="hidden" name="campaignId" value={campaignId} />
                         <input type="hidden" name="actionId" value={action.id} />
                         <DialogClose asChild>
@@ -185,6 +185,27 @@ function MetricsUpdateButton() {
         <Button size="sm" type="submit" disabled={pending}>
             {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
         </Button>
+    )
+}
+
+const StatDisplay = ({ label, plan, fact, locale }: { label: string, plan: number, fact: number | undefined, locale: string }) => {
+    const factValue = fact || 0;
+    const difference = factValue - plan;
+    const isOver = difference > 0;
+    const isUnder = difference < 0;
+    const isEqual = difference === 0;
+
+    return (
+        <div className="text-center">
+            <p className="text-xs text-muted-foreground">{label}</p>
+            <p className="font-semibold text-base">{factValue.toLocaleString(locale)}</p>
+            <p className={`text-xs font-mono flex items-center justify-center ${isOver ? 'text-green-600' : isUnder ? 'text-red-500' : 'text-muted-foreground'}`}>
+                {isOver && <ArrowUp className="w-3 h-3" />}
+                {isUnder && <ArrowDown className="w-3 h-3" />}
+                {isEqual && <Minus className="w-3 h-3" />}
+                <span className="ml-1">{difference.toLocaleString(locale)}</span>
+            </p>
+        </div>
     )
 }
 
@@ -275,7 +296,11 @@ export function ActionSocialPostsPlanner({ action, campaignId }: { action: Actio
                            <CardContent className="p-4">
                              <p className="text-sm text-foreground whitespace-pre-wrap">{post.text}</p>
                            </CardContent>
-                            <CardFooter className="bg-muted/50 p-4 flex flex-col md:flex-row items-start gap-4">
+                           <CardFooter className="bg-muted/50 p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-4 items-center">
+                                  <StatDisplay label="Охват" plan={post.plannedReach} fact={post.actualReach} locale={locale} />
+                                  <StatDisplay label="Комментарии" plan={post.plannedComments} fact={post.actualComments} locale={locale} />
+                                </div>
                                 <ActualMetricsForm post={post} actionId={action.id} campaignId={campaignId} />
                             </CardFooter>
                         </Card>

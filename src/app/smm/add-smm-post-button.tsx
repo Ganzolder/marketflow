@@ -75,16 +75,16 @@ export function AddSmmPostButton({ campaigns, actions }: { campaigns: Campaign[]
                     Запланировать пост
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-2xl">
+            <DialogContent className="sm:max-w-2xl h-[90vh] flex flex-col sm:h-auto sm:max-h-[85vh]">
                 <DialogHeader>
                     <DialogTitle>Запланировать новый пост</DialogTitle>
                     <DialogDescription>
                         Заполните детали поста.
                     </DialogDescription>
                 </DialogHeader>
-                <form ref={formRef} onSubmit={handleSubmit}>
-                    <ScrollArea className="max-h-[70vh] p-1 pr-4 -mr-4">
-                        <div className="grid gap-4 py-4 pr-4">
+                <form ref={formRef} onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
+                    <ScrollArea className="flex-1 pr-6 -mr-6">
+                        <div className="grid gap-4 py-4 pr-6">
                             <div className="grid grid-cols-2 gap-4">
                                <div className="grid gap-2">
                                     <Label htmlFor="campaignId">Кампания</Label>
@@ -178,7 +178,7 @@ export function AddSmmPostButton({ campaigns, actions }: { campaigns: Campaign[]
                             </div>
                         </div>
                     </ScrollArea>
-                    <DialogFooter className="border-t pt-4 mt-4">
+                    <DialogFooter className="border-t pt-4 mt-auto">
                         <DialogClose asChild>
                             <Button type="button" variant="outline">Отмена</Button>
                         </DialogClose>

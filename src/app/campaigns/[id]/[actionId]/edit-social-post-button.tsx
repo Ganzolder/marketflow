@@ -64,13 +64,13 @@ export function EditSocialPostButton({ post, actionId, campaignId, activities }:
                     <Edit className="h-4 w-4" />
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-2xl" onClick={stopPropagation}>
+            <DialogContent className="sm:max-w-2xl h-[90vh] flex flex-col sm:h-auto sm:max-h-[85vh]" onClick={stopPropagation}>
                 <DialogHeader>
                     <DialogTitle>Редактировать пост</DialogTitle>
                 </DialogHeader>
-                <form ref={formRef} onSubmit={handleSubmit}>
-                    <ScrollArea className="max-h-[70vh] p-1 pr-4 -mr-4">
-                        <div className="grid gap-4 py-4 pr-4">
+                <form ref={formRef} onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
+                    <ScrollArea className="flex-1 pr-6 -mr-6">
+                        <div className="grid gap-4 py-4 pr-6">
                             <div className="grid gap-2">
                                 <Label htmlFor="activityId">Привязка к активности</Label>
                                 <Select name="activityId" defaultValue={post.activityId || 'general'}>
@@ -148,7 +148,7 @@ export function EditSocialPostButton({ post, actionId, campaignId, activities }:
                             </div>
                         </div>
                     </ScrollArea>
-                    <DialogFooter className="border-t pt-4 mt-4">
+                    <DialogFooter className="border-t pt-4 mt-auto">
                         <input type="hidden" name="campaignId" value={campaignId} />
                         <input type="hidden" name="actionId" value={actionId} />
                         <input type="hidden" name="postId" value={post.id} />
