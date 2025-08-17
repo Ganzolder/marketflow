@@ -51,13 +51,15 @@ export default function ActionDetailPage() {
       setIsLoading(true);
       const fetchedCampaign = await getCampaignById(id);
       const fetchedPosts = await getSocialPostsForAction(actionId);
+      
+      setSocialPosts(fetchedPosts);
 
       if (fetchedCampaign) {
         const currentAction = fetchedCampaign.actions.find(a => a.id === actionId);
         setCampaign(fetchedCampaign);
         setAction(currentAction || null);
       }
-      setSocialPosts(fetchedPosts);
+      
       setToday(new Date()); // Set date on client
       setIsLoading(false);
     }
@@ -262,7 +264,7 @@ export default function ActionDetailPage() {
                         locale={locale}
                     />
                     ) : (
-                    <p className="text-sm text-muted-foreground text-center py-4">KPI для этой акции еще не определены в активностях.</p>
+                    <div className="text-sm text-muted-foreground text-center py-4">KPI для этой акции еще не определены в активностях.</div>
                 )}
             </CardContent>
         </Card>
@@ -364,7 +366,6 @@ export default function ActionDetailPage() {
         </Card>
         
         <ActionResourcesCard action={action} campaignId={campaign.id} />
-
         <ActionSocialPostsPlanner action={action} campaignId={campaign.id} posts={socialPosts} />
       </div>
     </div>

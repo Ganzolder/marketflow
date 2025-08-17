@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState } from 'react';
@@ -6,12 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Loader2, Wand2, Sparkles, CheckCircle2, AlertTriangle, Lightbulb, Share2, MessageSquarePlus, PenLine } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import type { Action, Campaign, SocialPost } from '@/lib/types';
+import type { Action, Campaign, AiSocialPost } from '@/lib/types';
 import { analyzeAction, type AnalyzeActionState } from '@/lib/actions';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 
-export function AiAnalyzerButton({ action, campaign, socialPosts, asChild = true }: { action: Action, campaign: Campaign, socialPosts: SocialPost[], asChild?: boolean }) {
+export function AiAnalyzerButton({ action, campaign, socialPosts, asChild = true }: { action: Action, campaign: Campaign, socialPosts: AiSocialPost[], asChild?: boolean }) {
     const [open, setOpen] = useState(false);
     const [state, setState] = useState<AnalyzeActionState>({ status: 'idle' });
     const { toast } = useToast();

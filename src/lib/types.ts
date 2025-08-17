@@ -69,6 +69,8 @@ export type SocialPost = {
   activityId?: string; // To link back to an activity (optional)
 };
 
+export type AiSocialPost = Pick<SocialPost, 'id' | 'title' | 'text' | 'publicationDate' | 'status'>;
+
 export type Activity = {
   id: string;
   name: string;
