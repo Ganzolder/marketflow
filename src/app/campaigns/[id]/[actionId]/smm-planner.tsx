@@ -109,7 +109,7 @@ export function SmmPlanner({ posts, actions }: { posts: EnrichedSocialPost[], ac
             <div className="space-y-4">
                 {posts.map(post => {
                     const postAction = actions.find(a => a.id === post.actionId);
-
+                    
                     return (
                      <Card key={post.id} className="overflow-hidden">
                         <CardHeader className="flex flex-row items-start justify-between gap-4 p-4 bg-muted/50">
@@ -126,13 +126,13 @@ export function SmmPlanner({ posts, actions }: { posts: EnrichedSocialPost[], ac
                             </div>
                             <div className="flex flex-col items-end gap-2">
                                 <Badge variant="outline" className={statusStyles[post.status]}>{statusTranslations[post.status]}</Badge>
-                                {postAction && (
-                                     <EditSocialPostButton 
+                                 {postAction && (
+                                    <EditSocialPostButton 
                                         post={post} 
                                         action={postAction}
-                                        campaignId={post.campaignId} 
+                                        campaignId={post.campaignId}
                                     />
-                                )}
+                                 )}
                             </div>
                         </CardHeader>
                         <CardContent className="p-4">

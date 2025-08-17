@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog, Campaign, ResponsibilityFormState, Resource, ResourceStatus, ResourceStatusFormState, ExpenseStatus, ExpenseStatusFormState, SocialPost, SocialPlatform, SocialPostStatus, SocialPostFormState, SocialPostMetricsFormState } from "./types";
 import { redirect } from "next/navigation";
 import { analyzeActionPerformance, type AnalyzeActionPerformanceOutput } from "@/ai/flows/analyze-action-performance";
+import { generatePostText, type GeneratePostTextInput } from "@/ai/flows/generate-post-text";
 
 const ActionSchema = z.object({
   name: z.string().min(3, { message: "Название акции должно содержать не менее 3 символов." }),
@@ -1463,4 +1464,35 @@ export async function updateSocialPostMetrics(prevState: SocialPostMetricsFormSt
     revalidatePath(`/campaigns/${campaignId}/${actionId}`);
     revalidatePath('/smm');
     return { message: "Фактические показатели обновлены." };
+}
+
+// --- AI Post Generation Action ---
+const GeneratePostTextSchema = z.object({
+  topic: z.string().min(3, "Тема должна содержать не менее 3 символов."),
+  productName: z.string(),
+  targetAudience: z.string(),
+  tone: z.string(),
+});
+
+type GeneratePostState = {
+    message: string,
+    postText?: string,
+}
+export async function generatePostTextAction(input: GeneratePostTextInput): Promise<GeneratePostState> {
+    const parsed = GeneratePostTextSchema.safeParse(input);
+
+    if (!parsed.success) {
+        return { message: parsed.error.issues.map(i => i.message).join(', ') };
+    }
+
+    try {
+        const result = await generatePostText(parsed.data);
+        if (result && result.postText) {
+            return { message: 'Текст успешно создан', postText: result.postText };
+        }
+        return { message: 'Не удалось сгенерировать текст.' };
+    } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : "Неизвестная ошибка ИИ.";
+        return { message: `Ошибка генерации: ${errorMessage}` };
+    }
 }

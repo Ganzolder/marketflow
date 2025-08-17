@@ -199,6 +199,8 @@ export type SocialPostFormState = {
     publicationDate?: string[];
     status?: string[];
     activityId?: string[];
+    campaignId?: string[];
+    actionId?: string[];
   }
 };
 

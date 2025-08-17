@@ -5,9 +5,9 @@
 import { useState, useActionState, useRef, useTransition, useEffect } from 'react';
 import type { Action, Activity, SocialPostStatus, SocialPlatform } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, Share2, PlusCircle, Loader2, Save, MessageSquare, Users, ArrowUp, ArrowDown, Minus } from 'lucide-react';
+import { ChevronDown, Share2, PlusCircle, Loader2, Save, MessageSquare, Users, ArrowUp, ArrowDown, Minus, Wand2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
-import { addSocialPostToAction, updateSocialPostMetrics, type SocialPostFormState, type SocialPostMetricsFormState } from '@/lib/actions';
+import { addSocialPostToAction, type SocialPostFormState, type SocialPostMetricsFormState, generatePostTextAction } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -40,8 +40,12 @@ const AddSocialPostButton = ({ action, campaignId }: { action: Action, campaignI
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
+    const textRef = useRef<HTMLTextAreaElement>(null);
     const [isPending, startTransition] = useTransition();
     const [selectedPlatforms, setSelectedPlatforms] = useState<SocialPlatform[]>([]);
+    
+    const [aiTopic, setAiTopic] = useState('');
+    const [isGenerating, setIsGenerating] = useState(false);
     
     const initialState: SocialPostFormState = { message: "", errors: {} };
     const [state, dispatch] = useActionState(addSocialPostToAction, initialState);
@@ -55,9 +59,38 @@ const AddSocialPostButton = ({ action, campaignId }: { action: Action, campaignI
                 setOpen(false);
                 formRef.current?.reset();
                 setSelectedPlatforms([]);
+                setAiTopic('');
             }
         }
     }, [state, toast]);
+
+    const handleGenerateText = async () => {
+        if (!aiTopic) {
+            toast({ variant: 'destructive', title: 'Ошибка', description: 'Пожалуйста, введите тему для генерации.'});
+            return;
+        }
+        setIsGenerating(true);
+        try {
+            const result = await generatePostTextAction({
+                topic: aiTopic,
+                productName: action.name,
+                targetAudience: action.targetAudience || 'широкая аудитория',
+                tone: 'дружелюбный'
+            });
+            if (result.postText) {
+                if (textRef.current) {
+                    textRef.current.value = result.postText;
+                }
+            } else {
+                 toast({ variant: 'destructive', title: 'Ошибка', description: result.message });
+            }
+        } catch(e) {
+            toast({ variant: 'destructive', title: 'Ошибка', description: 'Не удалось сгенерировать текст.'});
+        } finally {
+            setIsGenerating(false);
+        }
+    }
+
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -128,9 +161,18 @@ const AddSocialPostButton = ({ action, campaignId }: { action: Action, campaignI
                                 </Popover>
                                 {state.errors?.platforms && <p className="text-sm text-destructive">{state.errors.platforms[0]}</p>}
                             </div>
+                             <div className="grid gap-2">
+                                <Label htmlFor="aiTopic">Тема для ИИ</Label>
+                                <div className="flex gap-2">
+                                    <Input id="aiTopic" placeholder="напр., Скидки на летнюю коллекцию" value={aiTopic} onChange={(e) => setAiTopic(e.target.value)} />
+                                    <Button type="button" variant="outline" onClick={handleGenerateText} disabled={isGenerating}>
+                                        {isGenerating ? <Loader2 className="h-4 w-4 animate-spin"/> : <Wand2 className="h-4 w-4" />}
+                                    </Button>
+                                </div>
+                            </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="text">Текст поста</Label>
-                                <Textarea id="text" name="text" placeholder="Напишите текст вашего поста..." rows={6} />
+                                <Textarea ref={textRef} id="text" name="text" placeholder="Напишите текст вашего поста или сгенерируйте с помощью ИИ..." rows={6} />
                                 {state.errors?.text && <p className="text-sm text-destructive">{state.errors.text[0]}</p>}
                             </div>
                              <div className="grid gap-2">
@@ -288,7 +330,7 @@ export function ActionSocialPostsPlanner({ action, campaignId }: { action: Actio
                               <div className="flex flex-col items-end gap-2">
                                     <Badge variant="outline" className={statusStyles[post.status]}>{statusTranslations[post.status]}</Badge>
                                     <div className="flex items-center">
-                                       <EditSocialPostButton post={post} actionId={action.id} campaignId={campaignId} activities={action.activities || []} />
+                                       <EditSocialPostButton post={post} action={action} campaignId={campaignId} />
                                        <DeleteSocialPostButton postId={post.id} actionId={action.id} campaignId={campaignId} />
                                     </div>
                                </div>

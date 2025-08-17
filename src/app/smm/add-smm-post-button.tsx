@@ -6,7 +6,7 @@ import { useState, useEffect, useRef, useTransition, useActionState } from 'reac
 import type { Action, Campaign, SocialPlatform, SocialPostStatus } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
-import { addSocialPostToAction, type SocialPostFormState } from '@/lib/actions';
+import { addSocialPostToAction, type SocialPostFormState, generatePostTextAction } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -16,7 +16,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { SocialPlatforms } from '@/lib/types';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
-import { Loader2, PlusCircle } from 'lucide-react';
+import { Loader2, PlusCircle, Wand2 } from 'lucide-react';
 
 const statusTranslations: Record<SocialPostStatus, string> = {
   draft: "Черновик",
@@ -28,10 +28,15 @@ export function AddSmmPostButton({ campaigns, actions }: { campaigns: Campaign[]
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
+    const textRef = useRef<HTMLTextAreaElement>(null);
     const [isPending, startTransition] = useTransition();
     const [selectedPlatforms, setSelectedPlatforms] = useState<SocialPlatform[]>([]);
     const [selectedCampaign, setSelectedCampaign] = useState<string>('');
+    const [selectedActionId, setSelectedActionId] = useState<string>('');
     const [filteredActions, setFilteredActions] = useState<Action[]>([]);
+
+    const [aiTopic, setAiTopic] = useState('');
+    const [isGenerating, setIsGenerating] = useState(false);
     
     const initialState: SocialPostFormState = { message: "", errors: {} };
     const [state, dispatch] = useActionState(addSocialPostToAction, initialState);
@@ -46,6 +51,8 @@ export function AddSmmPostButton({ campaigns, actions }: { campaigns: Campaign[]
                 formRef.current?.reset();
                 setSelectedPlatforms([]);
                 setSelectedCampaign('');
+                setSelectedActionId('');
+                setAiTopic('');
             }
         }
     }, [state, toast]);
@@ -53,10 +60,42 @@ export function AddSmmPostButton({ campaigns, actions }: { campaigns: Campaign[]
     useEffect(() => {
         if (selectedCampaign) {
             setFilteredActions(actions.filter(a => a.campaignId === selectedCampaign));
+            setSelectedActionId(''); // Reset action on campaign change
         } else {
             setFilteredActions([]);
         }
     }, [selectedCampaign, actions]);
+
+    const handleGenerateText = async () => {
+        if (!aiTopic) {
+            toast({ variant: 'destructive', title: 'Ошибка', description: 'Пожалуйста, введите тему для генерации.'});
+            return;
+        }
+        
+        const selectedAction = actions.find(a => a.id === selectedActionId);
+
+        setIsGenerating(true);
+        try {
+            const result = await generatePostTextAction({
+                topic: aiTopic,
+                productName: selectedAction?.name || 'наш продукт',
+                targetAudience: selectedAction?.targetAudience || 'широкая аудитория',
+                tone: 'дружелюбный'
+            });
+            if (result.postText) {
+                if (textRef.current) {
+                    textRef.current.value = result.postText;
+                }
+            } else {
+                 toast({ variant: 'destructive', title: 'Ошибка', description: result.message });
+            }
+        } catch(e) {
+            toast({ variant: 'destructive', title: 'Ошибка', description: 'Не удалось сгенерировать текст.'});
+        } finally {
+            setIsGenerating(false);
+        }
+    }
+
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -88,7 +127,7 @@ export function AddSmmPostButton({ campaigns, actions }: { campaigns: Campaign[]
                             <div className="grid grid-cols-2 gap-4">
                                <div className="grid gap-2">
                                     <Label htmlFor="campaignId">Кампания</Label>
-                                    <Select name="campaignId" onValueChange={setSelectedCampaign}>
+                                    <Select name="campaignId" onValueChange={setSelectedCampaign} value={selectedCampaign}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Выберите кампанию" />
                                         </SelectTrigger>
@@ -102,7 +141,7 @@ export function AddSmmPostButton({ campaigns, actions }: { campaigns: Campaign[]
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="actionId">Акция</Label>
-                                    <Select name="actionId" disabled={!selectedCampaign}>
+                                    <Select name="actionId" disabled={!selectedCampaign} onValueChange={setSelectedActionId} value={selectedActionId}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Выберите акцию" />
                                         </SelectTrigger>
@@ -144,8 +183,17 @@ export function AddSmmPostButton({ campaigns, actions }: { campaigns: Campaign[]
                                 {state.errors?.platforms && <p className="text-sm text-destructive">{state.errors.platforms[0]}</p>}
                             </div>
                             <div className="grid gap-2">
+                                <Label htmlFor="aiTopic">Тема для ИИ</Label>
+                                <div className="flex gap-2">
+                                    <Input id="aiTopic" placeholder="напр., Скидки на летнюю коллекцию" value={aiTopic} onChange={(e) => setAiTopic(e.target.value)} disabled={!selectedActionId} />
+                                    <Button type="button" variant="outline" onClick={handleGenerateText} disabled={isGenerating || !selectedActionId}>
+                                        {isGenerating ? <Loader2 className="h-4 w-4 animate-spin"/> : <Wand2 className="h-4 w-4" />}
+                                    </Button>
+                                </div>
+                            </div>
+                            <div className="grid gap-2">
                                 <Label htmlFor="text">Текст поста</Label>
-                                <Textarea id="text" name="text" placeholder="Напишите текст вашего поста..." rows={6} />
+                                <Textarea ref={textRef} id="text" name="text" placeholder="Напишите текст вашего поста или сгенерируйте с помощью ИИ..." rows={6} />
                                 {state.errors?.text && <p className="text-sm text-destructive">{state.errors.text[0]}</p>}
                             </div>
                              <div className="grid gap-2">
