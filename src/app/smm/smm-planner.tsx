@@ -3,7 +3,7 @@
 "use client";
 
 import { useState } from 'react';
-import type { EnrichedSocialPost, SocialPostStatus, Action } from "@/lib/types";
+import type { SocialPost, SocialPostStatus, Action } from "@/lib/types";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -88,7 +88,7 @@ function Filters() {
     )
 }
 
-export function SmmPlanner({ posts, actions }: { posts: EnrichedSocialPost[], actions: Action[] }) {
+export function SmmPlanner({ posts }: { posts: SocialPost[] }) {
     const locale = 'ru-RU';
 
     return (
@@ -108,8 +108,7 @@ export function SmmPlanner({ posts, actions }: { posts: EnrichedSocialPost[], ac
 
             <div className="space-y-4">
                 {posts.map(post => {
-                    const postAction = actions.find(a => a.id === post.actionId);
-
+                    
                     return (
                      <Card key={post.id} className="overflow-hidden">
                         <CardHeader className="flex flex-row items-start justify-between gap-4 p-4 bg-muted/50">
@@ -118,21 +117,19 @@ export function SmmPlanner({ posts, actions }: { posts: EnrichedSocialPost[], ac
                                 {post.platforms.map(p => <Badge key={p} variant="secondary">{p}</Badge>)}
                             </div>
                             <p className="text-sm font-medium mt-2">{new Date(post.publicationDate).toLocaleDateString(locale, {day: '2-digit', month: 'long', year: 'numeric'})}</p>
-                            <CardDescription className="text-xs mt-2">
-                                <Link href={`/campaigns/${post.campaignId}/${post.actionId}`} className="hover:underline">
-                                    Акция: {post.actionName}
-                                </Link>
-                            </CardDescription>
+                            {post.actionName && post.campaignId && post.actionId && (
+                                <CardDescription className="text-xs mt-2">
+                                    <Link href={`/campaigns/${post.campaignId}/${post.actionId}`} className="hover:underline">
+                                        Акция: {post.actionName}
+                                    </Link>
+                                </CardDescription>
+                            )}
                             </div>
                             <div className="flex flex-col items-end gap-2">
                                 <Badge variant="outline" className={statusStyles[post.status]}>{statusTranslations[post.status]}</Badge>
-                                {postAction && (
-                                     <EditSocialPostButton 
-                                        post={post} 
-                                        action={postAction}
-                                        campaignId={post.campaignId} 
-                                    />
-                                )}
+                                <EditSocialPostButton 
+                                    post={post}
+                                />
                             </div>
                         </CardHeader>
                         <CardContent className="p-4">

@@ -3,10 +3,10 @@
 "use client";
 
 import { useState, useEffect, useRef, useTransition, useActionState } from 'react';
-import type { Action, Campaign, SocialPlatform, SocialPostStatus } from '@/lib/types';
+import type { SocialPostStatus } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
-import { addSocialPostToAction, type SocialPostFormState, generatePostTextAction } from '@/lib/actions';
+import { addSocialPost, type SocialPostFormState, generatePostTextAction } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -24,22 +24,19 @@ const statusTranslations: Record<SocialPostStatus, string> = {
   published: "Опубликован",
 };
 
-export function AddSmmPostButton({ campaigns, actions }: { campaigns: Campaign[], actions: Action[] }) {
+export function AddSmmPostButton() {
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
     const textRef = useRef<HTMLTextAreaElement>(null);
     const [isPending, startTransition] = useTransition();
     const [selectedPlatforms, setSelectedPlatforms] = useState<SocialPlatform[]>([]);
-    const [selectedCampaign, setSelectedCampaign] = useState<string>('');
-    const [selectedActionId, setSelectedActionId] = useState<string>('');
-    const [filteredActions, setFilteredActions] = useState<Action[]>([]);
 
     const [aiTopic, setAiTopic] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
     
     const initialState: SocialPostFormState = { message: "", errors: {} };
-    const [state, dispatch] = useActionState(addSocialPostToAction, initialState);
+    const [state, dispatch] = useActionState(addSocialPost, initialState);
 
     useEffect(() => {
         if (state.message) {
@@ -51,36 +48,23 @@ export function AddSmmPostButton({ campaigns, actions }: { campaigns: Campaign[]
                 setOpen(false);
                 formRef.current?.reset();
                 setSelectedPlatforms([]);
-                setSelectedCampaign('');
-                setSelectedActionId('');
                 setAiTopic('');
             }
         }
     }, [state, toast]);
-    
-    useEffect(() => {
-        if (selectedCampaign) {
-            setFilteredActions(actions.filter(a => a.campaignId === selectedCampaign));
-            setSelectedActionId(''); // Reset action on campaign change
-        } else {
-            setFilteredActions([]);
-        }
-    }, [selectedCampaign, actions]);
 
     const handleGenerateText = async () => {
         if (!aiTopic) {
             toast({ variant: 'destructive', title: 'Ошибка', description: 'Пожалуйста, введите тему для генерации.'});
             return;
         }
-        
-        const selectedAction = actions.find(a => a.id === selectedActionId);
 
         setIsGenerating(true);
         try {
             const result = await generatePostTextAction({
                 topic: aiTopic,
-                productName: selectedAction?.name || 'наш продукт',
-                targetAudience: selectedAction?.targetAudience || 'широкая аудитория',
+                productName: 'наш продукт',
+                targetAudience: 'широкая аудитория',
                 tone: 'дружелюбный'
             });
             if (result.postText) {
@@ -125,36 +109,7 @@ export function AddSmmPostButton({ campaigns, actions }: { campaigns: Campaign[]
                 <form ref={formRef} onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
                     <ScrollArea className="flex-1 pr-6 -mr-6">
                         <div className="grid gap-4 py-4 pr-6">
-                            <div className="grid grid-cols-2 gap-4">
-                               <div className="grid gap-2">
-                                    <Label htmlFor="campaignIdSelect">Кампания</Label>
-                                    <Select name="campaignId" onValueChange={setSelectedCampaign} value={selectedCampaign} required>
-                                        <SelectTrigger id="campaignIdSelect">
-                                            <SelectValue placeholder="Выберите кампанию" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {campaigns.map(c => (
-                                                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                     {state.errors?.campaignId && <p className="text-sm text-destructive">{state.errors.campaignId[0]}</p>}
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="actionIdSelect">Акция</Label>
-                                    <Select name="actionId" disabled={!selectedCampaign} onValueChange={setSelectedActionId} value={selectedActionId} required>
-                                        <SelectTrigger id="actionIdSelect">
-                                            <SelectValue placeholder="Выберите акцию" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {filteredActions.map(a => (
-                                                <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    {state.errors?.actionId && <p className="text-sm text-destructive">{state.errors.actionId[0]}</p>}
-                                </div>
-                            </div>
+                           
                             <div className="grid gap-2">
                                 <Label>Платформы</Label>
                                 <Popover>
@@ -186,8 +141,8 @@ export function AddSmmPostButton({ campaigns, actions }: { campaigns: Campaign[]
                             <div className="grid gap-2">
                                 <Label htmlFor="aiTopic">Тема для ИИ</Label>
                                 <div className="flex gap-2">
-                                    <Input id="aiTopic" placeholder="напр., Скидки на летнюю коллекцию" value={aiTopic} onChange={(e) => setAiTopic(e.target.value)} disabled={!selectedActionId} />
-                                    <Button type="button" variant="outline" onClick={handleGenerateText} disabled={isGenerating || !selectedActionId}>
+                                    <Input id="aiTopic" placeholder="напр., Скидки на летнюю коллекцию" value={aiTopic} onChange={(e) => setAiTopic(e.target.value)} />
+                                    <Button type="button" variant="outline" onClick={handleGenerateText} disabled={isGenerating}>
                                         {isGenerating ? <Loader2 className="h-4 w-4 animate-spin"/> : <Wand2 className="h-4 w-4" />}
                                     </Button>
                                 </div>
@@ -231,19 +186,6 @@ export function AddSmmPostButton({ campaigns, actions }: { campaigns: Campaign[]
                                         </SelectContent>
                                     </Select>
                                      {state.errors?.status && <p className="text-sm text-destructive">{state.errors.status[0]}</p>}
-                                </div>
-                            </div>
-
-                            {/* Debug Fields */}
-                            <div className="grid gap-2 p-2 border-t mt-4">
-                                <Label className="text-muted-foreground">Отладочные поля</Label>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="campaignIdInput">Campaign ID</Label>
-                                    <Input id="campaignIdInput" type="text" name="campaignId" value={selectedCampaign} readOnly className="text-xs text-muted-foreground bg-muted/50" />
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="actionIdInput">Action ID</Label>
-                                    <Input id="actionIdInput" type="text" name="actionId" value={selectedActionId} readOnly className="text-xs text-muted-foreground bg-muted/50" />
                                 </div>
                             </div>
                         </div>

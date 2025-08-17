@@ -1,7 +1,7 @@
 
 
 import { notFound } from 'next/navigation';
-import { getCampaignById } from '@/lib/data';
+import { getCampaignById, getSocialPostsForAction } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -30,7 +30,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ActionResourcesCard } from './action-resources-card';
-import { ActionSocialPostsPlanner } from './social-posts-planner';
+import { ActionSocialPostsPlanner } from './action-social-posts-planner';
 
 type ActionDetailPageProps = {
   params: {
@@ -43,10 +43,13 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
   const params = await paramsPromise;
   const campaign = await getCampaignById(params.id);
   const action = campaign?.actions.find((a) => a.id === params.actionId);
-
+  
   if (!campaign || !action) {
     notFound();
   }
+
+  const socialPosts = await getSocialPostsForAction(action.id);
+
 
   const locale = 'ru-RU';
   const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -186,7 +189,7 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
         
         <ActionResourcesCard action={action} campaignId={campaign.id} />
 
-        <ActionSocialPostsPlanner action={action} campaignId={campaign.id} />
+        <ActionSocialPostsPlanner action={action} campaignId={campaign.id} posts={socialPosts} />
 
         <ActionEffectivenessCard action={action} campaignId={campaign.id} locale={locale} currencyOptions={currencyOptions} totalSpent={totalSpent} />
         
@@ -332,5 +335,3 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
     </div>
   );
 }
-
-    

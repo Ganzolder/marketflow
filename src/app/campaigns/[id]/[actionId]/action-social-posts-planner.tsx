@@ -7,7 +7,7 @@ import type { Action, Activity, SocialPostStatus, SocialPlatform } from '@/lib/t
 import { Button } from '@/components/ui/button';
 import { Share2, PlusCircle, Loader2, Save, MessageSquare, Users, ArrowUp, ArrowDown, Minus, Wand2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
-import { addSocialPostToAction, type SocialPostFormState, type SocialPostMetricsFormState, updateSocialPostMetrics, generatePostTextAction } from '@/lib/actions';
+import { addSocialPost, type SocialPostFormState, type SocialPostMetricsFormState, updateSocialPostMetrics, generatePostTextAction } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -48,7 +48,7 @@ const AddSocialPostButton = ({ action, campaignId }: { action: Action, campaignI
     const [isGenerating, setIsGenerating] = useState(false);
     
     const initialState: SocialPostFormState = { message: "", errors: {} };
-    const [state, dispatch] = useActionState(addSocialPostToAction, initialState);
+    const [state, dispatch] = useActionState(addSocialPost, initialState);
 
     useEffect(() => {
         if (state.message) {
@@ -276,8 +276,6 @@ function ActualMetricsForm({ post, actionId, campaignId }: { post: any, actionId
 
     return (
         <form action={formAction} className="flex-1 space-y-4">
-             <input type="hidden" name="campaignId" value={campaignId} />
-             <input type="hidden" name="actionId" value={actionId} />
              <input type="hidden" name="postId" value={post.id} />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -305,7 +303,7 @@ function ActualMetricsForm({ post, actionId, campaignId }: { post: any, actionId
     );
 }
 
-export function ActionSocialPostsPlanner({ action, campaignId }: { action: Action, campaignId: string }) {
+export function ActionSocialPostsPlanner({ action, campaignId, posts }: { action: Action, campaignId: string, posts: any[] }) {
   const locale = 'ru-RU';
   
   const getActivityName = (activityId?: string) => {
@@ -313,7 +311,7 @@ export function ActionSocialPostsPlanner({ action, campaignId }: { action: Actio
     return (action.activities || []).find(a => a.id === activityId)?.name || 'Неизвестная активность';
   }
   
-  const sortedPosts = (action.socialPosts || []).sort((a,b) => new Date(b.publicationDate).getTime() - new Date(a.publicationDate).getTime());
+  const sortedPosts = posts.sort((a,b) => new Date(b.publicationDate).getTime() - new Date(a.publicationDate).getTime());
 
   return (
     <Card>
@@ -340,8 +338,8 @@ export function ActionSocialPostsPlanner({ action, campaignId }: { action: Actio
                               <div className="flex flex-col items-end gap-2">
                                     <Badge variant="outline" className={statusStyles[post.status]}>{statusTranslations[post.status]}</Badge>
                                     <div className="flex items-center">
-                                       <EditSocialPostButton post={post} action={action} campaignId={campaignId} />
-                                       <DeleteSocialPostButton postId={post.id} actionId={action.id} campaignId={campaignId} />
+                                       <EditSocialPostButton post={post} />
+                                       <DeleteSocialPostButton postId={post.id} />
                                     </div>
                                </div>
                            </CardHeader>
