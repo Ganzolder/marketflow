@@ -1,8 +1,9 @@
+
 "use client";
 
 import { useMemo } from 'react';
 import type { SocialPost } from "@/lib/types";
-import { format, subMonths, eachDayOfInterval, startOfWeek, endOfWeek, isSameDay, getDay } from 'date-fns';
+import { format, subMonths, eachDayOfInterval, startOfWeek, endOfWeek, isSameDay, getDay, startOfMonth, endOfMonth, addMonths } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { cn } from "@/lib/utils";
 import {
@@ -31,8 +32,9 @@ const getIntensityColor = (count: number) => {
 
 export function PublicationCalendar({ posts }: { posts: SocialPost[] }) {
   const { startDate, endDate, postsByDate, weekDays, monthLabels } = useMemo(() => {
-    const endDate = new Date();
-    const startDate = subMonths(endDate, 4);
+    const today = new Date();
+    const startDate = startOfMonth(today);
+    const endDate = endOfMonth(addMonths(today, 1));
 
     const postsByDate: PostsByDate = posts.reduce((acc, post) => {
       const dateKey = format(new Date(post.publicationDate), 'yyyy-MM-dd');
@@ -46,13 +48,13 @@ export function PublicationCalendar({ posts }: { posts: SocialPost[] }) {
 
     const weekDays = ['Пн', 'Ср', 'Пт'];
 
-    const monthLabels = Array.from({ length: 5 }).map((_, i) => {
-        const date = subMonths(endDate, i);
+    const monthLabels = Array.from({ length: 2 }).map((_, i) => {
+        const date = addMonths(startDate, i);
         return {
             label: format(date, 'MMM', { locale: ru }),
             month: date.getMonth()
         };
-    }).reverse();
+    });
 
     return { startDate, endDate, postsByDate, weekDays, monthLabels };
   }, [posts]);
@@ -78,7 +80,7 @@ export function PublicationCalendar({ posts }: { posts: SocialPost[] }) {
      <Card>
         <CardHeader>
             <CardTitle>График публикаций</CardTitle>
-            <CardDescription>Плотность постов за последние 4 месяца.</CardDescription>
+            <CardDescription>Плотность постов на текущий и следующий месяц.</CardDescription>
         </CardHeader>
         <CardContent className="overflow-x-auto pb-4">
           <TooltipProvider>
