@@ -5,8 +5,7 @@
 import { useState, useActionState, useRef, useTransition, useEffect } from 'react';
 import type { Action, Activity, SocialPostStatus, SocialPlatform } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, Share2, PlusCircle, Loader2, ArrowUp, ArrowDown, Minus, Save, MessageSquare, Users } from 'lucide-react';
+import { ChevronDown, Share2, PlusCircle, Loader2, Save, MessageSquare, Users } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { addSocialPostToAction, updateSocialPostMetrics, type SocialPostFormState, type SocialPostMetricsFormState } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
