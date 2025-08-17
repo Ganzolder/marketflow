@@ -5,7 +5,7 @@
 import { useState, useActionState, useRef, useTransition, useEffect } from 'react';
 import type { Action, Activity, SocialPostStatus, SocialPlatform } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Share2, PlusCircle, Loader2, Save, MessageSquare, Users, ArrowUp, ArrowDown, Minus, Wand2 } from 'lucide-react';
+import { Share2, PlusCircle, Loader2, Save, MessageSquare, Users, ArrowUp, ArrowDown, Minus, Wand2, Info } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { addSocialPost, type SocialPostFormState, type SocialPostMetricsFormState, updateSocialPostMetrics, generatePostTextAction } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
@@ -163,7 +163,12 @@ const AddSocialPostButton = ({ action, campaignId }: { action: Action, campaignI
                                 {state.errors?.platforms && <p className="text-sm text-destructive">{state.errors.platforms[0]}</p>}
                             </div>
                              <div className="grid gap-2">
-                                <Label htmlFor="aiTopic">Тема для ИИ</Label>
+                                <Label htmlFor="title">Заголовок</Label>
+                                <Input id="title" name="title" placeholder="Краткий и броский заголовок для поста"/>
+                                {state.errors?.title && <p className="text-sm text-destructive">{state.errors.title[0]}</p>}
+                            </div>
+                             <div className="grid gap-2">
+                                <Label htmlFor="aiTopic">Тема для ИИ (генерирует только текст поста)</Label>
                                 <div className="flex gap-2">
                                     <Input id="aiTopic" placeholder="напр., Скидки на летнюю коллекцию" value={aiTopic} onChange={(e) => setAiTopic(e.target.value)} />
                                     <Button type="button" variant="outline" onClick={handleGenerateText} disabled={isGenerating}>
@@ -311,7 +316,7 @@ export function ActionSocialPostsPlanner({ action, campaignId, posts }: { action
   const locale = 'ru-RU';
   
   const getActivityName = (activityId?: string) => {
-    if (!activityId) return 'Общий пост';
+    if (!activityId || activityId === 'general') return 'Общий пост';
     return (action.activities || []).find(a => a.id === activityId)?.name || 'Неизвестная активность';
   }
   
@@ -333,14 +338,17 @@ export function ActionSocialPostsPlanner({ action, campaignId, posts }: { action
                         <Card key={post.id} className="overflow-hidden">
                            <CardHeader className="flex flex-row items-start justify-between gap-4 p-4 bg-muted/50">
                              <div>
-                               <div className="flex flex-wrap gap-1">
-                                    {post.platforms.map(p => <Badge key={p} variant="secondary">{p}</Badge>)}
+                               <div className="flex flex-wrap items-center gap-2">
+                                    <p className="font-semibold">{post.title}</p>
+                                    <Badge variant="outline" className={statusStyles[post.status]}>{statusTranslations[post.status]}</Badge>
+                                </div>
+                                <div className="flex flex-wrap items-center gap-2 mt-2">
+                                    {post.platforms.map((p: SocialPlatform) => <Badge key={p} variant="secondary">{p}</Badge>)}
                                 </div>
                                 <p className="text-sm font-medium mt-2">{new Date(post.publicationDate).toLocaleDateString(locale, {day: '2-digit', month: 'long', year: 'numeric'})}</p>
                                 <Badge variant="outline" className="text-xs mt-2">{getActivityName(post.activityId)}</Badge>
                              </div>
                               <div className="flex flex-col items-end gap-2">
-                                    <Badge variant="outline" className={statusStyles[post.status]}>{statusTranslations[post.status]}</Badge>
                                     <div className="flex items-center">
                                        <EditSocialPostButton post={post} />
                                        <DeleteSocialPostButton postId={post.id} />
@@ -370,4 +378,3 @@ export function ActionSocialPostsPlanner({ action, campaignId, posts }: { action
     </Card>
   );
 }
-

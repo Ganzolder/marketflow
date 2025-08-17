@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef, useActionState, useTransition } from 'react';
@@ -218,8 +219,13 @@ export function EditSocialPostButton({ post, action }: { post: SocialPost; actio
                                 </Popover>
                                 {state.errors?.platforms && <p className="text-sm text-destructive">{state.errors.platforms[0]}</p>}
                             </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="title">Заголовок</Label>
+                                <Input id="title" name="title" defaultValue={post.title || ''} placeholder="Краткий и броский заголовок для поста"/>
+                                {state.errors?.title && <p className="text-sm text-destructive">{state.errors.title[0]}</p>}
+                            </div>
                              <div className="grid gap-2">
-                                <Label htmlFor="aiTopic">Тема для ИИ</Label>
+                                <Label htmlFor="aiTopic">Тема для ИИ (генерирует только текст поста)</Label>
                                 <div className="flex gap-2">
                                     <Input id="aiTopic" placeholder="напр., Скидки на летнюю коллекцию" value={aiTopic} onChange={(e) => setAiTopic(e.target.value)} />
                                     <Button type="button" variant="outline" onClick={handleGenerateText} disabled={isGenerating}>

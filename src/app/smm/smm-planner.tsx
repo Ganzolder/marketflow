@@ -3,7 +3,7 @@
 "use client";
 
 import { useState } from 'react';
-import type { SocialPost, SocialPostStatus, Action } from "@/lib/types";
+import type { SocialPost, SocialPostStatus, SocialPlatform } from "@/lib/types";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +15,8 @@ import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { EditSocialPostButton } from '../campaigns/[id]/[actionId]/edit-social-post-button';
 import { PublicationCalendar } from './publication-calendar';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { CheckCircle2, MinusCircle } from 'lucide-react';
 
 const statusTranslations: Record<SocialPostStatus, string> = {
   draft: "Черновик",
@@ -89,6 +91,72 @@ function Filters() {
     )
 }
 
+const PublicationMatrix = ({ posts }: { posts: SocialPost[] }) => {
+    const { postsByDate, allPlatforms } = React.useMemo(() => {
+        const postsByDate: Record<string, any> = {};
+        const platformSet = new Set<SocialPlatform>();
+
+        posts.forEach(post => {
+            const dateKey = new Date(post.publicationDate).toISOString().split('T')[0];
+            if (!postsByDate[dateKey]) {
+                postsByDate[dateKey] = { date: post.publicationDate, platforms: {} };
+            }
+            (post.platforms || []).forEach(platform => {
+                if (!postsByDate[dateKey].platforms[platform]) {
+                    postsByDate[dateKey].platforms[platform] = [];
+                }
+                postsByDate[dateKey].platforms[platform].push(post.title);
+                platformSet.add(platform);
+            });
+        });
+
+        const allPlatforms = Array.from(platformSet).sort();
+        return { postsByDate: Object.values(postsByDate).sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime()), allPlatforms };
+    }, [posts]);
+
+    if (posts.length === 0 || allPlatforms.length === 0) {
+        return null;
+    }
+
+    return (
+        <Card className="mb-8">
+            <CardHeader>
+                <CardTitle>Матрица публикаций</CardTitle>
+                <CardDescription>Обзор запланированных постов по датам и платформам.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Дата</TableHead>
+                            {allPlatforms.map(platform => (
+                                <TableHead key={platform} className="text-center">{platform}</TableHead>
+                            ))}
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {postsByDate.map(row => (
+                            <TableRow key={row.date}>
+                                <TableCell className="font-medium">{new Date(row.date).toLocaleDateString('ru-RU', { day: '2-digit', month: 'short' })}</TableCell>
+                                {allPlatforms.map(platform => (
+                                    <TableCell key={platform} className="text-center">
+                                        {row.platforms[platform] ? (
+                                            <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" />
+                                        ) : (
+                                            <MinusCircle className="w-5 h-5 text-muted-foreground/50 mx-auto" />
+                                        )}
+                                    </TableCell>
+                                ))}
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+    );
+};
+
+
 export function SmmPlanner({ posts }: { posts: SocialPost[] }) {
     const locale = 'ru-RU';
 
@@ -100,6 +168,8 @@ export function SmmPlanner({ posts }: { posts: SocialPost[] }) {
               <PublicationCalendar posts={posts} />
             </div>
 
+            <PublicationMatrix posts={posts} />
+
             <div className="space-y-4">
                 {posts.map(post => {
                     
@@ -107,7 +177,11 @@ export function SmmPlanner({ posts }: { posts: SocialPost[] }) {
                      <Card key={post.id} className="overflow-hidden">
                         <CardHeader className="flex flex-row items-start justify-between gap-4 p-4 bg-muted/50">
                             <div>
-                            <div className="flex flex-wrap gap-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                                <p className="font-semibold">{post.title}</p>
+                                <Badge variant="outline" className={statusStyles[post.status]}>{statusTranslations[post.status]}</Badge>
+                            </div>
+                            <div className="flex flex-wrap gap-1 mt-2">
                                 {(post.platforms || []).map(p => <Badge key={p} variant="secondary">{p}</Badge>)}
                             </div>
                             <p className="text-sm font-medium mt-2">{new Date(post.publicationDate).toLocaleDateString(locale, {day: '2-digit', month: 'long', year: 'numeric'})}</p>
@@ -120,7 +194,6 @@ export function SmmPlanner({ posts }: { posts: SocialPost[] }) {
                             )}
                             </div>
                             <div className="flex flex-col items-end gap-2">
-                                <Badge variant="outline" className={statusStyles[post.status]}>{statusTranslations[post.status]}</Badge>
                                 <EditSocialPostButton 
                                     post={post}
                                 />

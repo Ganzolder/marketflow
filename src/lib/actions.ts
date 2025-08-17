@@ -1,4 +1,5 @@
 
+
 "use server";
 
 import { z } from "zod";
@@ -1304,6 +1305,7 @@ export async function updateExpenseStatus(prevState: ExpenseStatusFormState, for
 
 // --- Social Post Actions ---
 const SocialPostSchema = z.object({
+  title: z.string().min(1, "Заголовок обязателен.").nullable().optional(),
   platforms: z.array(z.string()).min(1, "Выберите хотя бы одну платформу").optional(),
   text: z.string().nullable().optional(),
   plannedReach: z.coerce.number().min(0).optional().nullable(),
@@ -1326,6 +1328,7 @@ export async function addSocialPost(prevState: SocialPostFormState, formData: Fo
     const rawCampaignId = formData.get('campaignId');
 
     const data = {
+        title: formData.get('title') || '',
         platforms: formData.getAll('platforms'),
         text: formData.get('text') || '',
         plannedReach: formData.get('plannedReach') || '0',
@@ -1337,6 +1340,7 @@ export async function addSocialPost(prevState: SocialPostFormState, formData: Fo
     };
     
     const postToSave: Omit<SocialPost, 'id'> = {
+        title: data.title as string,
         platforms: (data.platforms as SocialPlatform[]) || [],
         text: data.text as string,
         plannedReach: Number(data.plannedReach),
@@ -1380,6 +1384,7 @@ export async function updateSocialPost(prevState: SocialPostFormState, formData:
         campaignId: rawCampaignId === 'none' ? undefined : rawCampaignId,
         actionId: rawActionId === 'none' ? undefined : rawActionId,
         activityId: rawActivityId === 'general' || rawActivityId === 'none' ? undefined : rawActivityId,
+        title: formData.get('title') || '',
         platforms: formData.getAll('platforms'),
         text: formData.get('text') || '', 
         plannedReach: formData.get('plannedReach'),
@@ -1405,6 +1410,7 @@ export async function updateSocialPost(prevState: SocialPostFormState, formData:
         const postRef = doc(db, "socialPosts", postId);
         
         const updateData: { [key: string]: any } = {
+            title: postData.title || '',
             platforms: (postData.platforms as SocialPlatform[]) || [],
             text: postData.text || '',
             plannedReach: postData.plannedReach || 0,
@@ -1413,12 +1419,11 @@ export async function updateSocialPost(prevState: SocialPostFormState, formData:
             actualComments: postData.actualComments || 0,
             publicationDate: postData.publicationDate || new Date().toISOString().split('T')[0],
             status: postData.status || 'draft',
-            campaignId: postData.campaignId || deleteField(),
-            actionId: postData.actionId || deleteField(),
-            activityId: postData.activityId || deleteField(),
+            campaignId: postData.campaignId,
+            actionId: postData.actionId,
+            activityId: postData.activityId,
         };
         
-        // This is to prevent sending `undefined` to Firestore which causes the error.
         Object.keys(updateData).forEach(key => {
             if (updateData[key] === undefined) {
                 updateData[key] = deleteField();
@@ -1493,10 +1498,6 @@ export async function updateSocialPostMetrics(prevState: SocialPostMetricsFormSt
     
     try {
         const postRef = doc(db, "socialPosts", postId);
-        const postSnap = await getDoc(postRef);
-        if (!postSnap.exists()) {
-             return { message: `Пост с ID ${postId} не найден.`, error: true };
-        }
         
         const dataToUpdate: Partial<SocialPost> = {};
 
@@ -1556,5 +1557,3 @@ export async function generatePostTextAction(input: GeneratePostTextInput): Prom
         return { message: `Ошибка генерации: ${errorMessage}` };
     }
 }
-
-    

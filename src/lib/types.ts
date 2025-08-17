@@ -55,6 +55,7 @@ export type SocialPlatform = typeof SocialPlatforms[number];
 
 export type SocialPost = {
   id: string;
+  title: string;
   platforms: SocialPlatform[];
   text: string;
   plannedReach: number;
@@ -63,6 +64,8 @@ export type SocialPost = {
   actualComments?: number;
   publicationDate: string;
   status: SocialPostStatus;
+  campaignId?: string; // To link back to a campaign
+  actionId?: string; // To link back to an action
   activityId?: string; // To link back to an activity (optional)
 };
 
@@ -192,6 +195,7 @@ export type SocialPostFormState = {
   message: string;
   error?: boolean;
   errors?: {
+    title?: string[];
     platforms?: string[];
     text?: string[];
     plannedReach?: string[];

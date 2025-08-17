@@ -7,17 +7,16 @@ import { format, subMonths, eachDayOfInterval, startOfWeek, endOfWeek, isSameDay
 import { ru } from 'date-fns/locale';
 import { cn } from "@/lib/utils";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 
 type PostsByDate = {
   [key: string]: {
     count: number;
-    posts: Pick<SocialPost, 'text'>[];
+    posts: Pick<SocialPost, 'title' | 'text'>[];
   }
 };
 
@@ -42,7 +41,7 @@ export function PublicationCalendar({ posts }: { posts: SocialPost[] }) {
         acc[dateKey] = { count: 0, posts: [] };
       }
       acc[dateKey].count += 1;
-      acc[dateKey].posts.push({ text: post.text });
+      acc[dateKey].posts.push({ title: post.title, text: post.text });
       return acc;
     }, {} as PostsByDate);
 
@@ -83,7 +82,6 @@ export function PublicationCalendar({ posts }: { posts: SocialPost[] }) {
             <CardDescription>Плотность постов на текущий и следующий месяц.</CardDescription>
         </CardHeader>
         <CardContent className="overflow-x-auto pb-4">
-          <TooltipProvider>
             <div className="flex gap-4 items-end">
                <div className="flex flex-col gap-2 text-xs text-muted-foreground self-stretch justify-around pr-2">
                  {weekDays.map(day => <div key={day}>{day}</div>)}
@@ -99,30 +97,29 @@ export function PublicationCalendar({ posts }: { posts: SocialPost[] }) {
                             const colorClass = getIntensityColor(data.count);
 
                             return (
-                                <Tooltip key={day.toString()}>
-                                <TooltipTrigger asChild>
-                                    <div className={cn("h-4 w-4 rounded-sm", colorClass)} />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p className="font-bold">{format(day, 'd MMMM yyyy г.', { locale: ru })}</p>
-                                    {data.count > 0 ? (
-                                        <div className="mt-1 text-xs">
-                                            <p className="font-semibold">{data.count} {data.count === 1 ? 'пост' : data.count > 1 && data.count < 5 ? 'поста' : 'постов'}:</p>
-                                            <ul className="list-disc list-inside">
-                                                {data.posts.map((p, i) => <li key={i} className="truncate max-w-xs">{p.text}</li>)}
-                                            </ul>
-                                        </div>
-                                    ) : (
-                                        <p className="text-xs text-muted-foreground">Нет постов</p>
-                                    )}
-                                </TooltipContent>
-                                </Tooltip>
+                                <Popover key={day.toString()}>
+                                    <PopoverTrigger asChild>
+                                        <div className={cn("h-4 w-4 rounded-sm cursor-pointer", colorClass)} />
+                                    </PopoverTrigger>
+                                    <PopoverContent>
+                                        <p className="font-bold">{format(day, 'd MMMM yyyy г.', { locale: ru })}</p>
+                                        {data.count > 0 ? (
+                                            <div className="mt-1 text-xs space-y-1">
+                                                <p className="font-semibold">{data.count} {data.count === 1 ? 'пост' : data.count > 1 && data.count < 5 ? 'поста' : 'постов'}:</p>
+                                                <ul className="list-disc list-inside">
+                                                    {data.posts.map((p, i) => <li key={i} className="truncate max-w-xs">{p.title || p.text}</li>)}
+                                                </ul>
+                                            </div>
+                                        ) : (
+                                            <p className="text-xs text-muted-foreground">Нет постов</p>
+                                        )}
+                                    </PopoverContent>
+                                </Popover>
                             )
                         })}
                     </div>
                 </div>
             </div>
-           </TooltipProvider>
            <div className="flex justify-end items-center gap-2 text-xs text-muted-foreground mt-4">
                 <span>Меньше</span>
                 <div className="h-3 w-3 rounded-sm bg-primary/20" />
