@@ -3,12 +3,14 @@
 "use server";
 
 import { z } from "zod";
-import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData, updateExpenseStatus as updateExpenseStatusData, addSocialPostToAction as addSocialPostToActionData, updateSocialPostInAction as updateSocialPostInActionData, deleteSocialPostFromAction as deleteSocialPostFromActionData, updateSocialPostMetrics as updateSocialPostMetricsData } from "./data";
+import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData, updateExpenseStatus as updateExpenseStatusData, updateSocialPost, deleteSocialPost, updateSocialPostMetrics as updateSocialPostMetricsData } from "./data";
 import { revalidatePath } from "next/cache";
 import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog, Campaign, ResponsibilityFormState, Resource, ResourceStatus, ResourceStatusFormState, ExpenseStatus, ExpenseStatusFormState, SocialPost, SocialPlatform, SocialPostStatus, SocialPostFormState, SocialPostMetricsFormState } from "./types";
 import { redirect } from "next/navigation";
 import { analyzeActionPerformance, type AnalyzeActionPerformanceOutput } from "@/ai/flows/analyze-action-performance";
 import { generatePostText, type GeneratePostTextInput } from "@/ai/flows/generate-post-text";
+import { addDoc, collection } from "firebase/firestore";
+import { db } from "./firebase";
 
 const ActionSchema = z.object({
   name: z.string().min(3, { message: "Название акции должно содержать не менее 3 символов." }),
@@ -1302,7 +1304,8 @@ const SocialPostSchema = z.object({
   plannedComments: z.coerce.number().min(0).optional(),
   publicationDate: z.string().nullable().optional(),
   status: z.enum(['draft', 'ready', 'published']),
-  activityId: z.string().optional(),
+  campaignId: z.string().optional(),
+  actionId: z.string().optional(),
 });
 
 const UpdateSocialPostMetricsSchema = z.object({
@@ -1313,23 +1316,18 @@ const UpdateSocialPostMetricsSchema = z.object({
     actualComments: z.coerce.number().min(0, 'Значение должно быть положительным').optional(),
 });
 
-export async function addSocialPostToAction(prevState: SocialPostFormState, formData: FormData): Promise<SocialPostFormState> {
-    const rawActivityId = formData.get('activityId');
-    const validatedFields = SocialPostSchema.extend({
-        campaignId: z.string().min(1, "Необходимо выбрать кампанию."),
-        actionId: z.string().min(1, "Необходимо выбрать акцию."),
-    }).safeParse({
-    campaignId: formData.get('campaignId'),
-    actionId: formData.get('actionId'),
-    activityId: rawActivityId === 'general' ? undefined : rawActivityId,
+export async function addSocialPost(prevState: SocialPostFormState, formData: FormData): Promise<SocialPostFormState> {
+  const validatedFields = SocialPostSchema.safeParse({
     platforms: formData.getAll('platforms'),
-    text: formData.get('text'),
+    text: formData.get('text') || '',
     plannedReach: formData.get('plannedReach'),
     plannedComments: formData.get('plannedComments'),
-    publicationDate: formData.get('publicationDate'),
+    publicationDate: formData.get('publicationDate') || new Date().toISOString().split('T')[0],
     status: formData.get('status'),
+    campaignId: formData.get('campaignId') || undefined,
+    actionId: formData.get('actionId') || undefined,
   });
-  
+
   if (!validatedFields.success) {
     const errorMessages = validatedFields.error.issues.map((issue) => issue.message).join("\n");
     return {
@@ -1339,7 +1337,7 @@ export async function addSocialPostToAction(prevState: SocialPostFormState, form
     };
   }
 
-  const { campaignId, actionId, ...postData } = validatedFields.data;
+  const postData = validatedFields.data;
   const postToSave = {
     ...postData,
     platforms: postData.platforms as SocialPlatform[] || [],
@@ -1348,27 +1346,29 @@ export async function addSocialPostToAction(prevState: SocialPostFormState, form
     plannedComments: postData.plannedComments || 0,
     actualReach: 0,
     actualComments: 0,
-    activityId: postData.activityId || '',
     publicationDate: postData.publicationDate || new Date().toISOString().split('T')[0],
-  }
-
+    campaignId: postData.campaignId || '',
+    actionId: postData.actionId || '',
+  };
+  
   try {
-    await addSocialPostToActionData(campaignId, actionId, postToSave as Omit<SocialPost, 'id'>);
+    const postsCollection = collection(db, "socialPosts");
+    await addDoc(postsCollection, postToSave);
   } catch (e) {
     const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
     return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
   }
 
-  revalidatePath(`/campaigns/${campaignId}/${actionId}`);
-  revalidatePath('/smm');
+  revalidatePath(`/smm`);
+  if (postToSave.campaignId && postToSave.actionId) {
+    revalidatePath(`/campaigns/${postToSave.campaignId}/${postToSave.actionId}`);
+  }
   return { message: "Пост успешно добавлен." };
 }
 
 export async function updateSocialPostInAction(prevState: SocialPostFormState, formData: FormData): Promise<SocialPostFormState> {
     const rawActivityId = formData.get('activityId');
     const validatedFields = SocialPostSchema.extend({
-        campaignId: z.string(),
-        actionId: z.string(),
         postId: z.string(),
         actualReach: z.coerce.number().min(0).optional(),
         actualComments: z.coerce.number().min(0).optional(),
@@ -1396,7 +1396,7 @@ export async function updateSocialPostInAction(prevState: SocialPostFormState, f
         };
     }
     
-    const { campaignId, actionId, postId, ...postData } = validatedFields.data;
+    const { postId, ...postData } = validatedFields.data;
     const postToUpdate: SocialPost = {
         id: postId,
         ...postData,
@@ -1406,40 +1406,39 @@ export async function updateSocialPostInAction(prevState: SocialPostFormState, f
         plannedComments: postData.plannedComments || 0,
         actualReach: postData.actualReach || 0,
         actualComments: postData.actualComments || 0,
-        activityId: postData.activityId || '',
         publicationDate: postData.publicationDate || new Date().toISOString().split('T')[0],
     };
     
     try {
-        await updateSocialPostInActionData(campaignId, actionId, postToUpdate);
+        await updateSocialPost(postToUpdate);
     } catch (e) {
         const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
         return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
     }
     
-    revalidatePath(`/campaigns/${campaignId}/${actionId}`);
-    revalidatePath('/smm');
+    revalidatePath(`/smm`);
+    if (postToUpdate.campaignId && postToUpdate.actionId) {
+      revalidatePath(`/campaigns/${postToUpdate.campaignId}/${postToUpdate.actionId}`);
+    }
     return { message: "Пост успешно обновлен." };
 }
 
 export async function deleteSocialPostFromAction(prevState: DeleteFormState, formData: FormData): Promise<DeleteFormState> {
-    const campaignId = formData.get('campaignId') as string;
-    const actionId = formData.get('actionId') as string;
     const postId = formData.get('postId') as string;
 
-    if (!campaignId || !actionId || !postId) {
+    if (!postId) {
         return { message: "Отсутствуют необходимые идентификаторы.", error: true };
     }
 
     try {
-        await deleteSocialPostFromActionData(campaignId, actionId, postId);
+        await deleteSocialPost(postId);
     } catch (e) {
         const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
         return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
     }
 
-    revalidatePath(`/campaigns/${campaignId}/${actionId}`);
     revalidatePath('/smm');
+    revalidatePath(`/campaigns`); // Revalidate all campaigns pages just in case
     return { message: "Пост успешно удален." };
 }
 
@@ -1465,7 +1464,7 @@ export async function updateSocialPostMetrics(prevState: SocialPostMetricsFormSt
     const { campaignId, actionId, postId, ...metrics } = validatedFields.data;
     
     try {
-        await updateSocialPostMetricsData(campaignId, actionId, postId, {
+        await updateSocialPostMetricsData(postId, {
             actualReach: metrics.actualReach || 0,
             actualComments: metrics.actualComments || 0,
         });
@@ -1509,5 +1508,3 @@ export async function generatePostTextAction(input: GeneratePostTextInput): Prom
         return { message: `Ошибка генерации: ${errorMessage}` };
     }
 }
-
-

@@ -1,4 +1,5 @@
 
+
 "use server";
 
 import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction, ActionStatus, CampaignStatus, KpiMetricLog, EnrichedActivity, Resource, ResourceStatus, ExpenseStatus, SocialPost, EnrichedSocialPost } from './types';
@@ -44,7 +45,6 @@ async function seedDatabase() {
             actualAverageCheck: 0,
             plannedMarginality: 0,
             actualMarginality: 0,
-            socialPosts: [],
           },
           {
             id: 'act-c1-2',
@@ -62,7 +62,6 @@ async function seedDatabase() {
             actualAverageCheck: 0,
             plannedMarginality: 0,
             actualMarginality: 0,
-            socialPosts: [],
           }
         ],
       },
@@ -118,7 +117,6 @@ export async function addAction(campaignId: string, action: Omit<Action, 'id' | 
         activities: [],
         generalExpenses: [],
         summaryKpis: [],
-        socialPosts: [],
         plannedAverageCheck: 0,
         actualAverageCheck: 0,
         plannedMarginality: 0,
@@ -527,7 +525,6 @@ export async function getCampaignById(id: string): Promise<Campaign | undefined>
 
               if (!action.summaryKpis) action.summaryKpis = [];
               if (!action.resources) action.resources = [];
-              if (!action.socialPosts) action.socialPosts = [];
               if (!action.plannedAverageCheck) action.plannedAverageCheck = 0;
               if (!action.actualAverageCheck) action.actualAverageCheck = 0;
               if (!action.plannedMarginality) action.plannedMarginality = 0;
@@ -627,7 +624,6 @@ export async function getAllActions(): Promise<EnrichedAction[]> {
       if (!enrichedAction.actualAverageCheck) enrichedAction.actualAverageCheck = 0;
       if (!enrichedAction.plannedMarginality) enrichedAction.plannedMarginality = 0;
       if (!enrichedAction.actualMarginality) enrichedAction.actualMarginality = 0;
-      if (!enrichedAction.socialPosts) enrichedAction.socialPosts = [];
       
       allActions.push(enrichedAction);
     });
@@ -709,12 +705,6 @@ export async function getAllSocialPosts(): Promise<EnrichedSocialPost[]> {
 export async function getSocialPostsForAction(actionId: string): Promise<SocialPost[]> {
     const allPosts = await getSocialPosts();
     return allPosts.filter(post => post.actionId === actionId);
-}
-
-export async function addSocialPost(postData: Omit<SocialPost, 'id'>): Promise<SocialPost> {
-    const postsCollection = collection(db, "socialPosts");
-    const docRef = await addDoc(postsCollection, postData);
-    return { id: docRef.id, ...postData };
 }
 
 export async function updateSocialPost(postData: SocialPost) {
@@ -1208,124 +1198,13 @@ export async function updateExpenseStatus(campaignId: string, actionId: string, 
     }
 }
 
-export async function addSocialPostToAction(campaignId: string, actionId: string, postData: Omit<import('./types').SocialPost, 'id'>) {
-    const campaignRef = doc(db, 'campaigns', campaignId);
+
+export async function updateSocialPostMetricsData(postId: string, metrics: { actualReach: number, actualComments: number }) {
+    const postRef = doc(db, "socialPosts", postId);
     try {
-        await runTransaction(db, async (transaction) => {
-            const campaignDoc = await transaction.get(campaignRef);
-            if (!campaignDoc.exists()) throw new Error("Campaign not found");
-            const campaignData = campaignDoc.data() as Campaign;
-
-            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
-            if (actionIndex === -1) throw new Error("Action not found");
-
-            const newActions = [...campaignData.actions];
-            const action = newActions[actionIndex];
-
-            if (!action.socialPosts) {
-                action.socialPosts = [];
-            }
-
-            const newPost = {
-                ...postData,
-                id: `post-${actionId.substring(0, 4)}-${Date.now()}`
-            };
-
-            action.socialPosts.push(newPost);
-            
-            transaction.update(campaignRef, { actions: newActions });
-        });
-    } catch (e) {
-        console.error("Add social post transaction failed:", e);
-        throw e;
-    }
-}
-
-
-export async function updateSocialPostInAction(campaignId: string, actionId: string, postData: SocialPost) {
-    const campaignRef = doc(db, 'campaigns', campaignId);
-    try {
-        await runTransaction(db, async (transaction) => {
-            const campaignDoc = await transaction.get(campaignRef);
-            if (!campaignDoc.exists()) throw new Error("Campaign not found");
-            const campaignData = campaignDoc.data() as Campaign;
-
-            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
-            if (actionIndex === -1) throw new Error("Action not found");
-            
-            const newActions = [...campaignData.actions];
-            const action = newActions[actionIndex];
-
-            if (!action.socialPosts) {
-                throw new Error("Social posts array does not exist");
-            }
-            
-            const postIndex = action.socialPosts.findIndex(p => p.id === postData.id);
-            if (postIndex === -1) {
-                throw new Error("Social post not found");
-            }
-
-            action.socialPosts[postIndex] = postData;
-            
-            transaction.update(campaignRef, { actions: newActions });
-        });
-    } catch (e) {
-        console.error("Update social post transaction failed:", e);
-        throw e;
-    }
-}
-
-export async function deleteSocialPostFromAction(campaignId: string, actionId: string, postId: string) {
-    const campaignRef = doc(db, 'campaigns', campaignId);
-    try {
-        await runTransaction(db, async (transaction) => {
-            const campaignDoc = await transaction.get(campaignRef);
-            if (!campaignDoc.exists()) throw new Error("Campaign not found");
-            const campaignData = campaignDoc.data() as Campaign;
-
-            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
-            if (actionIndex === -1) throw new Error("Action not found");
-
-            const newActions = [...campaignData.actions];
-            const action = newActions[actionIndex];
-
-            if (!action.socialPosts) {
-                return;
-            }
-            
-            action.socialPosts = action.socialPosts.filter(p => p.id !== postId);
-            
-            transaction.update(campaignRef, { actions: newActions });
-        });
-    } catch (e) {
-        console.error("Delete social post transaction failed:", e);
-        throw e;
-    }
-}
-
-export async function updateSocialPostMetricsData(campaignId: string, actionId: string, postId: string, metrics: { actualReach: number, actualComments: number }) {
-    const campaignRef = doc(db, 'campaigns', campaignId);
-    try {
-        await runTransaction(db, async (transaction) => {
-            const campaignDoc = await transaction.get(campaignRef);
-            if (!campaignDoc.exists()) throw new Error("Campaign not found");
-            const campaignData = campaignDoc.data() as Campaign;
-
-            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
-            if (actionIndex === -1) throw new Error("Action not found");
-
-            const newActions = [...campaignData.actions];
-            const action = newActions[actionIndex];
-            
-            if (!action.socialPosts) throw new Error("Social posts not found");
-
-            const postIndex = action.socialPosts.findIndex(p => p.id === postId);
-            if (postIndex === -1) throw new Error("Post not found");
-
-            action.socialPosts[postIndex].actualReach = metrics.actualReach;
-            action.socialPosts[postIndex].actualComments = metrics.actualComments;
-
-            transaction.update(campaignRef, { actions: newActions });
+        await updateDoc(postRef, {
+            actualReach: metrics.actualReach,
+            actualComments: metrics.actualComments,
         });
     } catch (e) {
         console.error("Update social post metrics transaction failed:", e);
