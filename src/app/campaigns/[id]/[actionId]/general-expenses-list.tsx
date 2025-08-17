@@ -169,7 +169,7 @@ export function GeneralExpensesList({ action, campaignId }: { action: Action; ca
           </>
         ) : (
           <div className="text-center text-sm text-muted-foreground py-10 border-2 border-dashed rounded-lg">
-            <p>Расходы еще не добавлены.</p>
+            Расходы еще не добавлены.
           </div>
         )}
          <div className="mt-4 text-right font-bold text-lg">

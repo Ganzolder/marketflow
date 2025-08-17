@@ -150,7 +150,7 @@ export function UpdateMetricsForm({ activity, campaignId, actionId }: { activity
                            />
                         ))
                     ) : (
-                         <p className="text-xs text-center text-muted-foreground py-2">KPI не добавлены.</p>
+                         <div className="text-xs text-center text-muted-foreground py-2">KPI не добавлены.</div>
                     )}
                 </div>
             </div>
