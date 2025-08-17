@@ -1,7 +1,7 @@
 
 
 import { notFound } from 'next/navigation';
-import { getCampaignById } from '@/lib/data';
+import { getCampaignById, getSocialPostsForCampaign } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Calendar as CalendarIcon, Target, FilePlus, Eye, TrendingUp, Landmark, CalendarDays, ShoppingCart, PiggyBank, BarChart, Archive, ArchiveRestore } from 'lucide-react';
@@ -14,6 +14,7 @@ import { Progress } from '@/components/ui/progress';
 import { UpdateCampaignStatus } from '../update-campaign-status';
 import { EditCampaignButton } from '../edit-campaign-button';
 import { EditActionButton } from './[actionId]/edit-action-button';
+import { CampaignSocialPostsCard } from './campaign-social-posts-card';
 
 
 type CampaignDetailPageProps = {
@@ -31,6 +32,9 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
   if (!campaign) {
     notFound();
   }
+  
+  const socialPosts = await getSocialPostsForCampaign(campaign.id);
+
 
   const startDateFilter = searchParams.startDate || '';
   const endDateFilter = searchParams.endDate || '';
@@ -266,6 +270,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                     )}
             </CardContent>
         </Card>
+        <CampaignSocialPostsCard campaign={campaign} posts={socialPosts} />
       </div>
     </div>
   )

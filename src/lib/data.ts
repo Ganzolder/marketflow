@@ -683,13 +683,15 @@ export async function getAllSocialPosts(): Promise<EnrichedSocialPost[]> {
     return posts.map(post => {
         let campaignName = '';
         let actionName = '';
-        if (post.campaignId && post.actionId) {
+        if (post.campaignId) {
             const campaign = campaigns.find(c => c.id === post.campaignId);
             if (campaign) {
                 campaignName = campaign.name;
-                const action = campaign.actions.find(a => a.id === post.actionId);
-                if (action) {
-                    actionName = action.name;
+                if(post.actionId) {
+                    const action = campaign.actions.find(a => a.id === post.actionId);
+                    if (action) {
+                        actionName = action.name;
+                    }
                 }
             }
         }
@@ -705,6 +707,11 @@ export async function getAllSocialPosts(): Promise<EnrichedSocialPost[]> {
 export async function getSocialPostsForAction(actionId: string): Promise<SocialPost[]> {
     const allPosts = await getSocialPosts();
     return allPosts.filter(post => post.actionId === actionId);
+}
+
+export async function getSocialPostsForCampaign(campaignId: string): Promise<SocialPost[]> {
+    const allPosts = await getSocialPosts();
+    return allPosts.filter(post => post.campaignId === campaignId);
 }
 
 export async function getSocialPostById(postId: string): Promise<SocialPost | undefined> {
