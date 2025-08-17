@@ -1,20 +1,15 @@
 
-
-"use client";
-
-import { useState, useEffect } from 'react';
-import { notFound, useParams } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { getCampaignById, getSocialPostsForAction } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { StatusBadge } from '@/components/status-badge';
-import { Calendar as CalendarIcon, Target, Users, Landmark, ArrowRight, TrendingUp, CalendarDays, LocateFixed, History, Ruble, Edit, User, Building2, Briefcase, Bot, UserCheck, ArrowLeft, ChevronDown, FileText, Share2 } from 'lucide-react';
+import { Calendar as CalendarIcon, Target, Users, Landmark, TrendingUp, CalendarDays, LocateFixed, History, Ruble, FileText, Share2, ArrowLeft, ChevronDown } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { NewActivityButton } from './new-activity-button';
 import { EditActivityButton } from './edit-activity-button';
 import { DeleteActivityButton } from './delete-activity-button';
-import type { Action, Campaign, SocialPost } from '@/lib/types';
+import type { SocialPost } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import {
   Tooltip,
@@ -34,61 +29,28 @@ import Link from 'next/link';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ActionResourcesCard } from './action-resources-card';
 import { ActionSocialPostsPlanner } from './action-social-posts-planner';
-import { Skeleton } from '@/components/ui/skeleton';
 
-export default function ActionDetailPage() {
-  const params = useParams() as { id: string; actionId: string };
+type ActionDetailPageProps = {
+    params: { id: string; actionId: string };
+};
+
+export default async function ActionDetailPage({ params }: ActionDetailPageProps) {
   const { id, actionId } = params;
   
-  const [campaign, setCampaign] = useState<Campaign | null>(null);
-  const [action, setAction] = useState<Action | null>(null);
-  const [socialPosts, setSocialPosts] = useState<SocialPost[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [today, setToday] = useState<Date | null>(null);
-
-  useEffect(() => {
-    async function fetchData() {
-      setIsLoading(true);
-      const fetchedCampaign = await getCampaignById(id);
-      const fetchedPosts = await getSocialPostsForAction(actionId);
-      
-      setSocialPosts(fetchedPosts);
-
-      if (fetchedCampaign) {
-        const currentAction = fetchedCampaign.actions.find(a => a.id === actionId);
-        setCampaign(fetchedCampaign);
-        setAction(currentAction || null);
-      }
-      
-      setToday(new Date()); // Set date on client
-      setIsLoading(false);
-    }
-    fetchData();
-  }, [id, actionId]);
-
-
-  if (isLoading || !today) {
-    return (
-      <div>
-        <PageHeader title={<Skeleton className="h-8 w-48" />} description={<Skeleton className="h-4 w-72" />}>
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-10 w-24" />
-            <Skeleton className="h-10 w-10" />
-          </div>
-        </PageHeader>
-        <div className="grid gap-8">
-          <Skeleton className="h-64 w-full" />
-          <Skeleton className="h-48 w-full" />
-          <Skeleton className="h-96 w-full" />
-        </div>
-      </div>
-    );
-  }
+  const campaign = await getCampaignById(id);
+  const socialPosts = await getSocialPostsForAction(actionId);
   
-  if (!campaign || !action) {
+  if (!campaign) {
     notFound();
   }
+  
+  const action = campaign.actions.find(a => a.id === actionId);
 
+  if (!action) {
+    notFound();
+  }
+  
+  const today = new Date();
   const locale = 'ru-RU';
   const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
   const currencyOptions = { style: 'currency', currency: 'RUB', minimumFractionDigits: 2, maximumFractionDigits: 2 };

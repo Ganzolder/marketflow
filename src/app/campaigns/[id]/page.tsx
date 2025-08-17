@@ -1,9 +1,6 @@
 
 
-"use client";
-
-import { useState, useEffect } from 'react';
-import { notFound, useSearchParams, useParams } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { getCampaignById } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -16,99 +13,43 @@ import Link from 'next/link';
 import { Progress } from '@/components/ui/progress';
 import { UpdateCampaignStatus } from '../update-campaign-status';
 import { EditCampaignButton } from '../edit-campaign-button';
-import type { Campaign, Action } from '@/lib/types';
-import { Skeleton } from '@/components/ui/skeleton';
-import { EditActionButton } from '../[id]/[actionId]/edit-action-button';
+import { EditActionButton } from './[actionId]/edit-action-button';
 
 
-export default function CampaignDetailPage() {
-  const params = useParams() as { id: string };
+type CampaignDetailPageProps = {
+    params: { id: string };
+    searchParams: { startDate?: string; endDate?: string; }
+};
+
+export default async function CampaignDetailPage({ params, searchParams }: CampaignDetailPageProps) {
   const { id } = params;
 
-  const [campaign, setCampaign] = useState<Campaign | null>(null);
-  const [filteredActions, setFilteredActions] = useState<Action[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [today, setToday] = useState<Date | null>(null);
-  const searchParams = useSearchParams();
+  const campaign = await getCampaignById(id);
 
-  useEffect(() => {
-    async function fetchData() {
-        setIsLoading(true);
-        const fetchedCampaign = await getCampaignById(id);
-
-        if (!fetchedCampaign) {
-          setIsLoading(false);
-          notFound();
-          return;
-        }
-        
-        setCampaign(fetchedCampaign);
-        
-        const startDateFilter = searchParams.get('startDate') || '';
-        const endDateFilter = searchParams.get('endDate') || '';
-
-        const actionsToFilter = fetchedCampaign.actions || [];
-        const filtered = actionsToFilter.filter(action => {
-            const actionStartDate = new Date(action.startDate);
-            const actionEndDate = new Date(action.endDate);
-            const filterStartDate = startDateFilter ? new Date(startDateFilter) : null;
-            const filterEndDate = endDateFilter ? new Date(endDateFilter) : null;
-
-            if (filterStartDate && actionStartDate < filterStartDate) {
-                return false;
-            }
-            if (filterEndDate && actionEndDate > filterEndDate) {
-                return false;
-            }
-            return true;
-        });
-        
-        setFilteredActions(filtered);
-        setToday(new Date()); // Set date on client
-        setIsLoading(false);
-    }
-    fetchData();
-  }, [id, searchParams]);
-
-  if (isLoading || !today) {
-      return (
-         <div>
-            <PageHeader title={<Skeleton className="h-8 w-64" />}>
-                 <Skeleton className="h-10 w-48" />
-            </PageHeader>
-             <div className="grid gap-8">
-                 <Card>
-                    <CardContent className="pt-6 space-y-6">
-                        <div className="grid md:grid-cols-3 gap-4">
-                            <Skeleton className="h-16 w-full" />
-                            <Skeleton className="h-16 w-full" />
-                            <Skeleton className="h-16 w-full" />
-                        </div>
-                        <Skeleton className="h-4 w-full" />
-                         <Skeleton className="h-10 w-full" />
-                    </CardContent>
-                 </Card>
-                 <Card>
-                    <CardHeader>
-                        <Skeleton className="h-6 w-32" />
-                        <Skeleton className="h-4 w-48" />
-                    </CardHeader>
-                    <CardContent>
-                         <div className="grid gap-4 md:grid-cols-2">
-                             <Skeleton className="h-40 w-full" />
-                             <Skeleton className="h-40 w-full" />
-                         </div>
-                    </CardContent>
-                 </Card>
-            </div>
-         </div>
-      )
-  }
-  
   if (!campaign) {
     notFound();
   }
 
+  const startDateFilter = searchParams.startDate || '';
+  const endDateFilter = searchParams.endDate || '';
+
+  const actionsToFilter = campaign.actions || [];
+  const filteredActions = actionsToFilter.filter(action => {
+      const actionStartDate = new Date(action.startDate);
+      const actionEndDate = new Date(action.endDate);
+      const filterStartDate = startDateFilter ? new Date(startDateFilter) : null;
+      const filterEndDate = endDateFilter ? new Date(endDateFilter) : null;
+
+      if (filterStartDate && actionStartDate < filterStartDate) {
+          return false;
+      }
+      if (filterEndDate && actionEndDate > filterEndDate) {
+          return false;
+      }
+      return true;
+  });
+
+  const today = new Date();
   const locale = 'ru-RU';
   const currencyOptions = { style: 'currency', currency: 'RUB', minimumFractionDigits: 0, maximumFractionDigits: 0 };
   const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -234,7 +175,7 @@ export default function CampaignDetailPage() {
                                 <CardHeader>
                                     <CardTitle className="text-lg flex justify-between items-start">
                                         <span>{action.name}</span>
-                                        <EditActionButton action={action} campaignId={campaign.id} asChild={true}/>
+                                        <EditActionButton action={action} campaignId={campaign.id} />
                                     </CardTitle>
                                     <CardDescription>{action.description}</CardDescription>
                                 </CardHeader>

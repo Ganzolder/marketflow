@@ -7,14 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Edit } from "lucide-react";
+import { Loader2, Edit, Edit2 } from "lucide-react";
 import { editActionInCampaign, type ActionFormState } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import type { Action } from '@/lib/types';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-export function EditActionButton({ action, campaignId, asChild = false }: { action: Action, campaignId: string, asChild?: boolean }) {
+export function EditActionButton({ action, campaignId }: { action: Action, campaignId: string }) {
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
     const router = useRouter();
@@ -51,10 +51,8 @@ export function EditActionButton({ action, campaignId, asChild = false }: { acti
 
     const handleButtonClick = (e: React.MouseEvent) => {
         // Stop propagation if it's nested in a Link or another clickable element
-        if (asChild) {
-           e.stopPropagation();
-           e.preventDefault();
-        }
+        e.stopPropagation();
+        e.preventDefault();
         setOpen(true);
     }
     
@@ -62,14 +60,13 @@ export function EditActionButton({ action, campaignId, asChild = false }: { acti
 
     const TriggerButton = (
         <Button 
-          variant={asChild ? "ghost" : "outline"} 
-          className={asChild ? "w-full justify-start p-2 h-auto" : "h-6 w-6"}
-          size={asChild ? undefined : "icon"}
+          variant="ghost" 
+          className="h-6 w-6"
+          size="icon"
           onClick={handleButtonClick}
         >
-            <Edit className="h-4 w-4" />
-            {asChild && <span className="ml-2">Редактировать</span>}
-            {!asChild && <span className="sr-only">Редактировать акцию</span>}
+            <Edit2 className="h-4 w-4" />
+            <span className="sr-only">Редактировать акцию</span>
         </Button>
     );
     
@@ -78,7 +75,7 @@ export function EditActionButton({ action, campaignId, asChild = false }: { acti
             <DialogTrigger asChild>
                 {TriggerButton}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[625px]" onClick={asChild ? stopPropagation : undefined}>
+            <DialogContent className="sm:max-w-[625px]" onClick={stopPropagation}>
                 <DialogHeader>
                     <DialogTitle>Редактировать акцию</DialogTitle>
                     <DialogDescription>
