@@ -127,7 +127,7 @@ export function AddSmmPostButton({ campaigns, actions }: { campaigns: Campaign[]
                             <div className="grid grid-cols-2 gap-4">
                                <div className="grid gap-2">
                                     <Label htmlFor="campaignId">Кампания</Label>
-                                    <Select name="campaignId" onValueChange={setSelectedCampaign} value={selectedCampaign}>
+                                    <Select name="campaignId" onValueChange={setSelectedCampaign} value={selectedCampaign} required>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Выберите кампанию" />
                                         </SelectTrigger>
@@ -141,7 +141,7 @@ export function AddSmmPostButton({ campaigns, actions }: { campaigns: Campaign[]
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="actionId">Акция</Label>
-                                    <Select name="actionId" disabled={!selectedCampaign} onValueChange={setSelectedActionId} value={selectedActionId}>
+                                    <Select name="actionId" disabled={!selectedCampaign} onValueChange={setSelectedActionId} value={selectedActionId} required>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Выберите акцию" />
                                         </SelectTrigger>
@@ -247,3 +247,4 @@ export function AddSmmPostButton({ campaigns, actions }: { campaigns: Campaign[]
         </Dialog>
     );
 }
+

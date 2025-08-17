@@ -1290,11 +1290,11 @@ export async function updateExpenseStatus(prevState: ExpenseStatusFormState, for
 
 // --- Social Post Actions ---
 const SocialPostSchema = z.object({
-  platforms: z.array(z.string()).min(1, "Выберите хотя бы одну платформу."),
-  text: z.string().min(1, "Текст поста не может быть пустым."),
+  platforms: z.array(z.string()).optional(),
+  text: z.string().optional(),
   plannedReach: z.coerce.number().min(0).optional(),
   plannedComments: z.coerce.number().min(0).optional(),
-  publicationDate: z.string().refine((date) => !isNaN(Date.parse(date)), "Неверный формат даты."),
+  publicationDate: z.string().optional(),
   status: z.enum(['draft', 'ready', 'published']),
   activityId: z.string().optional(),
 });
@@ -1335,12 +1335,13 @@ export async function addSocialPostToAction(prevState: SocialPostFormState, form
   const { campaignId, actionId, ...postData } = validatedFields.data;
   const postToSave = {
     ...postData,
-    platforms: postData.platforms as SocialPlatform[],
+    platforms: postData.platforms as SocialPlatform[] || [],
     plannedReach: postData.plannedReach || 0,
     plannedComments: postData.plannedComments || 0,
     actualReach: 0,
     actualComments: 0,
     activityId: postData.activityId || '',
+    publicationDate: postData.publicationDate || new Date().toISOString().split('T')[0],
   }
 
   try {
@@ -1390,12 +1391,13 @@ export async function updateSocialPostInAction(prevState: SocialPostFormState, f
     const postToUpdate: SocialPost = {
         id: postId,
         ...postData,
-        platforms: postData.platforms as SocialPlatform[],
+        platforms: postData.platforms as SocialPlatform[] || [],
         plannedReach: postData.plannedReach || 0,
         plannedComments: postData.plannedComments || 0,
         actualReach: postData.actualReach || 0,
         actualComments: postData.actualComments || 0,
         activityId: postData.activityId || '',
+        publicationDate: postData.publicationDate || new Date().toISOString().split('T')[0],
     };
     
     try {
@@ -1496,3 +1498,4 @@ export async function generatePostTextAction(input: GeneratePostTextInput): Prom
         return { message: `Ошибка генерации: ${errorMessage}` };
     }
 }
+
