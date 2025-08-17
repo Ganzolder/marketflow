@@ -25,7 +25,7 @@ const statusTranslations: Record<SocialPostStatus, string> = {
 };
 
 
-export function EditSocialPostButton({ post, action }: { post: SocialPost; action?: Action; }) {
+export function EditSocialPostButton({ post }: { post: SocialPost }) {
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
@@ -179,12 +179,12 @@ export function EditSocialPostButton({ post, action }: { post: SocialPost; actio
                            </div>
                            <div className="grid gap-2">
                                 <Label htmlFor="activityId">Привязать к активности (необязательно)</Label>
-                                <Select name="activityId" value={selectedActivityId || 'general'} onValueChange={setSelectedActivityId} disabled={!selectedActionId}>
+                                <Select name="activityId" value={selectedActivityId || 'none'} onValueChange={setSelectedActivityId} disabled={!selectedActionId}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Общий пост для акции" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="general">Общий пост для акции</SelectItem>
+                                        <SelectItem value="none">Общий пост для акции</SelectItem>
                                         {(currentAction?.activities || []).map(activity => (
                                             <SelectItem key={activity.id} value={activity.id}>{activity.name}</SelectItem>
                                         ))}

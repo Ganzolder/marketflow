@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useRef, useTransition, useActionState } from 'react';
-import type { SocialPost, SocialPostStatus, SocialPlatform, Campaign } from '@/lib/types';
+import type { SocialPost, SocialPostStatus, SocialPlatform, Campaign, Action } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Share2, PlusCircle, Loader2, Wand2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
@@ -20,6 +20,7 @@ import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { EditSocialPostButton } from './[actionId]/edit-social-post-button';
 import { DeleteSocialPostButton } from './[actionId]/delete-social-post-button';
+import Link from 'next/link';
 
 const statusTranslations: Record<SocialPostStatus, string> = {
   draft: "Черновик",
@@ -96,13 +97,27 @@ const AddSocialPostToCampaignButton = ({ campaign }: { campaign: Campaign }) => 
                 <DialogHeader>
                     <DialogTitle>Новый пост для кампании: {campaign.name}</DialogTitle>
                     <DialogDescription>
-                        Заполните детали поста. Он будет привязан к кампании, но не к конкретной акции.
+                        Заполните детали поста. Вы можете привязать его к акции.
                     </DialogDescription>
                 </DialogHeader>
                 <form ref={formRef} onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
                     <ScrollArea className="flex-1 pr-6 -mr-6">
                         <div className="grid gap-4 py-4 pr-6">
                             <input type="hidden" name="campaignId" value={campaign.id} />
+                            <div className="grid gap-2">
+                                <Label htmlFor="actionId">Привязать к акции (необязательно)</Label>
+                                <Select name="actionId">
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Без привязки к акции" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">Без привязки к акции</SelectItem>
+                                        {(campaign.actions || []).map(action => (
+                                            <SelectItem key={action.id} value={action.id}>{action.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                             <div className="grid gap-2">
                                 <Label>Платформы</Label>
                                 <Popover>
@@ -214,7 +229,9 @@ export function CampaignSocialPostsCard({ campaign, posts }: { campaign: Campaig
                                 <p className="text-sm font-medium mt-2">{new Date(post.publicationDate).toLocaleDateString(locale, {day: '2-digit', month: 'long', year: 'numeric'})}</p>
                                  {post.actionId && (
                                      <CardDescription className="text-xs mt-2">
-                                        Акция: {campaign.actions?.find(a => a.id === post.actionId)?.name || 'Неизвестная акция'}
+                                        <Link href={`/campaigns/${campaign.id}/${post.actionId}`} className="hover:underline">
+                                            Акция: {campaign.actions?.find(a => a.id === post.actionId)?.name || 'Неизвестная акция'}
+                                        </Link>
                                      </CardDescription>
                                  )}
                              </div>
@@ -241,4 +258,3 @@ export function CampaignSocialPostsCard({ campaign, posts }: { campaign: Campaig
     </Card>
   );
 }
-
