@@ -127,9 +127,9 @@ export function AddSmmPostButton({ campaigns, actions }: { campaigns: Campaign[]
                         <div className="grid gap-4 py-4 pr-6">
                             <div className="grid grid-cols-2 gap-4">
                                <div className="grid gap-2">
-                                    <Label htmlFor="campaignId">Кампания</Label>
+                                    <Label htmlFor="campaignIdSelect">Кампания</Label>
                                     <Select name="campaignId" onValueChange={setSelectedCampaign} value={selectedCampaign} required>
-                                        <SelectTrigger>
+                                        <SelectTrigger id="campaignIdSelect">
                                             <SelectValue placeholder="Выберите кампанию" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -141,9 +141,9 @@ export function AddSmmPostButton({ campaigns, actions }: { campaigns: Campaign[]
                                      {state.errors?.campaignId && <p className="text-sm text-destructive">{state.errors.campaignId[0]}</p>}
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="actionId">Акция</Label>
+                                    <Label htmlFor="actionIdSelect">Акция</Label>
                                     <Select name="actionId" disabled={!selectedCampaign} onValueChange={setSelectedActionId} value={selectedActionId} required>
-                                        <SelectTrigger>
+                                        <SelectTrigger id="actionIdSelect">
                                             <SelectValue placeholder="Выберите акцию" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -231,6 +231,19 @@ export function AddSmmPostButton({ campaigns, actions }: { campaigns: Campaign[]
                                         </SelectContent>
                                     </Select>
                                      {state.errors?.status && <p className="text-sm text-destructive">{state.errors.status[0]}</p>}
+                                </div>
+                            </div>
+
+                            {/* Debug Fields */}
+                            <div className="grid gap-2 p-2 border-t mt-4">
+                                <Label className="text-muted-foreground">Отладочные поля</Label>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="campaignIdInput">Campaign ID</Label>
+                                    <Input id="campaignIdInput" type="text" name="campaignId" value={selectedCampaign} readOnly className="text-xs text-muted-foreground bg-muted/50" />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="actionIdInput">Action ID</Label>
+                                    <Input id="actionIdInput" type="text" name="actionId" value={selectedActionId} readOnly className="text-xs text-muted-foreground bg-muted/50" />
                                 </div>
                             </div>
                         </div>
