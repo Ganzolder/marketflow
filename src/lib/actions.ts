@@ -3,13 +3,13 @@
 "use server";
 
 import { z } from "zod";
-import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData, updateExpenseStatus as updateExpenseStatusData, updateSocialPost, deleteSocialPost, updateSocialPostMetricsData } from "./data";
+import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData, updateExpenseStatus as updateExpenseStatusData, deleteSocialPost, updateSocialPostMetrics as updateSocialPostMetricsData } from "./data";
 import { revalidatePath } from "next/cache";
 import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog, Campaign, ResponsibilityFormState, Resource, ResourceStatus, ResourceStatusFormState, ExpenseStatus, ExpenseStatusFormState, SocialPost, SocialPlatform, SocialPostStatus, SocialPostFormState, SocialPostMetricsFormState } from "./types";
 import { redirect } from "next/navigation";
 import { analyzeActionPerformance, type AnalyzeActionPerformanceOutput } from "@/ai/flows/analyze-action-performance";
 import { generatePostText, type GeneratePostTextInput } from "@/ai/flows/generate-post-text";
-import { addDoc, collection, doc } from "firebase/firestore";
+import { addDoc, collection, doc, updateDoc } from "firebase/firestore";
 import { db } from "./firebase";
 
 const ActionSchema = z.object({
@@ -105,7 +105,7 @@ export async function editActionInCampaign(
   });
 
   if (!validatedFields.success) {
-    const errorMessages = validatedFields.error.issues.map((issue) => issue.message).join("\n");
+    const errorMessages = Object.values(validatedFields.error.flatten().fieldErrors).flat().join("\n");
     return {
         message: "Ошибка валидации. Не удалось обновить акцию.",
         errors: validatedFields.error.flatten().fieldErrors,
@@ -466,6 +466,7 @@ export async function addExpense(prevState: ExpenseFormState | null, formData: F
     });
 
     if (!validatedFields.success) {
+        const errorMessages = Object.values(validatedFields.error.flatten().fieldErrors).flat().join("\n");
         return {
             message: "Ошибка валидации.",
             error: true,
@@ -566,6 +567,7 @@ export async function addGeneralExpense(prevState: ExpenseFormState | null, form
     });
 
     if (!validatedFields.success) {
+        const errorMessages = Object.values(validatedFields.error.flatten().fieldErrors).flat().join("\n");
         return {
             message: "Ошибка валидации.",
             error: true,
@@ -695,7 +697,7 @@ export async function updateActionEffectiveness(
   });
 
   if (!validatedFields.success) {
-    const errorMessages = validatedFields.error.issues.map((issue) => issue.message).join("\n");
+    const errorMessages = Object.values(validatedFields.error.flatten().fieldErrors).flat().join("\n");
     return {
       message: "Ошибка валидации.",
       error: true,
@@ -835,6 +837,7 @@ export async function createCampaign(prevState: CampaignFormState, formData: For
     const validatedFields = CampaignSchema.safeParse(rawFormData);
 
     if (!validatedFields.success) {
+        const errorMessages = Object.values(validatedFields.error.flatten().fieldErrors).flat().join("\n");
         return {
             message: "Ошибка валидации.",
             error: true,
@@ -875,6 +878,7 @@ export async function editCampaign(prevState: CampaignFormState, formData: FormD
     const validatedFields = CampaignSchema.safeParse(rawFormData);
 
     if (!validatedFields.success) {
+        const errorMessages = Object.values(validatedFields.error.flatten().fieldErrors).flat().join("\n");
         return {
             message: "Ошибка валидации.",
             error: true,
@@ -945,7 +949,7 @@ export async function editKpiMetric(prevState: KpiMetricFormState, formData: For
     });
 
     if (!validatedFields.success) {
-        const errorMessages = validatedFields.error.issues.map((issue) => issue.message).join("\n");
+        const errorMessages = Object.values(validatedFields.error.flatten().fieldErrors).flat().join("\n");
         return {
             message: "Ошибка валидации.",
             error: true,
@@ -1042,7 +1046,7 @@ export async function updateActionResponsibility(prevState: ResponsibilityFormSt
   });
 
   if (!validatedFields.success) {
-    const errorMessages = validatedFields.error.issues.map((issue) => issue.message).join("\n");
+    const errorMessages = Object.values(validatedFields.error.flatten().fieldErrors).flat().join("\n");
     return {
       message: "Ошибка валидации.",
       error: true,
@@ -1084,7 +1088,7 @@ export async function updateActionConditions(prevState: ConditionsFormState, for
     });
 
     if (!validatedFields.success) {
-        const errorMessages = validatedFields.error.issues.map((issue) => issue.message).join("\n");
+        const errorMessages = Object.values(validatedFields.error.flatten().fieldErrors).flat().join("\n");
         return {
             message: "Ошибка валидации.",
             error: true,
@@ -1136,6 +1140,7 @@ export async function addResourceToAction(prevState: ResourceFormState, formData
   const validatedFields = ResourceSchema.safeParse(rawData);
 
   if (!validatedFields.success) {
+    const errorMessages = Object.values(validatedFields.error.flatten().fieldErrors).flat().join("\n");
     return {
       message: "Ошибка валидации.",
       error: true,
@@ -1178,6 +1183,7 @@ export async function updateResourceInAction(prevState: ResourceFormState, formD
 
 
   if (!validatedFields.success) {
+    const errorMessages = Object.values(validatedFields.error.flatten().fieldErrors).flat().join("\n");
     return {
       message: "Ошибка валидации.",
       error: true,
@@ -1298,11 +1304,11 @@ export async function updateExpenseStatus(prevState: ExpenseStatusFormState, for
 
 // --- Social Post Actions ---
 const SocialPostSchema = z.object({
-  platforms: z.array(z.string()).optional(),
-  text: z.string().nullable().optional(),
+  platforms: z.array(z.string()).min(1, "Выберите хотя бы одну платформу"),
+  text: z.string().min(1, "Текст поста не может быть пустым."),
   plannedReach: z.coerce.number().min(0).optional(),
   plannedComments: z.coerce.number().min(0).optional(),
-  publicationDate: z.string().nullable().optional(),
+  publicationDate: z.string().refine((date) => !isNaN(Date.parse(date)), "Неверный формат даты."),
   status: z.enum(['draft', 'ready', 'published']),
   campaignId: z.string().optional(),
   actionId: z.string().optional(),
@@ -1317,11 +1323,12 @@ const UpdateSocialPostMetricsSchema = z.object({
     actualComments: z.coerce.number().min(0, 'Значение должно быть положительным').optional(),
 });
 
-export async function addSocialPostToAction(prevState: SocialPostFormState, formData: FormData): Promise<SocialPostFormState> {
+export async function addSocialPost(prevState: SocialPostFormState, formData: FormData): Promise<SocialPostFormState> {
   const rawActivityId = formData.get('activityId');
+  
   const validatedFields = SocialPostSchema.safeParse({
     platforms: formData.getAll('platforms'),
-    text: formData.get('text') || null,
+    text: formData.get('text'),
     plannedReach: formData.get('plannedReach'),
     plannedComments: formData.get('plannedComments'),
     publicationDate: formData.get('publicationDate') || new Date().toISOString().split('T')[0],
@@ -1332,7 +1339,7 @@ export async function addSocialPostToAction(prevState: SocialPostFormState, form
   });
 
   if (!validatedFields.success) {
-    const errorMessages = validatedFields.error.issues.map((issue) => issue.message).join("\n");
+    const errorMessages = Object.values(validatedFields.error.flatten().fieldErrors).flat().join("\n");
     return {
       message: "Ошибка валидации.",
       error: true,
@@ -1341,15 +1348,15 @@ export async function addSocialPostToAction(prevState: SocialPostFormState, form
   }
 
   const postData = validatedFields.data;
-  const postToSave = {
-    ...postData,
-    platforms: postData.platforms as SocialPlatform[] || [],
-    text: postData.text || '',
+  const postToSave: Omit<SocialPost, 'id'> = {
+    platforms: postData.platforms as SocialPlatform[],
+    text: postData.text,
     plannedReach: postData.plannedReach || 0,
-    plannedComments: postData.plannedComments || 0,
     actualReach: 0,
+    plannedComments: postData.plannedComments || 0,
     actualComments: 0,
-    publicationDate: postData.publicationDate || new Date().toISOString().split('T')[0],
+    publicationDate: postData.publicationDate,
+    status: postData.status,
     campaignId: postData.campaignId,
     actionId: postData.actionId,
     activityId: postData.activityId,
@@ -1357,8 +1364,7 @@ export async function addSocialPostToAction(prevState: SocialPostFormState, form
   
   try {
     const postsCollection = collection(db, "socialPosts");
-    const docRef = doc(postsCollection); // Create a new doc with a generated ID
-    await addDoc(postsCollection, { ...postToSave, id: docRef.id });
+    await addDoc(postsCollection, postToSave);
   } catch (e) {
     const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
     return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
@@ -1372,11 +1378,7 @@ export async function addSocialPostToAction(prevState: SocialPostFormState, form
 }
 
 
-export async function addSocialPost(prevState: SocialPostFormState, formData: FormData): Promise<SocialPostFormState> {
-  return addSocialPostToAction(prevState, formData);
-}
-
-export async function updateSocialPostInAction(prevState: SocialPostFormState, formData: FormData): Promise<SocialPostFormState> {
+export async function updateSocialPost(prevState: SocialPostFormState, formData: FormData): Promise<SocialPostFormState> {
     const rawActivityId = formData.get('activityId');
     const validatedFields = SocialPostSchema.extend({
         postId: z.string(),
@@ -1398,7 +1400,7 @@ export async function updateSocialPostInAction(prevState: SocialPostFormState, f
     });
 
     if (!validatedFields.success) {
-        const errorMessages = validatedFields.error.issues.map((issue) => issue.message).join("\n");
+        const errorMessages = Object.values(validatedFields.error.flatten().fieldErrors).flat().join("\n");
         return {
             message: "Ошибка валидации.",
             error: true,
@@ -1410,17 +1412,20 @@ export async function updateSocialPostInAction(prevState: SocialPostFormState, f
     const postToUpdate: SocialPost = {
         id: postId,
         ...postData,
-        platforms: postData.platforms as SocialPlatform[] || [],
-        text: postData.text || '',
+        platforms: postData.platforms as SocialPlatform[],
+        text: postData.text,
         plannedReach: postData.plannedReach || 0,
-        plannedComments: postData.plannedComments || 0,
         actualReach: postData.actualReach || 0,
+        plannedComments: postData.plannedComments || 0,
         actualComments: postData.actualComments || 0,
-        publicationDate: postData.publicationDate || new Date().toISOString().split('T')[0],
+        publicationDate: postData.publicationDate,
     };
     
     try {
-        await updateSocialPost(postToUpdate);
+        const postRef = doc(db, "socialPosts", postToUpdate.id);
+        await updateDoc(postRef, {
+            ...postToUpdate
+        });
     } catch (e) {
         const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
         return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
@@ -1463,7 +1468,7 @@ export async function updateSocialPostMetrics(prevState: SocialPostMetricsFormSt
     });
 
     if (!validatedFields.success) {
-        const errorMessages = validatedFields.error.issues.map((issue) => issue.message).join("\n");
+        const errorMessages = Object.values(validatedFields.error.flatten().fieldErrors).flat().join("\n");
         return {
             message: "Ошибка валидации.",
             error: true,

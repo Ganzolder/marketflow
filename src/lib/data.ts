@@ -707,11 +707,6 @@ export async function getSocialPostsForAction(actionId: string): Promise<SocialP
     return allPosts.filter(post => post.actionId === actionId);
 }
 
-export async function updateSocialPost(postData: SocialPost) {
-    const postRef = doc(db, "socialPosts", postData.id);
-    await updateDoc(postRef, postData);
-}
-
 export async function deleteSocialPost(postId: string) {
     const postRef = doc(db, "socialPosts", postId);
     await deleteDoc(postRef);
@@ -1199,7 +1194,7 @@ export async function updateExpenseStatus(campaignId: string, actionId: string, 
 }
 
 
-export async function updateSocialPostMetricsData(postId: string, metrics: { actualReach: number, actualComments: number }) {
+export async function updateSocialPostMetrics(postId: string, metrics: { actualReach: number, actualComments: number }) {
     const postRef = doc(db, "socialPosts", postId);
     try {
         await updateDoc(postRef, {
