@@ -1,15 +1,14 @@
 
-
 "use server";
 
 import { z } from "zod";
 import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData, updateExpenseStatus as updateExpenseStatusData, getSocialPostById, deleteSocialPost as deleteSocialPostData } from "./data";
 import { revalidatePath } from "next/cache";
-import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog, Campaign, ResponsibilityFormState, Resource, ResourceStatus, ResourceStatusFormState, ExpenseStatus, ExpenseStatusFormState, SocialPost, SocialPlatform, SocialPostStatus, SocialPostFormState, SocialPostMetricsFormState } from "./types";
+import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog, Campaign, ResponsibilityFormState, Resource, ResourceStatus, ResourceStatusFormState, ExpenseStatus, ExpenseStatusFormState, SocialPost, SocialPlatform, SocialPostStatus, SocialPostMetricsFormState } from "./types";
 import { redirect } from "next/navigation";
 import { analyzeActionPerformance, type AnalyzeActionPerformanceOutput } from "@/ai/flows/analyze-action-performance";
 import { generatePostText, type GeneratePostTextInput } from "@/ai/flows/generate-post-text";
-import { addDoc, collection, doc, updateDoc } from "firebase/firestore";
+import { addDoc, collection, doc, updateDoc, getDoc, deleteField } from "firebase/firestore";
 import { db } from "./firebase";
 
 const ActionSchema = z.object({
@@ -1313,15 +1312,14 @@ const SocialPostSchema = z.object({
   status: z.enum(['draft', 'ready', 'published']).optional().nullable(),
   campaignId: z.string().optional().nullable(),
   actionId: z.string().optional().nullable(),
+  activityId: z.string().optional().nullable(),
 });
 
-const UpdateSocialPostMetricsSchema = z.object({
-    campaignId: z.string(),
-    actionId: z.string(),
-    postId: z.string(),
-    actualReach: z.coerce.number().min(0, 'Значение должно быть положительным').optional(),
-    actualComments: z.coerce.number().min(0, 'Значение должно быть положительным').optional(),
-});
+export type SocialPostFormState = {
+  message: string;
+  error?: boolean;
+  errors?: z.ZodError['formErrors']['fieldErrors'];
+};
 
 export async function addSocialPost(prevState: SocialPostFormState, formData: FormData): Promise<SocialPostFormState> {
     const rawActionId = formData.get('actionId');
@@ -1347,9 +1345,9 @@ export async function addSocialPost(prevState: SocialPostFormState, formData: Fo
         actualComments: 0,
         publicationDate: data.publicationDate,
         status: (data.status as SocialPostStatus) || 'draft',
-        campaignId: data.campaignId as string | undefined,
-        actionId: data.actionId as string | undefined,
     };
+    if (data.campaignId) postToSave.campaignId = data.campaignId as string;
+    if (data.actionId) postToSave.actionId = data.actionId as string;
     
     try {
         await addDoc(collection(db, "socialPosts"), postToSave);
@@ -1375,11 +1373,13 @@ const UpdateSocialPostSchema = SocialPostSchema.extend({
 export async function updateSocialPost(prevState: SocialPostFormState, formData: FormData): Promise<SocialPostFormState> {
     const rawActionId = formData.get('actionId');
     const rawCampaignId = formData.get('campaignId');
+    const rawActivityId = formData.get('activityId');
 
     const validatedFields = UpdateSocialPostSchema.safeParse({
         postId: formData.get('postId'),
         campaignId: rawCampaignId === 'none' ? undefined : rawCampaignId,
         actionId: rawActionId === 'none' ? undefined : rawActionId,
+        activityId: rawActivityId === 'general' || rawActivityId === 'none' ? undefined : rawActivityId,
         platforms: formData.getAll('platforms'),
         text: formData.get('text') || '', 
         plannedReach: formData.get('plannedReach'),
@@ -1403,16 +1403,28 @@ export async function updateSocialPost(prevState: SocialPostFormState, formData:
     
     try {
         const postRef = doc(db, "socialPosts", postId);
-        const updateData = {
-            ...postData,
-            platforms: postData.platforms as SocialPlatform[],
+        
+        const updateData: { [key: string]: any } = {
+            platforms: (postData.platforms as SocialPlatform[]) || [],
+            text: postData.text || '',
             plannedReach: postData.plannedReach || 0,
             actualReach: postData.actualReach || 0,
             plannedComments: postData.plannedComments || 0,
             actualComments: postData.actualComments || 0,
             publicationDate: postData.publicationDate || new Date().toISOString().split('T')[0],
             status: postData.status || 'draft',
+            campaignId: postData.campaignId || deleteField(),
+            actionId: postData.actionId || deleteField(),
+            activityId: postData.activityId || deleteField(),
         };
+        
+        // This is to prevent sending `undefined` to Firestore which causes the error.
+        Object.keys(updateData).forEach(key => {
+            if (updateData[key] === undefined) {
+                updateData[key] = deleteField();
+            }
+        });
+
         await updateDoc(postRef, updateData);
     } catch (e) {
         const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
@@ -1445,11 +1457,24 @@ export async function deleteSocialPost(prevState: DeleteFormState, formData: For
     return { message: "Пост успешно удален." };
 }
 
+const UpdateSocialPostMetricsSchema = z.object({
+    postId: z.string(),
+    actualReach: z.coerce.number().min(0, 'Значение должно быть положительным').optional(),
+    actualComments: z.coerce.number().min(0, 'Значение должно быть положительным').optional(),
+});
+
+
+export type SocialPostMetricsFormState = {
+  message: string;
+  error?: boolean;
+  errors?: {
+    actualReach?: string[];
+    actualComments?: string[];
+  }
+}
 
 export async function updateSocialPostMetrics(prevState: SocialPostMetricsFormState, formData: FormData): Promise<SocialPostMetricsFormState> {
     const validatedFields = UpdateSocialPostMetricsSchema.safeParse({
-        campaignId: formData.get('campaignId'),
-        actionId: formData.get('actionId'),
         postId: formData.get('postId'),
         actualReach: formData.get('actualReach') || undefined,
         actualComments: formData.get('actualComments') || undefined,
@@ -1464,7 +1489,7 @@ export async function updateSocialPostMetrics(prevState: SocialPostMetricsFormSt
         };
     }
 
-    const { campaignId, actionId, postId, ...metrics } = validatedFields.data;
+    const { postId, ...metrics } = validatedFields.data;
     
     try {
         const postRef = doc(db, "socialPosts", postId);
@@ -1472,19 +1497,31 @@ export async function updateSocialPostMetrics(prevState: SocialPostMetricsFormSt
         if (!postSnap.exists()) {
              return { message: `Пост с ID ${postId} не найден.`, error: true };
         }
-        const post = postSnap.data();
+        
+        const dataToUpdate: Partial<SocialPost> = {};
 
-        const dataToUpdate = {
-            actualReach: metrics.actualReach ?? post.actualReach,
-            actualComments: metrics.actualComments ?? post.actualComments,
-        };
-        await updateDoc(postRef, dataToUpdate);
+        if (metrics.actualReach !== undefined) {
+            dataToUpdate.actualReach = metrics.actualReach;
+        }
+        if (metrics.actualComments !== undefined) {
+            dataToUpdate.actualComments = metrics.actualComments;
+        }
+
+        if (Object.keys(dataToUpdate).length > 0) {
+            await updateDoc(postRef, dataToUpdate);
+        } else {
+            return { message: "Нет данных для обновления." };
+        }
+        
     } catch (e) {
         const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
         return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
     }
 
-    revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+    const post = await getSocialPostById(postId);
+    if(post?.campaignId && post?.actionId) {
+        revalidatePath(`/campaigns/${post.campaignId}/${post.actionId}`);
+    }
     revalidatePath('/smm');
     return { message: "Фактические показатели обновлены." };
 }
@@ -1519,3 +1556,5 @@ export async function generatePostTextAction(input: GeneratePostTextInput): Prom
         return { message: `Ошибка генерации: ${errorMessage}` };
     }
 }
+
+    
