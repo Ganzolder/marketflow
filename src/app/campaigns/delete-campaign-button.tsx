@@ -1,8 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
-import { useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -25,7 +24,7 @@ export function DeleteCampaignButton({ campaignId, asIcon = false }: { campaignI
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
 
-    const handleDelete = async () => {
+    const handleDelete = () => {
         const formData = new FormData();
         formData.append('campaignId', campaignId);
         
@@ -43,7 +42,7 @@ export function DeleteCampaignButton({ campaignId, asIcon = false }: { campaignI
                     description: "Кампания успешно удалена.",
                 });
                 setOpen(false);
-                router.push('/campaigns');
+                router.refresh();
             }
         })
     };
