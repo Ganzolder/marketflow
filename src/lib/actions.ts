@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData, updateExpenseStatus as updateExpenseStatusData, getSocialPostById, deleteSocialPost as deleteSocialPostData, getSocialPostsForAction, clearDatabase as clearDatabaseData, deleteAction as deleteActionData, getCampaigns, getAllSocialPosts, restoreDatabase, getAllTasks, addTask as addTaskData, updateTask as updateTaskData, deleteTask as deleteTaskData } from "./data";
 import { revalidatePath } from "next/cache";
-import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog, Campaign, ResponsibilityFormState, Resource, ResourceStatus, ResourceStatusFormState, ExpenseStatus, ExpenseStatusFormState, SocialPost, SocialPlatform, SocialPostStatus, SocialPostMetricsFormState, AiSocialPost, TaskFormState, Task } from "./types";
+import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog, Campaign, ResponsibilityFormState, Resource, ResourceStatus, ResourceStatusFormState, ExpenseStatus, ExpenseStatusFormState, SocialPost, SocialPlatform, SocialPostStatus, SocialPostMetricsFormState, AiSocialPost, TaskFormState, Task, TaskLinkState } from "./types";
 import { analyzeActionPerformance, type AnalyzeActionPerformanceOutput } from "@/ai/flows/analyze-action-performance";
 import { generatePostText, type GeneratePostTextInput } from "@/ai/flows/generate-post-text";
 import { addDoc, collection, doc, updateDoc, getDoc, deleteField } from "firebase/firestore";
@@ -1767,25 +1767,15 @@ const TaskSchema = z.object({
   status: z.enum(['planned', 'in-progress', 'completed']),
   deadline: z.string().optional(),
   responsiblePerson: z.string().optional(),
-  campaignId: z.string().optional(),
-  actionId: z.string().optional(),
-  activityId: z.string().optional(),
 });
 
 export async function addTask(prevState: TaskFormState, formData: FormData): Promise<TaskFormState> {
-  const campaignId = formData.get('campaignId');
-  const actionId = formData.get('actionId');
-  const activityId = formData.get('activityId');
-
   const validatedFields = TaskSchema.safeParse({
     title: formData.get('title') || '',
     description: formData.get('description') || '',
     status: formData.get('status'),
     deadline: formData.get('deadline') || new Date().toISOString().split('T')[0],
     responsiblePerson: formData.get('responsiblePerson') || '',
-    campaignId: campaignId === 'none' ? undefined : campaignId,
-    actionId: actionId === 'none' ? undefined : actionId,
-    activityId: activityId === 'none' ? undefined : activityId,
   });
 
   if (!validatedFields.success) {
@@ -1812,11 +1802,6 @@ export async function updateTask(prevState: TaskFormState, formData: FormData): 
   if (!taskId) {
     return { message: "ID задачи отсутствует.", error: true };
   }
-  
-  const campaignId = formData.get('campaignId');
-  const actionId = formData.get('actionId');
-  const activityId = formData.get('activityId');
-
 
   const validatedFields = TaskSchema.safeParse({
     title: formData.get('title'),
@@ -1824,9 +1809,6 @@ export async function updateTask(prevState: TaskFormState, formData: FormData): 
     status: formData.get('status'),
     deadline: formData.get('deadline'),
     responsiblePerson: formData.get('responsiblePerson'),
-    campaignId: campaignId === 'none' ? undefined : campaignId,
-    actionId: actionId === 'none' ? undefined : actionId,
-    activityId: activityId === 'none' ? undefined : activityId,
   });
 
   if (!validatedFields.success) {
@@ -1842,6 +1824,53 @@ export async function updateTask(prevState: TaskFormState, formData: FormData): 
     revalidatePath('/tasks');
     revalidatePath('/');
     return { message: "Задача успешно обновлена." };
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+    return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
+  }
+}
+
+const TaskLinkSchema = z.object({
+  taskId: z.string(),
+  campaignId: z.string().optional(),
+  actionId: z.string().optional(),
+  activityId: z.string().optional(),
+});
+
+export async function updateTaskLinks(prevState: TaskLinkState, formData: FormData): Promise<TaskLinkState> {
+  const rawData = {
+    taskId: formData.get('taskId'),
+    campaignId: formData.get('campaignId'),
+    actionId: formData.get('actionId'),
+    activityId: formData.get('activityId'),
+  };
+  
+  const processedData = {
+      taskId: rawData.taskId,
+      campaignId: rawData.campaignId === 'none' ? undefined : rawData.campaignId,
+      actionId: rawData.actionId === 'none' ? undefined : rawData.actionId,
+      activityId: rawData.activityId === 'none' ? undefined : rawData.activityId,
+  };
+
+  const validatedFields = TaskLinkSchema.safeParse(processedData);
+
+  if (!validatedFields.success) {
+    return {
+      message: "Ошибка валидации.",
+      errors: validatedFields.error.flatten().fieldErrors,
+      error: true,
+    };
+  }
+
+  try {
+    await updateTaskData(validatedFields.data.taskId, {
+      campaignId: validatedFields.data.campaignId,
+      actionId: validatedFields.data.actionId,
+      activityId: validatedFields.data.activityId,
+    });
+    revalidatePath('/tasks');
+    revalidatePath('/');
+    return { message: "Привязка задачи успешно обновлена." };
   } catch (e) {
     const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
     return { message: `Ошибка базы данных: ${errorMessage}`, error: true };

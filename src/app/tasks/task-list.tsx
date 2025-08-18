@@ -16,6 +16,7 @@ import { EditTaskButton } from './edit-task-button';
 import { DeleteTaskButton } from './delete-task-button';
 import { ArchiveTaskButton } from './archive-task-button';
 import { RestoreTaskButton } from './restore-task-button';
+import { TaskLinkControl } from './task-link-control';
 
 const statusTranslations = {
   planned: "Запланирована",
@@ -72,7 +73,7 @@ export function TaskList({ initialTasks, allCampaigns, allTasks }: { initialTask
                             {task.description && <CardDescription className="mt-2 whitespace-pre-wrap">{task.description}</CardDescription>}
                         </div>
                         <div className="flex items-center gap-1">
-                            {view !== 'archived' && <EditTaskButton task={task} campaigns={allCampaigns} />}
+                            {view !== 'archived' && <EditTaskButton task={task} />}
                              {view === 'archived' ? (
                                 <RestoreTaskButton taskId={task.id} />
                             ) : (
@@ -82,6 +83,9 @@ export function TaskList({ initialTasks, allCampaigns, allTasks }: { initialTask
                         </div>
                     </div>
                 </CardHeader>
+                <CardContent>
+                    <TaskLinkControl task={task} campaigns={allCampaigns} />
+                </CardContent>
                 <CardFooter className="flex-wrap gap-x-6 gap-y-2 text-sm justify-between">
                      <div className="flex flex-wrap gap-x-6 gap-y-2 text-muted-foreground">
                         <div className="flex items-center gap-2">
@@ -92,16 +96,6 @@ export function TaskList({ initialTasks, allCampaigns, allTasks }: { initialTask
                             <User className="w-4 h-4" />
                             <span>Ответственный: {task.responsiblePerson || 'Не назначен'}</span>
                         </div>
-                         {(task.campaignName || task.actionName || task.activityName) && (
-                            <div className="flex items-center gap-2">
-                                <ClipboardCheck className="w-4 h-4" />
-                                <span>
-                                    {task.campaignName && <Badge variant="outline">{task.campaignName}</Badge>}
-                                    {task.actionName && <Badge variant="outline" className="ml-1">{task.actionName}</Badge>}
-                                    {task.activityName && <Badge variant="outline" className="ml-1">{task.activityName}</Badge>}
-                                </span>
-                            </div>
-                         )}
                     </div>
                      <Badge variant="outline" className={statusStyles[task.status]}>
                         {statusTranslations[task.status]}

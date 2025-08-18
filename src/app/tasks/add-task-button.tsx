@@ -25,11 +25,6 @@ export function AddTaskButton({ campaigns }: { campaigns: Campaign[] }) {
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
     const [isPending, startTransition] = useTransition();
-
-    const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
-    const [actions, setActions] = useState<Action[]>([]);
-    const [selectedActionId, setSelectedActionId] = useState<string | null>(null);
-    const [activities, setActivities] = useState<Activity[]>([]);
     
     const initialState: TaskFormState = { message: "", errors: {} };
     const [state, dispatch] = useActionState(addTask, initialState);
@@ -47,25 +42,9 @@ export function AddTaskButton({ campaigns }: { campaigns: Campaign[] }) {
                  toast({ title: "Успех", description: state.message });
                 setOpen(false);
                 formRef.current?.reset();
-                setSelectedCampaignId(null);
-                setActions([]);
-                setSelectedActionId(null);
-                setActivities([]);
             }
         }
     }, [state, toast, isPending]);
-    
-    useEffect(() => {
-        const campaign = campaigns.find(c => c.id === selectedCampaignId);
-        setActions(campaign?.actions || []);
-        setSelectedActionId(null);
-    }, [selectedCampaignId, campaigns]);
-    
-    useEffect(() => {
-        const action = actions.find(a => a.id === selectedActionId);
-        setActivities(action?.activities || []);
-    }, [selectedActionId, actions]);
-    
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -124,41 +103,6 @@ export function AddTaskButton({ campaigns }: { campaigns: Campaign[] }) {
                                 <Label htmlFor="responsiblePerson">Ответственный</Label>
                                 <Input id="responsiblePerson" name="responsiblePerson" placeholder="Иванов И.И." />
                                 {state?.errors?.responsiblePerson && <p className="text-sm text-destructive">{state.errors.responsiblePerson[0]}</p>}
-                            </div>
-                             <div className="grid gap-2">
-                                <Label>Привязка (необязательно)</Label>
-                                <div className="space-y-2 rounded-md border p-4">
-                                    <div className="grid gap-1.5">
-                                        <Label htmlFor="campaignId" className="text-xs">Кампания</Label>
-                                        <Select name="campaignId" onValueChange={setSelectedCampaignId}>
-                                            <SelectTrigger><SelectValue placeholder="Выберите кампанию" /></SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="none">Нет</SelectItem>
-                                                {campaigns.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="grid gap-1.5">
-                                        <Label htmlFor="actionId" className="text-xs">Акция</Label>
-                                        <Select name="actionId" disabled={!selectedCampaignId} onValueChange={setSelectedActionId}>
-                                            <SelectTrigger><SelectValue placeholder="Выберите акцию" /></SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="none">Нет</SelectItem>
-                                                {actions.map(a => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                     <div className="grid gap-1.5">
-                                        <Label htmlFor="activityId" className="text-xs">Активность</Label>
-                                        <Select name="activityId" disabled={!selectedActionId}>
-                                            <SelectTrigger><SelectValue placeholder="Выберите активность" /></SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="none">Нет</SelectItem>
-                                                {activities.map(a => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </ScrollArea>

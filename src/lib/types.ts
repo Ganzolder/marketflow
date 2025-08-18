@@ -248,11 +248,19 @@ export type TaskFormState = {
     status?: string[];
     deadline?: string[];
     responsiblePerson?: string[];
+  };
+};
+
+export type TaskLinkState = {
+  message: string;
+  error?: boolean;
+  errors?: {
+    taskId?: string[];
     campaignId?: string[];
     actionId?: string[];
     activityId?: string[];
   };
-};
+}
 
 export type UpcomingEvent = {
     type: 'task' | 'post';

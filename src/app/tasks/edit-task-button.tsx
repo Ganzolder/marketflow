@@ -20,16 +20,11 @@ const statusTranslations = {
   completed: "Выполнена",
 };
 
-export function EditTaskButton({ task, campaigns }: { task: Task, campaigns: Campaign[] }) {
+export function EditTaskButton({ task }: { task: Task }) {
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
     const [isPending, startTransition] = useTransition();
-
-    const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(task.campaignId || null);
-    const [actions, setActions] = useState<Action[]>([]);
-    const [selectedActionId, setSelectedActionId] = useState<string | null>(task.actionId || null);
-    const [activities, setActivities] = useState<Activity[]>([]);
     
     const initialState: TaskFormState = { message: "", errors: {} };
     const [state, dispatch] = useActionState(updateTask, initialState);
@@ -49,23 +44,6 @@ export function EditTaskButton({ task, campaigns }: { task: Task, campaigns: Cam
             }
         }
     }, [state, toast, isPending]);
-
-    useEffect(() => {
-        const campaign = campaigns.find(c => c.id === selectedCampaignId);
-        setActions(campaign?.actions || []);
-        if (!campaign?.actions.find(a => a.id === selectedActionId)) {
-            setSelectedActionId(null);
-        }
-    }, [selectedCampaignId, campaigns, selectedActionId]);
-
-    useEffect(() => {
-        const action = actions.find(a => a.id === selectedActionId);
-        setActivities(action?.activities || []);
-         if (!action?.activities.find(a => a.id === task.activityId)) {
-            // Reset if the current activity doesn't belong to the selected action
-        }
-    }, [selectedActionId, actions, task.activityId]);
-
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -121,41 +99,6 @@ export function EditTaskButton({ task, campaigns }: { task: Task, campaigns: Cam
                                 <Label htmlFor="responsiblePerson">Ответственный</Label>
                                 <Input id="responsiblePerson" name="responsiblePerson" defaultValue={task.responsiblePerson} />
                                 {state?.errors?.responsiblePerson && <p className="text-sm text-destructive">{state.errors.responsiblePerson[0]}</p>}
-                            </div>
-                             <div className="grid gap-2">
-                                <Label>Привязка (необязательно)</Label>
-                                <div className="space-y-2 rounded-md border p-4">
-                                    <div className="grid gap-1.5">
-                                        <Label htmlFor="campaignId" className="text-xs">Кампания</Label>
-                                        <Select name="campaignId" defaultValue={selectedCampaignId || "none"} onValueChange={setSelectedCampaignId}>
-                                            <SelectTrigger><SelectValue placeholder="Выберите кампанию" /></SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="none">Нет</SelectItem>
-                                                {campaigns.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="grid gap-1.5">
-                                        <Label htmlFor="actionId" className="text-xs">Акция</Label>
-                                        <Select name="actionId" disabled={!selectedCampaignId} defaultValue={selectedActionId || "none"} onValueChange={setSelectedActionId}>
-                                            <SelectTrigger><SelectValue placeholder="Выберите акцию" /></SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="none">Нет</SelectItem>
-                                                {actions.map(a => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                     <div className="grid gap-1.5">
-                                        <Label htmlFor="activityId" className="text-xs">Активность</Label>
-                                        <Select name="activityId" disabled={!selectedActionId} defaultValue={task.activityId || "none"}>
-                                            <SelectTrigger><SelectValue placeholder="Выберите активность" /></SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="none">Нет</SelectItem>
-                                                {activities.map(a => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </ScrollArea>
