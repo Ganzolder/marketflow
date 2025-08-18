@@ -93,7 +93,7 @@ const AddSocialPostToCampaignButton = ({ campaign }: { campaign: Campaign }) => 
                     Запланировать пост
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-2xl h-[90vh] flex flex-col sm:h-auto sm:max-h-[85vh]">
+            <DialogContent className="sm:max-w-2xl h-screen flex flex-col sm:h-[90vh]">
                 <DialogHeader>
                     <DialogTitle>Новый пост для кампании: {campaign.name}</DialogTitle>
                     <DialogDescription>
@@ -183,7 +183,7 @@ const AddSocialPostToCampaignButton = ({ campaign }: { campaign: Campaign }) => 
                             </div>
                         </div>
                     </ScrollArea>
-                    <DialogFooter className="border-t pt-4 mt-auto">
+                    <DialogFooter className="border-t pt-4 mt-auto shrink-0">
                         <DialogClose asChild>
                             <Button type="button" variant="outline">Отмена</Button>
                         </DialogClose>

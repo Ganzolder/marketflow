@@ -111,7 +111,7 @@ const AddSocialPostButton = ({ action, campaignId }: { action: Action, campaignI
                     Запланировать пост
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-2xl h-[90vh] flex flex-col sm:h-auto sm:max-h-[85vh]">
+            <DialogContent className="sm:max-w-2xl h-screen flex flex-col sm:h-[90vh]">
                 <DialogHeader>
                     <DialogTitle>Запланировать новый пост</DialogTitle>
                     <DialogDescription>
@@ -220,7 +220,7 @@ const AddSocialPostButton = ({ action, campaignId }: { action: Action, campaignI
                             </div>
                         </div>
                     </ScrollArea>
-                    <DialogFooter className="border-t pt-4 mt-auto">
+                    <DialogFooter className="border-t pt-4 mt-auto shrink-0">
                         <input type="hidden" name="campaignId" value={campaignId} />
                         <input type="hidden" name="actionId" value={action.id} />
                         <DialogClose asChild>
@@ -351,7 +351,7 @@ export function ActionSocialPostsPlanner({ action, campaignId, posts }: { action
                              </div>
                               <div className="flex flex-col items-end gap-2">
                                     <div className="flex items-center">
-                                       <EditSocialPostButton post={post} action={action} />
+                                       <EditSocialPostButton post={post} />
                                        <DeleteSocialPostButton postId={post.id} campaignId={campaignId} actionId={action.id} />
                                     </div>
                                </div>

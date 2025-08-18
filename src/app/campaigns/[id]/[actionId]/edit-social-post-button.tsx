@@ -140,7 +140,7 @@ export function EditSocialPostButton({ post }: { post: SocialPost }) {
                     <Edit className="h-4 w-4" />
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-2xl h-[90vh] flex flex-col sm:h-auto sm:max-h-[85vh]" onClick={stopPropagation}>
+            <DialogContent className="sm:max-w-2xl h-screen flex flex-col sm:h-[90vh]" onClick={stopPropagation}>
                 <DialogHeader>
                     <DialogTitle>Редактировать пост</DialogTitle>
                 </DialogHeader>
@@ -276,7 +276,7 @@ export function EditSocialPostButton({ post }: { post: SocialPost }) {
                             </div>
                         </div>
                     </ScrollArea>
-                    <DialogFooter className="border-t pt-4 mt-auto">
+                    <DialogFooter className="border-t pt-4 mt-auto shrink-0">
                         <input type="hidden" name="postId" value={post.id} />
                         {/* Hidden inputs to carry over actual values */}
                         <input type="hidden" name="actualReach" value={post.actualReach || 0} />
