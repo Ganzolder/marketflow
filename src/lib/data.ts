@@ -966,18 +966,22 @@ export async function deleteCampaign(campaignId: string) {
     }
 }
 
-export async function clearAllCampaigns() {
+export async function clearDatabase() {
+    const batch = writeBatch(db);
+    
+    // Delete all campaigns
     const campaignsCollection = collection(db, "campaigns");
     const campaignsSnapshot = await getDocs(campaignsCollection);
-    
-    if (campaignsSnapshot.empty) {
-        return; // Nothing to delete
+    if (!campaignsSnapshot.empty) {
+        campaignsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
     }
-
-    const batch = writeBatch(db);
-    campaignsSnapshot.docs.forEach(doc => {
-        batch.delete(doc.ref);
-    });
+    
+    // Delete all social posts
+    const postsCollection = collection(db, "socialPosts");
+    const postsSnapshot = await getDocs(postsCollection);
+    if (!postsSnapshot.empty) {
+        postsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+    }
 
     try {
         await batch.commit();
