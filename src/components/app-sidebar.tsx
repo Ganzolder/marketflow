@@ -12,7 +12,8 @@ import {
   Megaphone,
   Network,
   HardDrive,
-  Share2
+  Share2,
+  ClipboardCheck,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -31,6 +32,7 @@ const menuItems = [
   { href: '/campaigns', label: 'Кампании', icon: ListChecks },
   { href: '/actions', label: 'Акции', icon: Megaphone },
   { href: '/activities', label: 'Активности', icon: Network },
+  { href: '/tasks', label: 'Задачи', icon: ClipboardCheck },
   { href: '/smm', label: 'SMM', icon: Share2 },
   { href: '/creatives', label: 'Креативы', icon: Sparkles },
   { href: '/calculator', label: 'Калькулятор', icon: Calculator },

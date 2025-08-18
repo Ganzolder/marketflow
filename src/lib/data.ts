@@ -2,7 +2,7 @@
 
 "use server";
 
-import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction, ActionStatus, CampaignStatus, KpiMetricLog, EnrichedActivity, Resource, ResourceStatus, ExpenseStatus, SocialPost, EnrichedSocialPost } from './types';
+import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction, ActionStatus, CampaignStatus, KpiMetricLog, EnrichedActivity, Resource, ResourceStatus, ExpenseStatus, SocialPost, EnrichedSocialPost, Task, TaskStatus, EnrichedTask, UpcomingEvent } from './types';
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, addDoc, writeBatch, runTransaction, deleteDoc } from "firebase/firestore";
 
@@ -1256,7 +1256,7 @@ export async function deleteAction(campaignId: string, actionId: string) {
   }
 }
 
-export async function restoreDatabase(campaigns: Campaign[], socialPosts: SocialPost[]) {
+export async function restoreDatabase(campaigns: Campaign[], socialPosts: SocialPost[], tasks: Task[]) {
     await clearDatabase();
     
     const batch = writeBatch(db);
@@ -1271,10 +1271,113 @@ export async function restoreDatabase(campaigns: Campaign[], socialPosts: Social
         batch.set(postRef, post);
     });
 
+    tasks.forEach(task => {
+        const taskRef = doc(db, "tasks", task.id);
+        batch.set(taskRef, task);
+    });
+
     try {
         await batch.commit();
     } catch (e) {
         console.error("Batch restore failed: ", e);
         throw new Error("Failed to restore database from backup.");
     }
+}
+
+export async function getAllTasks(): Promise<EnrichedTask[]> {
+  const tasksCollection = collection(db, "tasks");
+  const tasksSnapshot = await getDocs(tasksCollection);
+  const tasks = tasksSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Task));
+  
+  if (tasks.length === 0) return [];
+  
+  const campaigns = await getCampaigns();
+  
+  return tasks.map(task => {
+      let campaignName: string | undefined;
+      let actionName: string | undefined;
+      let activityName: string | undefined;
+      
+      if (task.campaignId) {
+          const campaign = campaigns.find(c => c.id === task.campaignId);
+          campaignName = campaign?.name;
+          if (campaign && task.actionId) {
+              const action = campaign.actions.find(a => a.id === task.actionId);
+              actionName = action?.name;
+              if (action && task.activityId) {
+                  const activity = action.activities.find(act => act.id === task.activityId);
+                  activityName = activity?.name;
+              }
+          }
+      }
+      
+      return {
+          ...task,
+          campaignName,
+          actionName,
+          activityName,
+      }
+  }).sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
+}
+
+export async function addTask(data: Omit<Task, 'id' | 'createdAt' | 'isArchived'>) {
+    const newTask: Omit<Task, 'id'> = {
+        ...data,
+        createdAt: new Date().toISOString(),
+        isArchived: false,
+    };
+    await addDoc(collection(db, "tasks"), newTask);
+}
+
+export async function updateTask(taskId: string, data: Partial<Task>) {
+    const taskRef = doc(db, "tasks", taskId);
+    await updateDoc(taskRef, data);
+}
+
+export async function deleteTask(taskId: string) {
+    const taskRef = doc(db, "tasks", taskId);
+    await deleteDoc(taskRef);
+}
+
+export async function getUpcomingEvents(days: number): Promise<UpcomingEvent[]> {
+  const today = new Date();
+  const futureDate = new Date();
+  futureDate.setDate(today.getDate() + days);
+
+  const allTasks = await getAllTasks();
+  const allPosts = await getAllSocialPosts();
+
+  const upcomingTasks = allTasks
+    .filter(task => {
+      const taskDate = new Date(task.deadline);
+      return taskDate >= today && taskDate <= futureDate && !task.isArchived && task.status !== 'completed';
+    })
+    .map(task => ({
+      type: 'task' as const,
+      date: task.deadline,
+      title: task.title,
+      id: task.id,
+      status: task.status,
+      details: `Отв: ${task.responsiblePerson}`,
+      link: `/tasks`
+    }));
+
+  const upcomingPosts = allPosts
+    .filter(post => {
+      const postDate = new Date(post.publicationDate);
+      return postDate >= today && postDate <= futureDate && post.status !== 'published';
+    })
+    .map(post => ({
+      type: 'post' as const,
+      date: post.publicationDate,
+      title: post.title,
+      id: post.id,
+      status: post.status,
+      details: post.campaignName ? `Кампания: ${post.campaignName}` : 'Общий пост',
+      link: post.campaignId && post.actionId ? `/campaigns/${post.campaignId}/${post.actionId}` : (post.campaignId ? `/campaigns/${post.campaignId}` : '/smm'),
+    }));
+    
+  const allEvents = [...upcomingTasks, ...upcomingPosts];
+  
+  return allEvents.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 }

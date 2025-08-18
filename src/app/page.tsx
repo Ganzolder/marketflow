@@ -1,8 +1,10 @@
+
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
+  CardDescription
 } from "@/components/ui/card";
 import {
   Table,
@@ -15,13 +17,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import Link from 'next/link';
 import { PageHeader } from '@/components/page-header';
-import { getCampaigns, getUpcomingActions } from '@/lib/data';
-import { Activity, Landmark, Target } from "lucide-react";
+import { getCampaigns, getUpcomingEvents } from '@/lib/data';
+import { Activity, Landmark, Target, CalendarClock, Share2, ClipboardCheck } from "lucide-react";
 import { StatusBadge } from "@/components/status-badge";
+import type { UpcomingEvent } from "@/lib/types";
 
 export default async function Dashboard() {
   const campaigns = await getCampaigns();
-  const upcomingActions = await getUpcomingActions();
+  const upcomingEvents = await getUpcomingEvents(14); // Get events for the next 14 days
 
   const totalBudget = campaigns.reduce((sum, campaign) => sum + campaign.budget, 0);
   const activeCampaigns = campaigns.filter(c => c.status === 'active').length;
@@ -30,6 +33,11 @@ export default async function Dashboard() {
   const locale = 'ru-RU';
   const currencyOptions = { style: 'currency', currency: 'RUB', minimumFractionDigits: 0, maximumFractionDigits: 0 };
   const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+
+  const eventIcons: Record<UpcomingEvent['type'], React.ElementType> = {
+    task: ClipboardCheck,
+    post: Share2,
+  };
 
   return (
     <div>
@@ -109,25 +117,41 @@ export default async function Dashboard() {
         
         <Card>
           <CardHeader>
-            <CardTitle>Предстоящие акции</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+                <CalendarClock className="w-5 h-5"/>
+                Ближайшие события
+            </CardTitle>
+            <CardDescription>Задачи и посты на ближайшие 14 дней.</CardDescription>
           </CardHeader>
           <CardContent>
              <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Акция</TableHead>
-                  <TableHead className="hidden sm:table-cell">Кампания</TableHead>
-                  <TableHead>Дата</TableHead>
-                </TableRow>
-              </TableHeader>
               <TableBody>
-                {upcomingActions.slice(0, 5).map((action) => (
-                  <TableRow key={action.id}>
-                    <TableCell className="font-medium">{action.name}</TableCell>
-                    <TableCell className="hidden sm:table-cell">{action.campaignName}</TableCell>
-                    <TableCell>{new Date(action.startDate).toLocaleDateString(locale, {month: 'short', day: 'numeric'})}</TableCell>
-                  </TableRow>
-                ))}
+                {upcomingEvents.length > 0 ? upcomingEvents.map((event) => {
+                    const Icon = eventIcons[event.type];
+                    return (
+                        <TableRow key={event.id}>
+                            <TableCell className="w-12">
+                                <div className="bg-muted p-2 rounded-md flex items-center justify-center">
+                                  <Icon className="w-5 h-5 text-muted-foreground" />
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <Link href={event.link} className="font-medium hover:underline">{event.title}</Link>
+                                <div className="text-xs text-muted-foreground hidden sm:block">{event.details}</div>
+                            </TableCell>
+                            <TableCell className="text-right">
+                                <p className="font-medium text-sm">{new Date(event.date).toLocaleDateString(locale, {month: 'short', day: 'numeric'})}</p>
+                                <StatusBadge status={event.status} />
+                            </TableCell>
+                        </TableRow>
+                    )
+                }) : (
+                     <TableRow>
+                        <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                            Нет предстоящих событий.
+                        </TableCell>
+                    </TableRow>
+                )}
               </TableBody>
             </Table>
           </CardContent>

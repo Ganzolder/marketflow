@@ -124,6 +124,21 @@ export type Campaign = {
   actions: Action[];
 };
 
+export type TaskStatus = 'planned' | 'in-progress' | 'completed';
+export type Task = {
+  id: string;
+  title: string;
+  description?: string;
+  status: TaskStatus;
+  createdAt: string;
+  deadline: string;
+  responsiblePerson: string;
+  isArchived: boolean;
+  campaignId?: string;
+  actionId?: string;
+  activityId?: string;
+};
+
 export type UpcomingAction = Action & { campaignName: string, campaignId: string };
 
 export type EnrichedAction = Action & { campaignName: string, campaignId: string };
@@ -140,6 +155,12 @@ export type EnrichedSocialPost = SocialPost & {
   actionId: string;
   campaignName: string;
   campaignId: string;
+}
+
+export type EnrichedTask = Task & {
+  campaignName?: string;
+  actionName?: string;
+  activityName?: string;
 }
 
 export type ActivityFormState = {
@@ -216,4 +237,29 @@ export type SocialPostMetricsFormState = {
     actualReach?: string[];
     actualComments?: string[];
   }
+}
+
+export type TaskFormState = {
+  message: string;
+  error?: boolean;
+  errors?: {
+    title?: string[];
+    description?: string[];
+    status?: string[];
+    deadline?: string[];
+    responsiblePerson?: string[];
+    campaignId?: string[];
+    actionId?: string[];
+    activityId?: string[];
+  };
+};
+
+export type UpcomingEvent = {
+    type: 'task' | 'post';
+    date: string;
+    title: string;
+    id: string;
+    status: TaskStatus | SocialPostStatus;
+    details: string;
+    link: string;
 }
