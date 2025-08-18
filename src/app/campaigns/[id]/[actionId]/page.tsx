@@ -162,23 +162,23 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
             {(action.description || action.conditions) && <Separator className="my-6" />}
             
             <div className="space-y-4 text-sm">
-                {action.description && (
-                    <div>
-                        <h4 className="font-semibold mb-2">Описание</h4>
-                        <p className="text-muted-foreground whitespace-pre-wrap">{action.description}</p>
-                    </div>
-                )}
-                 {action.conditions && (
-                    <div className="mt-4">
-                        <div className="flex justify-between items-center mb-2">
-                            <h4 className="font-semibold">Условия акции</h4>
-                            <EditActionConditionsButton action={action} campaignId={campaign.id} />
-                        </div>
-                        <div className="p-4 bg-muted/50 rounded-lg text-muted-foreground whitespace-pre-wrap">
-                            {action.conditions}
-                        </div>
-                    </div>
-                )}
+              {action.description && (
+                  <div>
+                      <h4 className="font-semibold mb-2">Описание</h4>
+                      <p className="text-muted-foreground whitespace-pre-wrap">{action.description}</p>
+                  </div>
+              )}
+              {action.conditions && (
+                  <div className="mt-4">
+                      <div className="flex justify-between items-center mb-2">
+                          <h4 className="font-semibold">Условия акции</h4>
+                          <EditActionConditionsButton action={action} campaignId={campaign.id} />
+                      </div>
+                      <div className="p-4 bg-muted/50 rounded-lg text-muted-foreground whitespace-pre-wrap">
+                          {action.conditions}
+                      </div>
+                  </div>
+              )}
             </div>
           </CardContent>
         </Card>
