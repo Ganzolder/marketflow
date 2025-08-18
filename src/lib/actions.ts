@@ -1773,15 +1773,19 @@ const TaskSchema = z.object({
 });
 
 export async function addTask(prevState: TaskFormState, formData: FormData): Promise<TaskFormState> {
+  const campaignId = formData.get('campaignId');
+  const actionId = formData.get('actionId');
+  const activityId = formData.get('activityId');
+
   const validatedFields = TaskSchema.safeParse({
     title: formData.get('title') || '',
     description: formData.get('description') || '',
     status: formData.get('status'),
     deadline: formData.get('deadline') || new Date().toISOString().split('T')[0],
     responsiblePerson: formData.get('responsiblePerson') || '',
-    campaignId: formData.get('campaignId') === 'none' ? undefined : formData.get('campaignId'),
-    actionId: formData.get('actionId') === 'none' ? undefined : formData.get('actionId'),
-    activityId: formData.get('activityId') === 'none' ? undefined : formData.get('activityId'),
+    campaignId: campaignId === 'none' ? undefined : campaignId,
+    actionId: actionId === 'none' ? undefined : actionId,
+    activityId: activityId === 'none' ? undefined : activityId,
   });
 
   if (!validatedFields.success) {
@@ -1808,6 +1812,11 @@ export async function updateTask(prevState: TaskFormState, formData: FormData): 
   if (!taskId) {
     return { message: "ID задачи отсутствует.", error: true };
   }
+  
+  const campaignId = formData.get('campaignId');
+  const actionId = formData.get('actionId');
+  const activityId = formData.get('activityId');
+
 
   const validatedFields = TaskSchema.safeParse({
     title: formData.get('title'),
@@ -1815,9 +1824,9 @@ export async function updateTask(prevState: TaskFormState, formData: FormData): 
     status: formData.get('status'),
     deadline: formData.get('deadline'),
     responsiblePerson: formData.get('responsiblePerson'),
-    campaignId: formData.get('campaignId') === 'none' ? undefined : formData.get('campaignId'),
-    actionId: formData.get('actionId') === 'none' ? undefined : formData.get('actionId'),
-    activityId: formData.get('activityId') === 'none' ? undefined : formData.get('activityId'),
+    campaignId: campaignId === 'none' ? undefined : campaignId,
+    actionId: actionId === 'none' ? undefined : actionId,
+    activityId: activityId === 'none' ? undefined : activityId,
   });
 
   if (!validatedFields.success) {
