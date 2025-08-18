@@ -157,34 +157,25 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
                 </div>
                 <Progress value={durationProgress} className="h-2" />
             </div>
+            
+            {(action.description || action.conditions) && <Separator className="my-6" />}
 
-            {(action.description || action.conditions) && (
-              <>
-                <Separator className="my-6" />
-                <div className="space-y-4">
-                    {action.description && (
-                        <div>
-                            <h4 className="font-semibold mb-2">Описание</h4>
-                            <p className="text-muted-foreground whitespace-pre-wrap">{action.description}</p>
+            <div className="space-y-4 text-sm">
+                {action.description && (
+                    <div>
+                        <h4 className="font-semibold mb-2">Описание</h4>
+                        <p className="text-muted-foreground whitespace-pre-wrap">{action.description}</p>
+                    </div>
+                )}
+                {action.conditions && (
+                    <div>
+                        <h4 className="font-semibold mb-2">Условия акции</h4>
+                        <div className="p-4 bg-muted/50 rounded-lg text-muted-foreground whitespace-pre-wrap">
+                            {action.conditions}
                         </div>
-                    )}
-                    {action.conditions && (
-                        <Collapsible>
-                            <CollapsibleTrigger className="flex items-center gap-2 text-sm font-semibold group">
-                                <FileText className="w-4 h-4"/>
-                                Условия акции
-                                <ChevronDown className="w-4 h-4 transition-transform group-data-[state=open]:rotate-180" />
-                            </CollapsibleTrigger>
-                            <CollapsibleContent>
-                                <div className="mt-2 p-4 bg-muted/50 rounded-lg text-sm text-muted-foreground whitespace-pre-wrap">
-                                    {action.conditions}
-                                </div>
-                            </CollapsibleContent>
-                        </Collapsible>
-                    )}
-                </div>
-              </>
-            )}
+                    </div>
+                )}
+            </div>
 
           </CardContent>
         </Card>
