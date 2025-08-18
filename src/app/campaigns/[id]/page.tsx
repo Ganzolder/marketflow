@@ -13,7 +13,7 @@ import Link from 'next/link';
 import { Progress } from '@/components/ui/progress';
 import { UpdateCampaignStatus } from '../update-campaign-status';
 import { EditCampaignButton } from '../edit-campaign-button';
-import { EditActionButton } from './[actionId]/edit-action-button';
+import { EditActionButton } from './edit-action-button';
 import { CampaignSocialPostsCard } from './campaign-social-posts-card';
 import { DeleteActionButton } from './delete-action-button';
 
@@ -177,91 +177,91 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                         let durationProgress = Math.min(100, (elapsedDuration / totalDuration) * 100);
 
                         return (
-                        <Link key={action.id} href={`/campaigns/${campaign.id}/${action.id}`} className="block hover:shadow-lg transition-shadow rounded-lg">
-                            <Card className="h-full flex flex-col">
-                                <CardHeader>
-                                    <CardTitle className="text-lg flex justify-between items-start">
+                        <Card key={action.id} className="h-full flex flex-col hover:shadow-lg transition-shadow">
+                            <CardHeader>
+                                <CardTitle className="text-lg flex justify-between items-start">
+                                     <Link href={`/campaigns/${campaign.id}/${action.id}`} className="hover:underline">
                                         <span>{action.name}</span>
-                                        <div className="flex items-center gap-1">
-                                          <EditActionButton action={action} campaignId={campaign.id} />
-                                          <DeleteActionButton actionId={action.id} campaignId={campaign.id} />
-                                        </div>
-                                    </CardTitle>
-                                    <CardDescription>{action.description}</CardDescription>
-                                </CardHeader>
-                                <CardContent className="flex-1 space-y-4">
-                                    <div className="space-y-4">
-                                        {summaryKpisToShow.length > 0 && (
-                                            <div className="space-y-3">
-                                                {summaryKpisToShow.map(kpi => (
-                                                    <div key={kpi.name}>
-                                                        <div className="flex justify-between items-center text-sm mb-1">
-                                                          <span className="text-muted-foreground flex items-center"><Eye className="w-3 h-3 mr-1.5"/>{kpi.name}</span>
-                                                          <span className="font-medium">{kpi.target > 0 ? Math.round((kpi.current / kpi.target) * 100) : 0}%</span>
-                                                        </div>
-                                                        <Progress value={kpi.target > 0 ? (kpi.current / kpi.target) * 100 : 0} className="h-2" />
+                                    </Link>
+                                    <div className="flex items-center gap-1">
+                                        <EditActionButton action={action} campaignId={campaign.id} />
+                                        <DeleteActionButton actionId={action.id} campaignId={campaign.id} />
+                                    </div>
+                                </CardTitle>
+                                <CardDescription>{action.description}</CardDescription>
+                            </CardHeader>
+                            <CardContent className="flex-1 space-y-4">
+                                <div className="space-y-4">
+                                    {summaryKpisToShow.length > 0 && (
+                                        <div className="space-y-3">
+                                            {summaryKpisToShow.map(kpi => (
+                                                <div key={kpi.name}>
+                                                    <div className="flex justify-between items-center text-sm mb-1">
+                                                        <span className="text-muted-foreground flex items-center"><Eye className="w-3 h-3 mr-1.5"/>{kpi.name}</span>
+                                                        <span className="font-medium">{kpi.target > 0 ? Math.round((kpi.current / kpi.target) * 100) : 0}%</span>
                                                     </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                        
-                                        {(summaryKpisToShow.length > 0 || plannedBudget > 0 || hasRevenueData) && <Separator />}
+                                                    <Progress value={kpi.target > 0 ? (kpi.current / kpi.target) * 100 : 0} className="h-2" />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                    
+                                    {(summaryKpisToShow.length > 0 || plannedBudget > 0 || hasRevenueData) && <Separator />}
 
-                                        <div className="space-y-3">
-                                            {hasRevenueData && (
-                                                <div>
-                                                    <div className="flex justify-between items-center text-sm mb-1">
-                                                        <span className="text-muted-foreground flex items-center"><TrendingUp className="w-3 h-3 mr-1.5"/>Выручка</span>
-                                                        <span className="font-medium text-accent">
-                                                            {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualRevenue)} / <span className="text-muted-foreground">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(plannedRevenue)}</span>
-                                                        </span>
-                                                    </div>
-                                                    <Progress value={plannedRevenue > 0 ? (actualRevenue / plannedRevenue) * 100 : 0} className="h-2" indicatorClassName="bg-accent" />
-                                                </div>
-                                            )}
-                                            {hasProfitData && (
-                                                <div>
-                                                    <div className="flex justify-between items-center text-sm mb-1">
-                                                        <span className="text-muted-foreground flex items-center"><Landmark className="w-3 h-3 mr-1.5"/>Прибыль</span>
-                                                        <span className="font-medium text-accent">
-                                                            {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualProfit)} / <span className="text-muted-foreground">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(plannedProfit)}</span>
-                                                        </span>
-                                                    </div>
-                                                    <Progress value={plannedProfit > 0 ? (actualProfit / plannedProfit) * 100 : 0} className="h-2" indicatorClassName="bg-accent" />
-                                                </div>
-                                            )}
-                                            {plannedBudget > 0 && (
-                                                <div>
-                                                    <div className="flex justify-between items-center text-sm mb-1">
-                                                        <span className="text-muted-foreground flex items-center"><Landmark className="w-3 h-3 mr-1.5"/>Бюджет</span>
-                                                        <span className="font-medium">
-                                                            {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(totalSpent)} / {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(plannedBudget)}
-                                                        </span>
-                                                    </div>
-                                                    <Progress value={budgetProgress} className="h-2" indicatorClassName={budgetProgress > 100 ? 'bg-destructive' : ''} />
-                                                </div>
-                                            )}
-                                        </div>
-                                        
-                                        <Separator />
-                                        
-                                        <div className="space-y-3">
+                                    <div className="space-y-3">
+                                        {hasRevenueData && (
                                             <div>
                                                 <div className="flex justify-between items-center text-sm mb-1">
-                                                    <span className="text-muted-foreground flex items-center"><CalendarDays className="w-3 h-3 mr-1.5"/>Прогресс акции</span>
-                                                    <span className="font-medium">{Math.round(durationProgress)}%</span>
+                                                    <span className="text-muted-foreground flex items-center"><TrendingUp className="w-3 h-3 mr-1.5"/>Выручка</span>
+                                                    <span className="font-medium text-accent">
+                                                        {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualRevenue)} / <span className="text-muted-foreground">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(plannedRevenue)}</span>
+                                                    </span>
                                                 </div>
-                                                <Progress value={durationProgress} className="h-2" />
+                                                <Progress value={plannedRevenue > 0 ? (actualRevenue / plannedRevenue) * 100 : 0} className="h-2" indicatorClassName="bg-accent" />
                                             </div>
-                                            <div className="flex items-center justify-between text-sm text-muted-foreground">
-                                                <StatusBadge status={action.status} />
-                                                <span>{startDate.toLocaleDateString(locale, {month: 'short', day: 'numeric'})} - {endDate.toLocaleDateString(locale, {month: 'short', day: 'numeric'})}</span>
+                                        )}
+                                        {hasProfitData && (
+                                            <div>
+                                                <div className="flex justify-between items-center text-sm mb-1">
+                                                    <span className="text-muted-foreground flex items-center"><Landmark className="w-3 h-3 mr-1.5"/>Прибыль</span>
+                                                    <span className="font-medium text-accent">
+                                                        {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualProfit)} / <span className="text-muted-foreground">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(plannedProfit)}</span>
+                                                    </span>
+                                                </div>
+                                                <Progress value={plannedProfit > 0 ? (actualProfit / plannedProfit) * 100 : 0} className="h-2" indicatorClassName="bg-accent" />
                                             </div>
+                                        )}
+                                        {plannedBudget > 0 && (
+                                            <div>
+                                                <div className="flex justify-between items-center text-sm mb-1">
+                                                    <span className="text-muted-foreground flex items-center"><Landmark className="w-3 h-3 mr-1.5"/>Бюджет</span>
+                                                    <span className="font-medium">
+                                                        {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(totalSpent)} / {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(plannedBudget)}
+                                                    </span>
+                                                </div>
+                                                <Progress value={budgetProgress} className="h-2" indicatorClassName={budgetProgress > 100 ? 'bg-destructive' : ''} />
+                                            </div>
+                                        )}
+                                    </div>
+                                    
+                                    <Separator />
+                                    
+                                    <div className="space-y-3">
+                                        <div>
+                                            <div className="flex justify-between items-center text-sm mb-1">
+                                                <span className="text-muted-foreground flex items-center"><CalendarDays className="w-3 h-3 mr-1.5"/>Прогресс акции</span>
+                                                <span className="font-medium">{Math.round(durationProgress)}%</span>
+                                            </div>
+                                            <Progress value={durationProgress} className="h-2" />
+                                        </div>
+                                        <div className="flex items-center justify-between text-sm text-muted-foreground">
+                                            <StatusBadge status={action.status} />
+                                            <span>{startDate.toLocaleDateString(locale, {month: 'short', day: 'numeric'})} - {endDate.toLocaleDateString(locale, {month: 'short', day: 'numeric'})}</span>
                                         </div>
                                     </div>
-                                </CardContent>
-                            </Card>
-                        </Link>
+                                </div>
+                            </CardContent>
+                        </Card>
                     )})}
                 </div>
                  {filteredActions.length === 0 && (
