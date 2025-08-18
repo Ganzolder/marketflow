@@ -5,7 +5,7 @@ import { useState, useEffect, useRef, useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
-import { Loader2, FileText } from "lucide-react";
+import { Loader2, FileText, Edit } from "lucide-react";
 import { updateActionConditions, type ConditionsFormState } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import type { Action } from '@/lib/types';
@@ -26,7 +26,7 @@ function SubmitButton() {
     )
 }
 
-export function EditActionConditionsButton({ action, campaignId, asChild = false }: { action: Action, campaignId: string, asChild?: boolean }) {
+export function EditActionConditionsButton({ action, campaignId }: { action: Action, campaignId: string }) {
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
@@ -52,18 +52,14 @@ export function EditActionConditionsButton({ action, campaignId, asChild = false
             }
         }
     }, [state, toast]);
-
-    const TriggerButton = (
-        <Button variant={asChild ? "ghost" : "outline"} className={asChild ? "w-full justify-start p-2 h-auto" : ""}>
-            <FileText className="h-4 w-4 mr-2" />
-            Условия акции
-        </Button>
-    );
     
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                {TriggerButton}
+                <Button variant="ghost" size="sm">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Редактировать
+                </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[625px]">
                 <DialogHeader>

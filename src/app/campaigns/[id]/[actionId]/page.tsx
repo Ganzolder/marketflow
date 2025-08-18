@@ -5,7 +5,7 @@ import { getCampaignById, getSocialPostsForAction } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Calendar as CalendarIcon, Target, Users, Landmark, TrendingUp, CalendarDays, LocateFixed, History, Ruble, FileText, Share2, ArrowLeft, ChevronDown } from 'lucide-react';
+import { Calendar as CalendarIcon, Target, Users, Landmark, TrendingUp, CalendarDays, LocateFixed, History, Ruble, FileText, Share2, ArrowLeft, ChevronDown, Edit } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { NewActivityButton } from './new-activity-button';
 import { EditActivityButton } from './edit-activity-button';
@@ -30,6 +30,7 @@ import Link from 'next/link';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ActionResourcesCard } from './action-resources-card';
 import { ActionSocialPostsPlanner } from './action-social-posts-planner';
+import { EditActionConditionsButton } from './edit-action-conditions-button';
 
 type ActionDetailPageProps = {
     params: { id: string; actionId: string };
@@ -159,7 +160,7 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
             </div>
             
             {(action.description || action.conditions) && <Separator className="my-6" />}
-
+            
             <div className="space-y-4 text-sm">
                 {action.description && (
                     <div>
@@ -167,16 +168,18 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
                         <p className="text-muted-foreground whitespace-pre-wrap">{action.description}</p>
                     </div>
                 )}
-                {action.conditions && (
+                 {action.conditions && (
                     <div>
-                        <h4 className="font-semibold mb-2">Условия акции</h4>
+                        <div className="flex justify-between items-center mb-2">
+                            <h4 className="font-semibold">Условия акции</h4>
+                            <EditActionConditionsButton action={action} campaignId={campaign.id} />
+                        </div>
                         <div className="p-4 bg-muted/50 rounded-lg text-muted-foreground whitespace-pre-wrap">
                             {action.conditions}
                         </div>
                     </div>
                 )}
             </div>
-
           </CardContent>
         </Card>
 

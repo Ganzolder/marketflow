@@ -35,9 +35,6 @@ export function ActionPageHeaderActions({ action, campaign, socialPosts }: { act
          <DropdownMenuItem asChild>
             <EditActionResponsibilityButton action={action} campaignId={campaign.id} asChild={true} />
          </DropdownMenuItem>
-         <DropdownMenuItem asChild>
-            <EditActionConditionsButton action={action} campaignId={campaign.id} asChild={true} />
-         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <PrintReportButton action={action} campaign={campaign} />
