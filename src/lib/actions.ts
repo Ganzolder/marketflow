@@ -9,6 +9,7 @@ import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiM
 import { analyzeActionPerformance, type AnalyzeActionPerformanceOutput } from "@/ai/flows/analyze-action-performance";
 import { generatePostText, type GeneratePostTextInput } from "@/ai/flows/generate-post-text";
 import { analyzeOverallPerformance as analyzeOverallPerformanceFlow, type AnalyzeOverallPerformanceOutput } from "@/ai/flows/analyze-overall-performance";
+import { generateActionIdeas as generateActionIdeasFlow, type GenerateActionIdeasOutput } from "@/ai/flows/generate-action-ideas";
 import { addDoc, collection, doc, updateDoc, getDoc, deleteField } from "firebase/firestore";
 import { db } from "./firebase";
 import { redirect } from 'next/navigation';
@@ -1940,6 +1941,23 @@ export async function analyzeOverallPerformance(): Promise<AnalyzeOverallState> 
         return { status: 'success', analysis };
     } catch (e) {
         const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка при анализе.";
+        return { status: 'error', error: errorMessage };
+    }
+}
+
+export type GenerateActionIdeasState = {
+  status: 'idle' | 'loading' | 'success' | 'error';
+  ideas?: GenerateActionIdeasOutput;
+  error?: string;
+};
+
+export async function generateActionIdeas(campaign: Campaign): Promise<GenerateActionIdeasState> {
+    const campaignContext = JSON.stringify(campaign, null, 2);
+    try {
+        const ideas = await generateActionIdeasFlow({ campaignContext });
+        return { status: 'success', ideas };
+    } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка при генерации идей.";
         return { status: 'error', error: errorMessage };
     }
 }

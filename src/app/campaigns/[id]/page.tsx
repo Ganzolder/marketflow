@@ -16,6 +16,7 @@ import { EditCampaignButton } from '../edit-campaign-button';
 import { EditActionButton } from './edit-action-button';
 import { CampaignSocialPostsCard } from './campaign-social-posts-card';
 import { DeleteActionButton } from './delete-action-button';
+import { GenerateIdeasButton } from './generate-ideas-button';
 
 
 type CampaignDetailPageProps = {
@@ -122,7 +123,10 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
             <CardHeader>
                 <div className="flex items-center justify-between">
                     <CardTitle>Акции</CardTitle>
-                    <NewActionButton campaignId={campaign.id} />
+                    <div className="flex items-center gap-2">
+                        <GenerateIdeasButton campaign={campaign} />
+                        <NewActionButton campaignId={campaign.id} />
+                    </div>
                 </div>
                 <CardDescription>Список всех акций, связанных с этой кампанией.</CardDescription>
             </CardHeader>
