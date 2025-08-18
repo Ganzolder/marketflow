@@ -12,8 +12,9 @@ import { useToast } from '@/hooks/use-toast';
 import type { Action } from '@/lib/types';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-export function EditActionButton({ action, campaignId }: { action: Action, campaignId: string }) {
+export function EditActionButton({ action, campaignId, asChild = false }: { action: Action, campaignId: string, asChild?: boolean }) {
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
@@ -45,34 +46,20 @@ export function EditActionButton({ action, campaignId }: { action: Action, campa
             setState(result);
         });
     };
-
-    const handleButtonClick = (e: React.MouseEvent) => {
-        // Stop propagation if it's nested in a Link or another clickable element
-        e.stopPropagation();
-        e.preventDefault();
-        setOpen(true);
-    }
     
-    const stopPropagation = (e: React.MouseEvent) => e.stopPropagation();
-
     const TriggerButton = (
-        <Button 
-          variant="ghost" 
-          className="h-6 w-6"
-          size="icon"
-          onClick={handleButtonClick}
-        >
-            <Edit2 className="h-4 w-4" />
-            <span className="sr-only">Редактировать акцию</span>
+        <Button variant={asChild ? "ghost" : "outline"} className={asChild ? "w-full justify-start p-2 h-auto" : ""}>
+          <Edit className="h-4 w-4 mr-2" />
+          Редактировать
         </Button>
     );
-    
+
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 {TriggerButton}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[625px]" onClick={stopPropagation}>
+            <DialogContent className="sm:max-w-[625px]">
                 <DialogHeader>
                     <DialogTitle>Редактировать акцию</DialogTitle>
                     <DialogDescription>
@@ -99,7 +86,7 @@ export function EditActionButton({ action, campaignId }: { action: Action, campa
                                  <Input id="target-audience" name="target-audience" placeholder="например, Студенты... (необязательно)" defaultValue={action.targetAudience}/>
                                  {state?.errors?.targetAudience && <p className="text-sm text-destructive">{state.errors.targetAudience[0]}</p>}
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div className="grid gap-2">
                                     <Label htmlFor="start-date">Дата начала</Label>
                                     <Input id="start-date" name="start-date" type="date" defaultValue={action.startDate} />
@@ -109,6 +96,20 @@ export function EditActionButton({ action, campaignId }: { action: Action, campa
                                     <Label htmlFor="end-date">Дата окончания</Label>
                                     <Input id="end-date" name="end-date" type="date" defaultValue={action.endDate} />
                                     {state?.errors?.endDate && <p className="text-sm text-destructive">{state.errors.endDate[0]}</p>}
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="status">Статус</Label>
+                                    <Select name="status" defaultValue={action.status}>
+                                        <SelectTrigger id="status">
+                                            <SelectValue placeholder="Выберите статус" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="planned">Запланирована</SelectItem>
+                                            <SelectItem value="in-progress">В процессе</SelectItem>
+                                            <SelectItem value="completed">Завершена</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    {state?.errors?.status && <p className="text-sm text-destructive">{state.errors.status[0]}</p>}
                                 </div>
                             </div>
                         </div>
