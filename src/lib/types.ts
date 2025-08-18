@@ -108,7 +108,6 @@ export type Action = {
   curator?: string;
   salesHead?: string;
   resources?: Resource[];
-  socialPosts?: SocialPost[];
 };
 
 export type CampaignStatus = 'active' | 'planned' | 'completed' | 'paused' | 'archived';

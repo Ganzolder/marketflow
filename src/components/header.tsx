@@ -13,6 +13,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import { DatabaseActions } from './database-actions';
 
 export function Header() {
     return (
@@ -32,6 +33,9 @@ export function Header() {
                         <DropdownMenuLabel>Мой аккаунт</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem>Настройки</DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                           <DatabaseActions />
+                        </DropdownMenuItem>
                         <DropdownMenuItem>Поддержка</DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem>Выйти</DropdownMenuItem>

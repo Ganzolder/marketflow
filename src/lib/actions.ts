@@ -3,7 +3,7 @@
 "use server";
 
 import { z } from "zod";
-import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData, updateExpenseStatus as updateExpenseStatusData, getSocialPostById, deleteSocialPost as deleteSocialPostData, getSocialPostsForAction, clearDatabase as clearDatabaseData, deleteAction as deleteActionData } from "./data";
+import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData, updateExpenseStatus as updateExpenseStatusData, getSocialPostById, deleteSocialPost as deleteSocialPostData, getSocialPostsForAction, clearDatabase as clearDatabaseData, deleteAction as deleteActionData, getCampaigns, getAllSocialPosts, restoreDatabase } from "./data";
 import { revalidatePath } from "next/cache";
 import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog, Campaign, ResponsibilityFormState, Resource, ResourceStatus, ResourceStatusFormState, ExpenseStatus, ExpenseStatusFormState, SocialPost, SocialPlatform, SocialPostStatus, SocialPostMetricsFormState, AiSocialPost } from "./types";
 import { analyzeActionPerformance, type AnalyzeActionPerformanceOutput } from "@/ai/flows/analyze-action-performance";
@@ -11,6 +11,7 @@ import { generatePostText, type GeneratePostTextInput } from "@/ai/flows/generat
 import { addDoc, collection, doc, updateDoc, getDoc, deleteField } from "firebase/firestore";
 import { db } from "./firebase";
 import { redirect } from 'next/navigation';
+import * as XLSX from 'xlsx';
 
 const ActionSchema = z.object({
   name: z.string().min(3, { message: "Название акции должно содержать не менее 3 символов." }),
@@ -1627,4 +1628,127 @@ export async function deleteAction(
       error: true,
     };
   }
+}
+
+// --- Database Import/Export ---
+type ExportState = {
+    error?: string;
+    buffer?: number[];
+}
+
+export async function exportDatabase(): Promise<ExportState> {
+    try {
+        const campaigns = await getCampaigns();
+        const posts = await getAllSocialPosts();
+
+        const wb = XLSX.utils.book_new();
+
+        // Flatten data
+        const flatCampaigns: any[] = [];
+        const flatActions: any[] = [];
+        const flatActivities: any[] = [];
+        const flatKpis: any[] = [];
+        const flatExpenses: any[] = [];
+        const flatResources: any[] = [];
+        
+        campaigns.forEach(c => {
+            const { actions, ...campaignRest } = c;
+            flatCampaigns.push(campaignRest);
+
+            (actions || []).forEach(a => {
+                const { activities, generalExpenses, resources, ...actionRest } = a;
+                flatActions.push({ ...actionRest, campaignId: c.id });
+
+                (activities || []).forEach(act => {
+                    const { kpis, expenses, ...activityRest } = act;
+                    flatActivities.push({ ...activityRest, actionId: a.id, campaignId: c.id });
+
+                    (kpis || []).forEach(kpi => {
+                        const { metrics, ...kpiRest } = kpi;
+                        flatKpis.push({ ...kpiRest, activityId: act.id, metricsJson: JSON.stringify(metrics) });
+                    });
+
+                    (expenses || []).forEach(exp => {
+                        flatExpenses.push({ ...exp, parentId: act.id, parentType: 'activity' });
+                    });
+                });
+                
+                (generalExpenses || []).forEach(exp => {
+                    flatExpenses.push({ ...exp, parentId: a.id, parentType: 'action' });
+                });
+
+                 (resources || []).forEach(res => {
+                    flatResources.push({ ...res, actionId: a.id });
+                });
+            });
+        });
+
+        const wsCampaigns = XLSX.utils.json_to_sheet(flatCampaigns);
+        const wsActions = XLSX.utils.json_to_sheet(flatActions);
+        const wsActivities = XLSX.utils.json_to_sheet(flatActivities);
+        const wsKpis = XLSX.utils.json_to_sheet(flatKpis);
+        const wsExpenses = XLSX.utils.json_to_sheet(flatExpenses);
+        const wsResources = XLSX.utils.json_to_sheet(flatResources);
+        const wsPosts = XLSX.utils.json_to_sheet(posts);
+
+        XLSX.utils.book_append_sheet(wb, wsCampaigns, "Campaigns");
+        XLSX.utils.book_append_sheet(wb, wsActions, "Actions");
+        XLSX.utils.book_append_sheet(wb, wsActivities, "Activities");
+        XLSX.utils.book_append_sheet(wb, wsKpis, "KPIs");
+        XLSX.utils.book_append_sheet(wb, wsExpenses, "Expenses");
+        XLSX.utils.book_append_sheet(wb, wsResources, "Resources");
+        XLSX.utils.book_append_sheet(wb, wsPosts, "SocialPosts");
+
+        const buffer = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
+
+        return { buffer: Array.from(buffer) };
+
+    } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+        return { error: `Не удалось экспортировать базу данных: ${errorMessage}` };
+    }
+}
+
+type ImportState = {
+    message: string;
+    error?: boolean;
+}
+
+export async function importDatabase(data: Uint8Array): Promise<ImportState> {
+    try {
+        const workbook = XLSX.read(data, { type: 'array' });
+        
+        const campaigns = XLSX.utils.sheet_to_json<any>(workbook.Sheets['Campaigns'] || {});
+        const actions = XLSX.utils.sheet_to_json<any>(workbook.Sheets['Actions'] || {});
+        const activities = XLSX.utils.sheet_to_json<any>(workbook.Sheets['Activities'] || {});
+        const kpis = XLSX.utils.sheet_to_json<any>(workbook.Sheets['KPIs'] || {});
+        const expenses = XLSX.utils.sheet_to_json<any>(workbook.Sheets['Expenses'] || {});
+        const resources = XLSX.utils.sheet_to_json<any>(workbook.Sheets['Resources'] || {});
+        const socialPosts = XLSX.utils.sheet_to_json<SocialPost>(workbook.Sheets['SocialPosts'] || {});
+        
+        // Reconstruct the nested structure
+        const reconstructedCampaigns = campaigns.map(c => {
+            const campaignActions = actions.filter(a => a.campaignId === c.id).map(a => {
+                const actionActivities = activities.filter(act => act.actionId === a.id).map(act => {
+                    const activityKpis = kpis.filter(k => k.activityId === act.id).map(k => {
+                        return { ...k, metrics: JSON.parse(k.metricsJson || '[]') };
+                    });
+                    const activityExpenses = expenses.filter(e => e.parentId === act.id && e.parentType === 'activity');
+                    return { ...act, kpis: activityKpis, expenses: activityExpenses };
+                });
+                const actionExpenses = expenses.filter(e => e.parentId === a.id && e.parentType === 'action');
+                const actionResources = resources.filter(r => r.actionId === a.id);
+                return { ...a, activities: actionActivities, generalExpenses: actionExpenses, resources: actionResources };
+            });
+            return { ...c, actions: campaignActions };
+        });
+        
+        await restoreDatabase(reconstructedCampaigns, socialPosts);
+
+        revalidatePath('/'); // Revalidate all paths
+        return { message: "База данных успешно импортирована." };
+    } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+        return { message: `Ошибка импорта: ${errorMessage}`, error: true };
+    }
 }
