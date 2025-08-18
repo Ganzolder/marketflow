@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useEffect, useRef, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -17,7 +16,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 export function EditActionButton({ action, campaignId }: { action: Action, campaignId: string }) {
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
-    const router = useRouter();
     const formRef = useRef<HTMLFormElement>(null);
     const [isPending, startTransition] = useTransition();
     const [state, setState] = useState<ActionFormState | null>(null);
@@ -37,10 +35,9 @@ export function EditActionButton({ action, campaignId }: { action: Action, campa
                     description: state.message,
                 });
                 setOpen(false);
-                router.refresh(); 
             }
         }
-    }, [state, toast, router]);
+    }, [state, toast]);
 
     const handleFormAction = (formData: FormData) => {
         startTransition(async () => {
