@@ -3,7 +3,7 @@
 "use server";
 
 import { z } from "zod";
-import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData, updateExpenseStatus as updateExpenseStatusData, getSocialPostById, deleteSocialPost as deleteSocialPostData, getSocialPostsForAction, clearDatabase as clearDatabaseData } from "./data";
+import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData, updateExpenseStatus as updateExpenseStatusData, getSocialPostById, deleteSocialPost as deleteSocialPostData, getSocialPostsForAction, clearDatabase as clearDatabaseData, deleteAction as deleteActionData } from "./data";
 import { revalidatePath } from "next/cache";
 import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog, Campaign, ResponsibilityFormState, Resource, ResourceStatus, ResourceStatusFormState, ExpenseStatus, ExpenseStatusFormState, SocialPost, SocialPlatform, SocialPostStatus, SocialPostMetricsFormState, AiSocialPost } from "./types";
 import { analyzeActionPerformance, type AnalyzeActionPerformanceOutput } from "@/ai/flows/analyze-action-performance";
@@ -90,7 +90,7 @@ export async function addActionToCampaign(
 }
 
 export async function editActionInCampaign(
-  prevState: ActionFormState | null,
+  prevState: ActionFormState,
   formData: FormData
 ): Promise<ActionFormState> {
   
@@ -1590,4 +1590,41 @@ export async function generatePostTextAction(input: GeneratePostTextInput): Prom
         const errorMessage = e instanceof Error ? e.message : "Неизвестная ошибка ИИ.";
         return { message: `Ошибка генерации: ${errorMessage}` };
     }
+}
+
+const DeleteActionSchema = z.object({
+  campaignId: z.string(),
+  actionId: z.string(),
+});
+
+export async function deleteAction(
+  prevState: DeleteFormState,
+  formData: FormData
+): Promise<DeleteFormState> {
+  const validatedFields = DeleteActionSchema.safeParse({
+    campaignId: formData.get("campaignId"),
+    actionId: formData.get("actionId"),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      message: "Отсутствуют необходимые ID.",
+      error: true,
+    };
+  }
+
+  const { campaignId, actionId } = validatedFields.data;
+
+  try {
+    await deleteActionData(campaignId, actionId);
+    revalidatePath(`/campaigns/${campaignId}`);
+    revalidatePath('/actions');
+    return { message: "Акция успешно удалена." };
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+    return {
+      message: `Не удалось удалить акцию: ${errorMessage}`,
+      error: true,
+    };
+  }
 }

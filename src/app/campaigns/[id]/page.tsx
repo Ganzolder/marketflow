@@ -15,6 +15,7 @@ import { UpdateCampaignStatus } from '../update-campaign-status';
 import { EditCampaignButton } from '../edit-campaign-button';
 import { EditActionButton } from './[actionId]/edit-action-button';
 import { CampaignSocialPostsCard } from './campaign-social-posts-card';
+import { DeleteActionButton } from './delete-action-button';
 
 
 type CampaignDetailPageProps = {
@@ -181,7 +182,10 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                                 <CardHeader>
                                     <CardTitle className="text-lg flex justify-between items-start">
                                         <span>{action.name}</span>
-                                        <EditActionButton action={action} campaignId={campaign.id} />
+                                        <div className="flex items-center gap-1">
+                                          <EditActionButton action={action} campaignId={campaign.id} />
+                                          <DeleteActionButton actionId={action.id} campaignId={campaign.id} />
+                                        </div>
                                     </CardTitle>
                                     <CardDescription>{action.description}</CardDescription>
                                 </CardHeader>

@@ -1048,6 +1048,7 @@ export async function deleteKpiMetric(campaignId: string, actionId: string, acti
     }
 }
 
+
 export async function updateActionResponsibility(campaignId: string, actionId: string, data: Partial<Pick<Action, 'responsiblePerson' | 'marketingHead' | 'financeHead' | 'itHead' | 'curator' | 'salesHead'>>) {
     const campaignRef = doc(db, 'campaigns', campaignId);
     try {
@@ -1231,4 +1232,26 @@ export async function updateExpenseStatus(campaignId: string, actionId: string, 
         console.error("Update expense status transaction failed:", e);
         throw e;
     }
+}
+
+export async function deleteAction(campaignId: string, actionId: string) {
+  const campaignRef = doc(db, "campaigns", campaignId);
+  try {
+    await runTransaction(db, async (transaction) => {
+      const campaignDoc = await transaction.get(campaignRef);
+      if (!campaignDoc.exists()) {
+        throw new Error("Campaign document does not exist!");
+      }
+
+      const campaignData = campaignDoc.data() as Campaign;
+      const updatedActions = campaignData.actions.filter(
+        (a) => a.id !== actionId
+      );
+
+      transaction.update(campaignRef, { actions: updatedActions });
+    });
+  } catch (e) {
+    console.error("Transaction failed: ", e);
+    throw new Error("Failed to delete action.");
+  }
 }
