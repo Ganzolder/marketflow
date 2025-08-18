@@ -27,10 +27,9 @@ import { ActionPageHeaderActions } from './action-page-header-actions';
 import { ActionResponsibilityCard } from './action-responsibility-card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ActionResourcesCard } from './action-resources-card';
 import { ActionSocialPostsPlanner } from './action-social-posts-planner';
-import { EditActionConditionsButton } from './edit-action-conditions-button';
+import { ActionConditionsCard } from './action-conditions-card';
 
 type ActionDetailPageProps = {
     params: { id: string; actionId: string };
@@ -159,31 +158,23 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
                 <Progress value={durationProgress} className="h-2" />
             </div>
             
-            {(action.description || action.conditions) && <Separator className="my-6" />}
-            
-            <div className="space-y-4 text-sm">
-              {action.description && (
+            {action.description && (
+              <>
+                <Separator className="my-6" />
+                <div className="space-y-4 text-sm">
                   <div>
                       <h4 className="font-semibold mb-2">Описание</h4>
                       <p className="text-muted-foreground whitespace-pre-wrap">{action.description}</p>
                   </div>
-              )}
-              {action.conditions && (
-                  <div className="mt-4">
-                      <div className="flex justify-between items-center mb-2">
-                          <h4 className="font-semibold">Условия акции</h4>
-                          <EditActionConditionsButton action={action} campaignId={campaign.id} />
-                      </div>
-                      <div className="p-4 bg-muted/50 rounded-lg text-muted-foreground whitespace-pre-wrap">
-                          {action.conditions}
-                      </div>
-                  </div>
-              )}
-            </div>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
 
         <ActionResponsibilityCard action={action} campaignId={campaign.id} />
+        
+        <ActionConditionsCard action={action} campaignId={campaign.id} />
         
         <ActionEffectivenessCard action={action} campaignId={campaign.id} locale={locale} currencyOptions={currencyOptions} totalSpent={totalSpent} />
         
