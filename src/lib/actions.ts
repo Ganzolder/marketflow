@@ -8,7 +8,7 @@ import { revalidatePath } from "next/cache";
 import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog, Campaign, ResponsibilityFormState, Resource, ResourceStatus, ResourceStatusFormState, ExpenseStatus, ExpenseStatusFormState, SocialPost, SocialPlatform, SocialPostStatus, SocialPostMetricsFormState, AiSocialPost, Task, EnrichedTask, TaskFormState, TaskLinkState } from "./types";
 import { analyzeActionPerformance, type AnalyzeActionPerformanceOutput } from "@/ai/flows/analyze-action-performance";
 import { generatePostText, type GeneratePostTextInput } from "@/ai/flows/generate-post-text";
-import { analyzeOverallPerformance, type AnalyzeOverallPerformanceOutput } from "@/ai/flows/analyze-overall-performance";
+import { analyzeOverallPerformance as analyzeOverallPerformanceFlow, type AnalyzeOverallPerformanceOutput } from "@/ai/flows/analyze-overall-performance";
 import { addDoc, collection, doc, updateDoc, getDoc, deleteField } from "firebase/firestore";
 import { db } from "./firebase";
 import { redirect } from 'next/navigation';
@@ -1743,11 +1743,11 @@ const TaskSchema = z.object({
 
 export async function addTask(prevState: TaskFormState, formData: FormData): Promise<TaskFormState> {
     const validatedFields = TaskSchema.safeParse({
-        title: formData.get('title') || '',
-        description: formData.get('description') || '',
+        title: formData.get('title') || undefined,
+        description: formData.get('description') || undefined,
         status: formData.get('status'),
-        deadline: formData.get('deadline') || new Date().toISOString().split('T')[0],
-        responsiblePerson: formData.get('responsiblePerson') || '',
+        deadline: formData.get('deadline') || undefined,
+        responsiblePerson: formData.get('responsiblePerson') || undefined,
     });
 
     if (!validatedFields.success) {
@@ -1819,9 +1819,9 @@ export async function updateTaskLinks(prevState: TaskLinkState, formData: FormDa
   
   const processedData = {
       taskId: rawData.taskId,
-      campaignId: rawData.campaignId === 'none' ? undefined : rawData.campaignId,
-      actionId: rawData.actionId === 'none' ? undefined : rawData.actionId,
-      activityId: rawData.activityId === 'none' ? undefined : rawData.activityId,
+      campaignId: rawData.campaignId === 'none' ? null : rawData.campaignId,
+      actionId: rawData.actionId === 'none' ? null : rawData.actionId,
+      activityId: rawData.activityId === 'none' ? null : rawData.activityId,
   };
 
   const validatedFields = TaskLinkSchema.safeParse(processedData);
@@ -1930,10 +1930,11 @@ export type AnalyzeOverallState = {
   error?: string;
 };
 
-export async function analyzeOverallPerformance(
-    data: { campaigns: Campaign[]; tasks: Task[]; posts: SocialPost[] }
-): Promise<AnalyzeOverallState> {
-    const allDataContext = JSON.stringify(data, null, 2);
+export async function analyzeOverallPerformance(): Promise<AnalyzeOverallState> {
+    const campaigns = await getCampaigns();
+    const tasks = await getAllTasks();
+    const posts = await getAllSocialPosts();
+    const allDataContext = JSON.stringify({ campaigns, tasks, posts }, null, 2);
     try {
         const analysis = await analyzeOverallPerformanceFlow({ allDataContext });
         return { status: 'success', analysis };

@@ -26,8 +26,6 @@ import { OverallAiAnalyzerButton } from "./overall-ai-analyzer-button";
 
 export default async function Dashboard() {
   const campaigns = await getCampaigns();
-  const allTasks = await getAllTasks();
-  const allPosts = await getAllSocialPosts();
   const upcomingEvents = await getUpcomingEvents(14); // Get events for the next 14 days
 
   const totalBudget = campaigns.reduce((sum, campaign) => sum + campaign.budget, 0);
@@ -74,7 +72,7 @@ export default async function Dashboard() {
   return (
     <div>
       <PageHeader title="Панель управления" description="Обзор ваших маркетинговых кампаний.">
-        <OverallAiAnalyzerButton campaigns={campaigns} tasks={allTasks} posts={allPosts} />
+        <OverallAiAnalyzerButton />
       </PageHeader>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
