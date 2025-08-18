@@ -19,7 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from 'next/link';
 import { PageHeader } from '@/components/page-header';
 import { getCampaigns, getUpcomingEvents } from '@/lib/data';
-import { Activity, Landmark, Target, CalendarClock, Share2, ClipboardCheck } from "lucide-react";
+import { Activity, Landmark, Target, CalendarClock, Share2, ClipboardCheck, TrendingUp, PiggyBank, BarChart } from "lucide-react";
 import { StatusBadge } from "@/components/status-badge";
 import type { UpcomingEvent } from "@/lib/types";
 
@@ -30,6 +30,30 @@ export default async function Dashboard() {
   const totalBudget = campaigns.reduce((sum, campaign) => sum + campaign.budget, 0);
   const activeCampaigns = campaigns.filter(c => c.status === 'active').length;
   const completedActions = campaigns.flatMap(c => c.actions).filter(a => a.status === 'completed').length;
+  
+  let totalSpent = 0;
+  let totalRevenue = 0;
+
+  campaigns.forEach(campaign => {
+    (campaign.actions || []).forEach(action => {
+      const actionSpent = (action.activities?.reduce((sum, activity) => sum + activity.spent, 0) || 0) + (action.generalExpenses?.reduce((sum, expense) => sum + expense.amount, 0) || 0);
+      totalSpent += actionSpent;
+      
+      const salesKpiName = "Продажи";
+      let actualSales = 0;
+      action.activities?.forEach(activity => {
+          activity.kpis?.forEach(kpi => {
+              if (kpi.name === salesKpiName) {
+                  actualSales += kpi.current;
+              }
+          });
+      });
+      const actualRevenue = actualSales * (action.actualAverageCheck || 0);
+      totalRevenue += actualRevenue;
+    });
+  });
+
+  const totalProfit = totalRevenue - totalSpent;
   
   const locale = 'ru-RU';
   const currencyOptions = { style: 'currency', currency: 'RUB', minimumFractionDigits: 0, maximumFractionDigits: 0 };
@@ -63,18 +87,6 @@ export default async function Dashboard() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Общий бюджет</CardTitle>
-            <Landmark className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{new Intl.NumberFormat(locale, currencyOptions).format(totalBudget)}</div>
-            <p className="text-xs text-muted-foreground">
-              По всем кампаниям
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Завершенные акции</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -82,6 +94,54 @@ export default async function Dashboard() {
             <div className="text-2xl font-bold">+{completedActions}</div>
             <p className="text-xs text-muted-foreground">
               За все время
+            </p>
+          </CardContent>
+        </Card>
+         <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Общий бюджет</CardTitle>
+            <Landmark className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{new Intl.NumberFormat(locale, currencyOptions).format(totalBudget)}</div>
+            <p className="text-xs text-muted-foreground">
+              Запланировано по всем кампаниям
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Всего потрачено</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{new Intl.NumberFormat(locale, currencyOptions).format(totalSpent)}</div>
+             <p className="text-xs text-muted-foreground">
+              Фактические расходы по всем акциям
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Общая выручка</CardTitle>
+            <BarChart className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-accent">{new Intl.NumberFormat(locale, currencyOptions).format(totalRevenue)}</div>
+             <p className="text-xs text-muted-foreground">
+              На основе фактических продаж
+            </p>
+          </CardContent>
+        </Card>
+         <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Общая прибыль</CardTitle>
+            <PiggyBank className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className={`text-2xl font-bold ${totalProfit >= 0 ? 'text-accent' : 'text-destructive'}`}>{new Intl.NumberFormat(locale, currencyOptions).format(totalProfit)}</div>
+            <p className="text-xs text-muted-foreground">
+              Выручка минус затраты
             </p>
           </CardContent>
         </Card>
