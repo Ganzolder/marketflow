@@ -1,7 +1,7 @@
 
 
 import { PageHeader } from "@/components/page-header";
-import { getAllSocialPosts } from "@/lib/data";
+import { getAllSocialPosts, getCampaigns } from "@/lib/data";
 import { SmmPlanner } from "./smm-planner";
 import { AddSmmPostButton } from "./add-smm-post-button";
 
@@ -10,12 +10,15 @@ type SmmPageProps = {
         status?: 'draft' | 'ready' | 'published';
         startDate?: string;
         endDate?: string;
+        campaignId?: string;
+        actionId?: string;
     }
 }
 
 export default async function SmmPage({ searchParams: searchParamsPromise }: SmmPageProps) {
   const searchParams = await searchParamsPromise;
   const allPosts = await getAllSocialPosts();
+  const allCampaigns = await getCampaigns();
   
   const filteredPosts = allPosts.filter(post => {
       if (searchParams.status && post.status !== searchParams.status) {
@@ -31,6 +34,12 @@ export default async function SmmPage({ searchParams: searchParamsPromise }: Smm
           const filterDate = new Date(searchParams.endDate);
           if (postDate > filterDate) return false;
       }
+      if (searchParams.campaignId && post.campaignId !== searchParams.campaignId) {
+          return false;
+      }
+      if (searchParams.actionId && post.actionId !== searchParams.actionId) {
+        return false;
+      }
       return true;
   });
 
@@ -42,7 +51,7 @@ export default async function SmmPage({ searchParams: searchParamsPromise }: Smm
       >
         <AddSmmPostButton />
       </PageHeader>
-      <SmmPlanner posts={filteredPosts} />
+      <SmmPlanner posts={filteredPosts} campaigns={allCampaigns} />
     </div>
   );
 }

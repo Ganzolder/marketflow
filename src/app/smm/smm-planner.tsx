@@ -3,20 +3,21 @@
 "use client";
 
 import * as React from 'react';
-import type { EnrichedSocialPost, SocialPost, SocialPostStatus, SocialPlatform } from "@/lib/types";
+import type { EnrichedSocialPost, SocialPost, SocialPostStatus, SocialPlatform, Campaign, Action } from "@/lib/types";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useCallback } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { EditSocialPostButton } from '../campaigns/[id]/[actionId]/edit-social-post-button';
 import { PublicationCalendar } from './publication-calendar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CheckCircle2, MinusCircle } from 'lucide-react';
+import { CheckCircle2, MinusCircle, Trash2 } from 'lucide-react';
+import { DeleteSocialPostButton } from '../campaigns/[id]/[actionId]/delete-social-post-button';
 
 const statusTranslations: Record<SocialPostStatus, string> = {
   draft: "Черновик",
@@ -31,29 +32,53 @@ const statusStyles: Record<SocialPostStatus, string> = {
 };
 
 
-function Filters() {
+function Filters({ campaigns }: { campaigns: Campaign[] }) {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
     
+    const [actionsForCampaign, setActionsForCampaign] = useState<Action[]>([]);
+    
+    const selectedCampaignId = searchParams.get('campaignId') || 'all';
+
+    useEffect(() => {
+        const campaign = campaigns.find(c => c.id === selectedCampaignId);
+        setActionsForCampaign(campaign?.actions || []);
+    }, [selectedCampaignId, campaigns]);
+    
     const createQueryString = useCallback(
-        (name: string, value: string) => {
+        (updates: { name: string; value: string }[]) => {
             const params = new URLSearchParams(searchParams.toString());
-            if (value === 'all' || !value) {
-                params.delete(name);
-            } else {
-                params.set(name, value);
-            }
+            updates.forEach(({ name, value }) => {
+                if (value === 'all' || !value) {
+                    params.delete(name);
+                } else {
+                    params.set(name, value);
+                }
+            });
             return params.toString();
         },
         [searchParams]
     );
     
+    const handleCampaignChange = (campaignId: string) => {
+        const newQueryString = createQueryString([
+            { name: 'campaignId', value: campaignId },
+            { name: 'actionId', value: 'all' } // Reset action when campaign changes
+        ]);
+        router.push(`${pathname}?${newQueryString}`);
+    }
+    
+    const handleActionChange = (actionId: string) => {
+        const newQueryString = createQueryString([{ name: 'actionId', value: actionId }]);
+        router.push(`${pathname}?${newQueryString}`);
+    }
+
     const handleStatusChange = (status: string) => {
-        router.push(pathname + '?' + createQueryString('status', status));
+        router.push(pathname + '?' + createQueryString([{name: 'status', value: status}]));
     }
      const handleDateChange = (name: 'startDate' | 'endDate', value: string) => {
-        router.push(pathname + '?' + createQueryString(name, value));
+        router.push(pathname + '?' + createQueryString([{name, value}]));
     }
 
     return (
@@ -61,7 +86,7 @@ function Filters() {
             <CardHeader>
                 <CardTitle>Фильтры</CardTitle>
             </CardHeader>
-            <CardContent className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <CardContent className="grid sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="grid gap-2">
                     <Label htmlFor="status">Статус</Label>
                     <Select onValueChange={handleStatusChange} defaultValue={searchParams.get('status') || 'all'}>
@@ -85,6 +110,40 @@ function Filters() {
                  <div className="grid gap-2">
                     <Label htmlFor="endDate">Дата публикации до</Label>
                     <Input id="endDate" type="date" defaultValue={searchParams.get('endDate') || ''} onChange={e => handleDateChange('endDate', e.target.value)} />
+                </div>
+                <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                        <Label>Кампания</Label>
+                        <Select onValueChange={handleCampaignChange} value={selectedCampaignId}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Все кампании" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Все кампании</SelectItem>
+                                {campaigns.map((campaign) => (
+                                <SelectItem key={campaign.id} value={campaign.id}>
+                                    {campaign.name}
+                                </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="grid gap-2">
+                        <Label>Акция</Label>
+                        <Select onValueChange={handleActionChange} value={searchParams.get('actionId') || 'all'} disabled={selectedCampaignId === 'all'}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Все акции" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Все акции</SelectItem>
+                                {actionsForCampaign.map((action) => (
+                                <SelectItem key={action.id} value={action.id}>
+                                    {action.name}
+                                </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
             </CardContent>
         </Card>
@@ -157,12 +216,12 @@ const PublicationMatrix = ({ posts }: { posts: SocialPost[] }) => {
 };
 
 
-export function SmmPlanner({ posts }: { posts: EnrichedSocialPost[] }) {
+export function SmmPlanner({ posts, campaigns }: { posts: EnrichedSocialPost[], campaigns: Campaign[] }) {
     const locale = 'ru-RU';
 
     return (
         <div>
-            <Filters />
+            <Filters campaigns={campaigns} />
 
             <div className="mb-8">
               <PublicationCalendar posts={posts} />
@@ -203,9 +262,12 @@ export function SmmPlanner({ posts }: { posts: EnrichedSocialPost[] }) {
                              </div>
                             </div>
                             <div className="flex flex-col items-end gap-2">
-                                <EditSocialPostButton 
-                                    post={post}
-                                />
+                                <div className="flex items-center">
+                                    <EditSocialPostButton 
+                                        post={post}
+                                    />
+                                    <DeleteSocialPostButton postId={post.id} campaignId={post.campaignId || ''} actionId={post.actionId || ''} />
+                                </div>
                             </div>
                         </CardHeader>
                         <CardContent className="p-4">
