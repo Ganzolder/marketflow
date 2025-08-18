@@ -151,7 +151,7 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
             
             <Separator className="my-6" />
 
-             <div>
+            <div>
                 <div className="flex justify-between items-center text-sm mb-1">
                     <span className="text-muted-foreground flex items-center"><CalendarDays className="w-4 h-4 mr-1.5"/>Прогресс акции</span>
                     <span className="font-medium">{Math.round(durationProgress)}%</span>
@@ -169,7 +169,7 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
                     </div>
                 )}
                  {action.conditions && (
-                    <div>
+                    <div className="mt-4">
                         <div className="flex justify-between items-center mb-2">
                             <h4 className="font-semibold">Условия акции</h4>
                             <EditActionConditionsButton action={action} campaignId={campaign.id} />
