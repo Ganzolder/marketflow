@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useActionState, useTransition } from 'react';
@@ -17,11 +18,11 @@ export function TaskLinkControl({ task, campaigns }: { task: Task, campaigns: Ca
     const [open, setOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
 
-    const [selectedCampaignId, setSelectedCampaignId] = useState<string>(task.campaignId || 'none');
+    const [selectedCampaignId, setSelectedCampaignId] = useState<string>(task.campaignId || '');
     const [actions, setActions] = useState<Action[]>([]);
-    const [selectedActionId, setSelectedActionId] = useState<string>(task.actionId || 'none');
+    const [selectedActionId, setSelectedActionId] = useState<string>(task.actionId || '');
     const [activities, setActivities] = useState<Activity[]>([]);
-    const [selectedActivityId, setSelectedActivityId] = useState<string>(task.activityId || 'none');
+    const [selectedActivityId, setSelectedActivityId] = useState<string>(task.activityId || '');
     
     const initialState: TaskLinkState = { message: "", errors: {} };
     const [state, dispatch] = useActionState(updateTaskLinks, initialState);
@@ -46,7 +47,7 @@ export function TaskLinkControl({ task, campaigns }: { task: Task, campaigns: Ca
         const campaign = campaigns.find(c => c.id === selectedCampaignId);
         setActions(campaign?.actions || []);
         if (campaign?.actions?.every(a => a.id !== selectedActionId)) {
-            setSelectedActionId('none');
+            setSelectedActionId('');
         }
     }, [selectedCampaignId, campaigns, selectedActionId]);
 
@@ -54,7 +55,7 @@ export function TaskLinkControl({ task, campaigns }: { task: Task, campaigns: Ca
         const action = actions.find(a => a.id === selectedActionId);
         setActivities(action?.activities || []);
         if (action?.activities?.every(a => a.id !== selectedActivityId)) {
-            setSelectedActivityId('none');
+            setSelectedActivityId('');
         }
     }, [selectedActionId, actions, selectedActivityId]);
 
@@ -105,7 +106,7 @@ export function TaskLinkControl({ task, campaigns }: { task: Task, campaigns: Ca
                                     <Select name="campaignId" value={selectedCampaignId} onValueChange={setSelectedCampaignId}>
                                         <SelectTrigger><SelectValue placeholder="Выберите кампанию" /></SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="none">Нет</SelectItem>
+                                            <SelectItem value="">Нет</SelectItem>
                                             {campaigns.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                                         </SelectContent>
                                     </Select>
@@ -115,7 +116,7 @@ export function TaskLinkControl({ task, campaigns }: { task: Task, campaigns: Ca
                                     <Select name="actionId" value={selectedActionId} onValueChange={setSelectedActionId} disabled={!actions.length}>
                                         <SelectTrigger><SelectValue placeholder="Выберите акцию" /></SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="none">Нет</SelectItem>
+                                            <SelectItem value="">Нет</SelectItem>
                                             {actions.map(a => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
                                         </SelectContent>
                                     </Select>
@@ -125,7 +126,7 @@ export function TaskLinkControl({ task, campaigns }: { task: Task, campaigns: Ca
                                     <Select name="activityId" value={selectedActivityId} onValueChange={setSelectedActivityId} disabled={!activities.length}>
                                         <SelectTrigger><SelectValue placeholder="Выберите активность" /></SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="none">Нет</SelectItem>
+                                            <SelectItem value="">Нет</SelectItem>
                                             {activities.map(a => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
                                         </SelectContent>
                                     </Select>

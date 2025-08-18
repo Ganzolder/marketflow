@@ -1770,31 +1770,31 @@ const TaskSchema = z.object({
 });
 
 export async function addTask(prevState: TaskFormState, formData: FormData): Promise<TaskFormState> {
-  const validatedFields = TaskSchema.safeParse({
-    title: formData.get('title') || '',
-    description: formData.get('description') || '',
-    status: formData.get('status'),
-    deadline: formData.get('deadline') || new Date().toISOString().split('T')[0],
-    responsiblePerson: formData.get('responsiblePerson') || '',
-  });
+    const validatedFields = TaskSchema.safeParse({
+        title: formData.get('title') || '',
+        description: formData.get('description') || '',
+        status: formData.get('status'),
+        deadline: formData.get('deadline') || new Date().toISOString().split('T')[0],
+        responsiblePerson: formData.get('responsiblePerson') || '',
+    });
 
-  if (!validatedFields.success) {
-    return {
-      message: "Ошибка валидации. Не удалось создать задачу.",
-      errors: validatedFields.error.flatten().fieldErrors,
-      error: true,
-    };
-  }
+    if (!validatedFields.success) {
+        return {
+            message: "Ошибка валидации. Не удалось создать задачу.",
+            errors: validatedFields.error.flatten().fieldErrors,
+            error: true,
+        };
+    }
 
-  try {
-    await addTaskData(validatedFields.data as Omit<Task, 'id' | 'createdAt' | 'isArchived'>);
-    revalidatePath('/tasks');
-    revalidatePath('/');
-    return { message: "Задача успешно создана." };
-  } catch (e) {
-    const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
-    return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
-  }
+    try {
+        await addTaskData(validatedFields.data as Omit<Task, 'id' | 'createdAt' | 'isArchived'>);
+        revalidatePath('/tasks');
+        revalidatePath('/');
+        return { message: "Задача успешно создана." };
+    } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+        return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
+    }
 }
 
 export async function updateTask(prevState: TaskFormState, formData: FormData): Promise<TaskFormState> {
@@ -1804,11 +1804,11 @@ export async function updateTask(prevState: TaskFormState, formData: FormData): 
   }
 
   const validatedFields = TaskSchema.safeParse({
-    title: formData.get('title'),
-    description: formData.get('description'),
+    title: formData.get('title') || undefined,
+    description: formData.get('description') || undefined,
     status: formData.get('status'),
-    deadline: formData.get('deadline'),
-    responsiblePerson: formData.get('responsiblePerson'),
+    deadline: formData.get('deadline') || undefined,
+    responsiblePerson: formData.get('responsiblePerson') || undefined,
   });
 
   if (!validatedFields.success) {
@@ -1832,9 +1832,9 @@ export async function updateTask(prevState: TaskFormState, formData: FormData): 
 
 const TaskLinkSchema = z.object({
   taskId: z.string(),
-  campaignId: z.string().optional(),
-  actionId: z.string().optional(),
-  activityId: z.string().optional(),
+  campaignId: z.string().optional().nullable(),
+  actionId: z.string().optional().nullable(),
+  activityId: z.string().optional().nullable(),
 });
 
 export async function updateTaskLinks(prevState: TaskLinkState, formData: FormData): Promise<TaskLinkState> {
@@ -1847,27 +1847,33 @@ export async function updateTaskLinks(prevState: TaskLinkState, formData: FormDa
   
   const processedData = {
       taskId: rawData.taskId,
-      campaignId: rawData.campaignId === 'none' ? undefined : rawData.campaignId,
-      actionId: rawData.actionId === 'none' ? undefined : rawData.actionId,
-      activityId: rawData.activityId === 'none' ? undefined : rawData.activityId,
+      campaignId: rawData.campaignId === '' ? undefined : rawData.campaignId,
+      actionId: rawData.actionId === '' ? undefined : rawData.actionId,
+      activityId: rawData.activityId === '' ? undefined : rawData.activityId,
   };
 
   const validatedFields = TaskLinkSchema.safeParse(processedData);
 
   if (!validatedFields.success) {
+    console.log(validatedFields.error.flatten())
     return {
       message: "Ошибка валидации.",
       errors: validatedFields.error.flatten().fieldErrors,
       error: true,
     };
   }
+  
+  const { taskId, ...links } = validatedFields.data;
 
   try {
-    await updateTaskData(validatedFields.data.taskId, {
-      campaignId: validatedFields.data.campaignId,
-      actionId: validatedFields.data.actionId,
-      activityId: validatedFields.data.activityId,
-    });
+    const dataToUpdate: {[key: string]: any} = {};
+
+    dataToUpdate.campaignId = links.campaignId || deleteField();
+    dataToUpdate.actionId = links.actionId || deleteField();
+    dataToUpdate.activityId = links.activityId || deleteField();
+
+    await updateTaskData(taskId, dataToUpdate);
+
     revalidatePath('/tasks');
     revalidatePath('/');
     return { message: "Привязка задачи успешно обновлена." };
