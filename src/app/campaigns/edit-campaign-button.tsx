@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useRef, useTransition } from 'react';
+import { useState, useEffect, useRef, useTransition, useActionState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
@@ -21,7 +21,9 @@ export function EditCampaignButton({ campaign, asIcon = false }: { campaign: Cam
     const router = useRouter();
     const formRef = useRef<HTMLFormElement>(null);
     const [isPending, startTransition] = useTransition();
-    const [state, setState] = useState<CampaignFormState | null>(null);
+    
+    const initialState: CampaignFormState = { message: "", errors: {}, fields: {} };
+    const [state, formAction] = useActionState(editCampaign, initialState);
 
     useEffect(() => {
         if (state?.message) {
@@ -42,15 +44,13 @@ export function EditCampaignButton({ campaign, asIcon = false }: { campaign: Cam
             }
         }
     }, [state, toast, router]);
+    
+    const stopPropagation = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      setOpen(true);
+    }
 
-    const handleFormAction = (formData: FormData) => {
-        startTransition(async () => {
-            const result = await editCampaign(null, formData);
-            setState(result);
-        });
-    };
-
-    const stopPropagation = (e: React.MouseEvent) => e.stopPropagation();
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -61,14 +61,14 @@ export function EditCampaignButton({ campaign, asIcon = false }: { campaign: Cam
                         <span className="sr-only">Редактировать кампанию</span>
                     </Button>
                 ) : (
-                    <Button variant="outline">
+                    <Button variant="outline" onClick={stopPropagation}>
                         <Edit className="mr-2 h-4 w-4" />
                         Редактировать кампанию
                     </Button>
                 )}
             </DialogTrigger>
             <DialogContent className="sm:max-w-[625px]">
-                 <form action={handleFormAction} ref={formRef}>
+                 <form action={formAction} ref={formRef}>
                     <DialogHeader>
                         <DialogTitle>Редактировать кампанию</DialogTitle>
                         <DialogDescription>

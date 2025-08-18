@@ -250,6 +250,3 @@ export default async function CampaignsPage({ searchParams: searchParamsPromise 
     </div>
   );
 }
-
-
-

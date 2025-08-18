@@ -1,11 +1,11 @@
 
 "use client";
 
+import { useState } from 'react';
 import { useTransition } from 'react';
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -20,6 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 
 export function DeleteCampaignButton({ campaignId, asIcon = false }: { campaignId: string, asIcon?: boolean }) {
+    const [open, setOpen] = useState(false);
     const { toast } = useToast();
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
@@ -41,27 +42,38 @@ export function DeleteCampaignButton({ campaignId, asIcon = false }: { campaignI
                     title: "Успех",
                     description: "Кампания успешно удалена.",
                 });
+                setOpen(false);
                 router.push('/campaigns');
             }
         })
     };
+    
+    const stopPropagation = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        e.preventDefault();
+    }
+    
+    const handleTriggerClick = (e: React.MouseEvent) => {
+        stopPropagation(e);
+        setOpen(true);
+    }
 
     return (
-        <AlertDialog>
+        <AlertDialog open={open} onOpenChange={setOpen}>
             <AlertDialogTrigger asChild>
                 {asIcon ? (
-                     <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                     <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={handleTriggerClick}>
                         <Trash2 className="h-4 w-4" />
                         <span className="sr-only">Удалить кампанию</span>
                     </Button>
                 ) : (
-                    <Button type="button" variant="destructive" className="mr-auto">
+                    <Button type="button" variant="destructive" className="mr-auto" onClick={handleTriggerClick}>
                         <Trash2 className="mr-2 h-4 w-4" />
                         Удалить
                     </Button>
                 )}
             </AlertDialogTrigger>
-            <AlertDialogContent>
+            <AlertDialogContent onClick={stopPropagation}>
                 <AlertDialogHeader>
                     <AlertDialogTitle>Вы уверены?</AlertDialogTitle>
                     <AlertDialogDescription>
@@ -87,5 +99,3 @@ export function DeleteCampaignButton({ campaignId, asIcon = false }: { campaignI
         </AlertDialog>
     );
 }
-
-    

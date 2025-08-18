@@ -836,7 +836,7 @@ export type CampaignFormState = {
   fields?: Record<string, any>;
 }
 
-export async function createCampaign(prevState: CampaignFormState, formData: FormData): Promise<CampaignFormState> {
+export async function createCampaign(formData: FormData): Promise<CampaignFormState> {
     const rawFormData = {
         name: formData.get('name'),
         description: formData.get('description'),
@@ -845,6 +845,14 @@ export async function createCampaign(prevState: CampaignFormState, formData: For
         endDate: formData.get('endDate'),
     };
     
+    if (!rawFormData.name || !rawFormData.description || !rawFormData.budget || !rawFormData.startDate || !rawFormData.endDate) {
+        return {
+            message: "Все поля обязательны для заполнения.",
+            error: true,
+            fields: rawFormData,
+        };
+    }
+
     const validatedFields = CampaignSchema.safeParse(rawFormData);
 
     if (!validatedFields.success) {
@@ -928,7 +936,7 @@ export async function deleteCampaign(formData: FormData): Promise<DeleteFormStat
     }
     
     revalidatePath('/campaigns');
-    redirect('/campaigns');
+    return { message: "Кампания успешно удалена." };
 }
 
 // --- KPI Metric Log Actions ---
@@ -1572,5 +1580,3 @@ export async function generatePostTextAction(input: GeneratePostTextInput): Prom
         return { message: `Ошибка генерации: ${errorMessage}` };
     }
 }
-
-    
