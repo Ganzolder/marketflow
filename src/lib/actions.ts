@@ -10,6 +10,7 @@ import { analyzeActionPerformance, type AnalyzeActionPerformanceOutput } from "@
 import { generatePostText, type GeneratePostTextInput } from "@/ai/flows/generate-post-text";
 import { addDoc, collection, doc, updateDoc, getDoc, deleteField } from "firebase/firestore";
 import { db } from "./firebase";
+import { redirect } from 'next/navigation';
 
 const ActionSchema = z.object({
   name: z.string().min(3, { message: "Название акции должно содержать не менее 3 символов." }),
@@ -836,6 +837,10 @@ export type CampaignFormState = {
 }
 
 export async function createCampaign(formData: FormData): Promise<CampaignFormState> {
+    if (!formData) {
+        return { message: "Не предоставлены данные формы.", error: true };
+    }
+    
     const rawFormData = {
         name: formData.get('name'),
         description: formData.get('description'),
@@ -1464,17 +1469,17 @@ export async function updateSocialPost(prevState: SocialPostFormState, formData:
     revalidatePath(`/smm`);
     if (postData.campaignId && postData.actionId) {
       revalidatePath(`/campaigns/${postData.campaignId}/${postData.actionId}`);
+    } else if (postData.campaignId) {
+        revalidatePath(`/campaigns/${postData.campaignId}`);
     }
     return { message: "Пост успешно обновлен." };
 }
 
-export async function deleteSocialPostFromAction(prevState: DeleteFormState, formData: FormData): Promise<DeleteFormState> {
+export async function deleteSocialPost(formData: FormData): Promise<DeleteFormState> {
     const postId = formData.get('postId') as string;
-    const campaignId = formData.get('campaignId') as string;
-    const actionId = formData.get('actionId') as string;
-
+    
     if (!postId) {
-        return { message: "Отсутствуют необходимые идентификаторы.", error: true };
+        return { message: "Отсутствует ID поста.", error: true };
     }
 
     try {
@@ -1485,9 +1490,7 @@ export async function deleteSocialPostFromAction(prevState: DeleteFormState, for
     }
 
     revalidatePath('/smm');
-    if (campaignId && actionId) {
-      revalidatePath(`/campaigns/${campaignId}/${actionId}`);
-    }
+    revalidatePath('/campaigns'); // Revalidate all campaign pages just in case
     return { message: "Пост успешно удален." };
 }
 

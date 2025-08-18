@@ -1,7 +1,8 @@
 
 "use client";
 
-import { useState, useEffect, useActionState } from 'react';
+import { useState, useTransition, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
 import { Button } from "@/components/ui/button";
 import {
@@ -15,7 +16,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Loader2, Trash2 } from "lucide-react";
-import { deleteSocialPostFromAction, type DeleteFormState } from '@/lib/actions';
+import { deleteSocialPost, type DeleteFormState } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 
 function SubmitButton() {
@@ -35,27 +36,31 @@ function SubmitButton() {
 export function DeleteSocialPostButton({ postId, campaignId, actionId }: { postId: string, campaignId: string, actionId: string }) {
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
+    const router = useRouter();
+    const [isPending, startTransition] = useTransition();
     
-    const initialState: DeleteFormState = { message: "", error: false };
-    const [state, dispatch] = useActionState(deleteSocialPostFromAction, initialState);
-
-    useEffect(() => {
-        if (state.message) {
-            if (state.error) {
+    const handleDelete = async () => {
+        const formData = new FormData();
+        formData.append('postId', postId);
+        
+        startTransition(async () => {
+            const result = await deleteSocialPost(formData);
+            if (result?.error) {
                 toast({
                     variant: "destructive",
                     title: "Ошибка",
-                    description: state.message,
+                    description: result.message,
                 });
             } else {
                  toast({
                     title: "Успех",
-                    description: state.message,
+                    description: result.message,
                 });
                 setOpen(false);
+                router.refresh();
             }
-        }
-    }, [state, toast]);
+        });
+    };
 
     const stopPropagation = (e: React.MouseEvent) => e.stopPropagation();
 
@@ -74,15 +79,21 @@ export function DeleteSocialPostButton({ postId, campaignId, actionId }: { postI
                         Это действие нельзя отменить. Запись о посте будет безвозвратно удалена.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
-                <form action={dispatch}>
-                    <input type="hidden" name="campaignId" value={campaignId} />
-                    <input type="hidden" name="actionId" value={actionId} />
-                    <input type="hidden" name="postId" value={postId} />
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Отмена</AlertDialogCancel>
-                        <SubmitButton />
-                    </AlertDialogFooter>
-                </form>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Отмена</AlertDialogCancel>
+                    <Button
+                        variant="destructive"
+                        onClick={handleDelete}
+                        disabled={isPending}
+                    >
+                        {isPending ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Удаление...
+                            </>
+                        ) : "Удалить"}
+                    </Button>
+                </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
     );
