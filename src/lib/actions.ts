@@ -3,10 +3,9 @@
 "use server";
 
 import { z } from "zod";
-import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData, updateExpenseStatus as updateExpenseStatusData, getSocialPostById, deleteSocialPost as deleteSocialPostData, getSocialPostsForAction } from "./data";
+import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData, updateExpenseStatus as updateExpenseStatusData, getSocialPostById, deleteSocialPost as deleteSocialPostData, getSocialPostsForAction, clearAllCampaigns } from "./data";
 import { revalidatePath } from "next/cache";
 import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog, Campaign, ResponsibilityFormState, Resource, ResourceStatus, ResourceStatusFormState, ExpenseStatus, ExpenseStatusFormState, SocialPost, SocialPlatform, SocialPostStatus, SocialPostMetricsFormState, AiSocialPost } from "./types";
-import { redirect } from "next/navigation";
 import { analyzeActionPerformance, type AnalyzeActionPerformanceOutput } from "@/ai/flows/analyze-action-performance";
 import { generatePostText, type GeneratePostTextInput } from "@/ai/flows/generate-post-text";
 import { addDoc, collection, doc, updateDoc, getDoc, deleteField } from "firebase/firestore";
@@ -845,20 +844,11 @@ export async function createCampaign(formData: FormData): Promise<CampaignFormSt
         endDate: formData.get('endDate'),
     };
     
-    if (!rawFormData.name || !rawFormData.description || !rawFormData.budget || !rawFormData.startDate || !rawFormData.endDate) {
-        return {
-            message: "Все поля обязательны для заполнения.",
-            error: true,
-            fields: rawFormData,
-        };
-    }
-
     const validatedFields = CampaignSchema.safeParse(rawFormData);
 
     if (!validatedFields.success) {
-        const errorMessages = Object.values(validatedFields.error.flatten().fieldErrors).flat().join("\n");
         return {
-            message: `Ошибка валидации: ${errorMessages}`,
+            message: "Ошибка валидации.",
             error: true,
             errors: validatedFields.error.flatten().fieldErrors,
             fields: rawFormData,
@@ -936,7 +926,23 @@ export async function deleteCampaign(formData: FormData): Promise<DeleteFormStat
     }
     
     revalidatePath('/campaigns');
+    revalidatePath('/database');
     return { message: "Кампания успешно удалена." };
+}
+
+export async function clearDatabase(): Promise<DeleteFormState> {
+    try {
+        await clearAllCampaigns();
+    } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+        return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
+    }
+    
+    revalidatePath('/database');
+    revalidatePath('/campaigns');
+    revalidatePath('/actions');
+    revalidatePath('/activities');
+    return { message: "База данных успешно очищена." };
 }
 
 // --- KPI Metric Log Actions ---

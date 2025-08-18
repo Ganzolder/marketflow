@@ -16,11 +16,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { StatusBadge } from "@/components/status-badge";
-import { ArrowRight, Calendar, Landmark, Target } from "lucide-react";
+import { ArrowRight, Calendar, Target } from "lucide-react";
 import type { Action, Activity, Campaign } from "@/lib/types";
 import { UpdateCampaignStatus } from "../campaigns/update-campaign-status";
+import { ClearDatabaseButton } from "./clear-database-button";
+import { DeleteCampaignButton } from "./delete-campaign-button";
 
 
 const DataItem = ({ label, value, children }: { label: string, value?: string | React.ReactNode, children?: React.ReactNode }) => (
@@ -81,7 +82,9 @@ export default async function DatabasePage() {
       <PageHeader
         title="База данных"
         description="Визуальное представление всех кампаний и их вложенных сущностей для просмотра и отладки."
-      />
+      >
+        <ClearDatabaseButton />
+      </PageHeader>
       <Accordion type="single" collapsible className="w-full">
         {campaigns.map((campaign) => (
           <AccordionItem value={campaign.id} key={campaign.id}>
@@ -93,8 +96,9 @@ export default async function DatabasePage() {
             <AccordionContent>
                 <div className="space-y-6 pl-2">
                     <Card className="bg-muted/30">
-                        <CardHeader>
+                        <CardHeader className="flex flex-row items-center justify-between">
                             <CardTitle className="text-base">Информация о кампании</CardTitle>
+                            <DeleteCampaignButton campaignId={campaign.id} />
                         </CardHeader>
                         <CardContent className="space-y-1">
                             <DataItem label="ID" value={<Badge variant="secondary" className="font-mono">{campaign.id}</Badge>} />

@@ -5,7 +5,6 @@
 import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction, ActionStatus, CampaignStatus, KpiMetricLog, EnrichedActivity, Resource, ResourceStatus, ExpenseStatus, SocialPost, EnrichedSocialPost } from './types';
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, addDoc, writeBatch, runTransaction, deleteDoc } from "firebase/firestore";
-import { Combobox } from '@/components/ui/combobox';
 
 // Helper function to seed the database with initial data if it's empty
 async function seedDatabase() {
@@ -964,6 +963,27 @@ export async function deleteCampaign(campaignId: string) {
     } catch (e) {
         console.error("Delete campaign failed: ", e);
         throw e;
+    }
+}
+
+export async function clearAllCampaigns() {
+    const campaignsCollection = collection(db, "campaigns");
+    const campaignsSnapshot = await getDocs(campaignsCollection);
+    
+    if (campaignsSnapshot.empty) {
+        return; // Nothing to delete
+    }
+
+    const batch = writeBatch(db);
+    campaignsSnapshot.docs.forEach(doc => {
+        batch.delete(doc.ref);
+    });
+
+    try {
+        await batch.commit();
+    } catch (e) {
+        console.error("Batch deletion failed: ", e);
+        throw new Error("Failed to clear database.");
     }
 }
 
