@@ -45,7 +45,8 @@ function TasksLoadingSkeleton() {
   );
 }
 
-export default async function TasksPage({ searchParams }: TasksPageProps) {
+export default async function TasksPage({ searchParams: searchParamsProp }: TasksPageProps) {
+  const searchParams = await searchParamsProp;
   const allTasks = await getAllTasks();
   const allCampaigns = await getCampaigns();
   
