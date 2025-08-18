@@ -55,24 +55,35 @@ export function EditActionButton({ action, campaignId }: { action: Action, campa
             }
         }
     }, [state, toast]);
-
-    const handleButtonClick = (e: React.MouseEvent) => {
+    
+    const stopPropagation = (e: React.MouseEvent) => {
         e.stopPropagation();
         e.preventDefault();
         setOpen(true);
-    }
+    };
     
-    const stopPropagation = (e: React.MouseEvent) => e.stopPropagation();
+    const handleOpenChange = (isOpen: boolean) => {
+        if (!isOpen) {
+            // A slight delay to allow closing animation before state reset
+             setTimeout(() => {
+                if (state.message) {
+                   dispatch({ message: "", errors: {} });
+                }
+            }, 150);
+        }
+        setOpen(isOpen);
+    }
+
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleButtonClick}>
+                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={stopPropagation}>
                     <Edit2 className="h-4 w-4" />
                     <span className="sr-only">Редактировать акцию</span>
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[625px]" onClick={stopPropagation}>
+            <DialogContent className="sm:max-w-[625px]" onClick={(e) => e.stopPropagation()}>
                 <DialogHeader>
                     <DialogTitle>Редактировать акцию</DialogTitle>
                     <DialogDescription>

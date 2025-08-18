@@ -72,15 +72,10 @@ export function DeleteActionButton({
   };
   
   const handleOpenChange = (isOpen: boolean) => {
-    // Reset state when dialog is closed
     if (!isOpen) {
-        // A slight delay to allow closing animation before state reset
         setTimeout(() => {
-            // This is a bit of a hack to reset the action state.
-            // A more robust solution would involve a dedicated reset action type in the reducer.
             if (state.message) {
-              // This condition prevents resetting on initial mount
-               dispatch(new FormData()); 
+                dispatch({ message: "", error: false }); 
             }
         }, 150);
     }
