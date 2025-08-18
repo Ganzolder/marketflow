@@ -1255,3 +1255,26 @@ export async function deleteAction(campaignId: string, actionId: string) {
     throw new Error("Failed to delete action.");
   }
 }
+
+export async function restoreDatabase(campaigns: Campaign[], socialPosts: SocialPost[]) {
+    await clearDatabase();
+    
+    const batch = writeBatch(db);
+
+    campaigns.forEach(campaign => {
+        const campaignRef = doc(db, "campaigns", campaign.id);
+        batch.set(campaignRef, campaign);
+    });
+    
+    socialPosts.forEach(post => {
+        const postRef = doc(db, "socialPosts", post.id);
+        batch.set(postRef, post);
+    });
+
+    try {
+        await batch.commit();
+    } catch (e) {
+        console.error("Batch restore failed: ", e);
+        throw new Error("Failed to restore database from backup.");
+    }
+}
