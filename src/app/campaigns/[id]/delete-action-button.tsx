@@ -76,7 +76,12 @@ export function DeleteActionButton({
     if (!isOpen) {
         // A slight delay to allow closing animation before state reset
         setTimeout(() => {
-            dispatch({type: 'reset'}); // Assuming you have a way to reset state, if not, create a new initial state
+            // This is a bit of a hack to reset the action state.
+            // A more robust solution would involve a dedicated reset action type in the reducer.
+            if (state.message) {
+              // This condition prevents resetting on initial mount
+               dispatch(new FormData()); 
+            }
         }, 150);
     }
     setOpen(isOpen);
