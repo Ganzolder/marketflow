@@ -172,9 +172,9 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
           </CardContent>
         </Card>
 
-        <ActionResponsibilityCard action={action} campaignId={campaign.id} />
-        
         <ActionConditionsCard action={action} campaignId={campaign.id} />
+
+        <ActionResponsibilityCard action={action} campaignId={campaign.id} />
         
         <ActionEffectivenessCard action={action} campaignId={campaign.id} locale={locale} currencyOptions={currencyOptions} totalSpent={totalSpent} />
         
