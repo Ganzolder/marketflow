@@ -18,13 +18,16 @@ import {
 import { Badge } from "@/components/ui/badge";
 import Link from 'next/link';
 import { PageHeader } from '@/components/page-header';
-import { getCampaigns, getUpcomingEvents } from '@/lib/data';
-import { Activity, Landmark, Target, CalendarClock, Share2, ClipboardCheck, TrendingUp, PiggyBank, BarChart } from "lucide-react";
+import { getCampaigns, getUpcomingEvents, getAllTasks, getAllSocialPosts } from '@/lib/data';
+import { Activity, Landmark, Target, CalendarClock, Share2, ClipboardCheck, TrendingUp, PiggyBank, BarChart, Wand2 } from "lucide-react";
 import { StatusBadge } from "@/components/status-badge";
 import type { UpcomingEvent } from "@/lib/types";
+import { OverallAiAnalyzerButton } from "./overall-ai-analyzer-button";
 
 export default async function Dashboard() {
   const campaigns = await getCampaigns();
+  const allTasks = await getAllTasks();
+  const allPosts = await getAllSocialPosts();
   const upcomingEvents = await getUpcomingEvents(14); // Get events for the next 14 days
 
   const totalBudget = campaigns.reduce((sum, campaign) => sum + campaign.budget, 0);
@@ -70,7 +73,9 @@ export default async function Dashboard() {
 
   return (
     <div>
-      <PageHeader title="Панель управления" description="Обзор ваших маркетинговых кампаний." />
+      <PageHeader title="Панель управления" description="Обзор ваших маркетинговых кампаний.">
+        <OverallAiAnalyzerButton campaigns={campaigns} tasks={allTasks} posts={allPosts} />
+      </PageHeader>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
         <Card>

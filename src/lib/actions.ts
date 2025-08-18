@@ -5,9 +5,10 @@
 import { z } from "zod";
 import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData, updateExpenseStatus as updateExpenseStatusData, getSocialPostById, deleteSocialPost as deleteSocialPostData, getSocialPostsForAction, clearDatabase as clearDatabaseData, deleteAction as deleteActionData, getCampaigns, getAllSocialPosts, restoreDatabase, getAllTasks, addTask as addTaskData, updateTask as updateTaskData, deleteTask as deleteTaskData } from "./data";
 import { revalidatePath } from "next/cache";
-import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog, Campaign, ResponsibilityFormState, Resource, ResourceStatus, ResourceStatusFormState, ExpenseStatus, ExpenseStatusFormState, SocialPost, SocialPlatform, SocialPostStatus, SocialPostMetricsFormState, AiSocialPost, TaskFormState, Task, TaskLinkState } from "./types";
+import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog, Campaign, ResponsibilityFormState, Resource, ResourceStatus, ResourceStatusFormState, ExpenseStatus, ExpenseStatusFormState, SocialPost, SocialPlatform, SocialPostStatus, SocialPostMetricsFormState, AiSocialPost, Task, EnrichedTask, TaskFormState, TaskLinkState } from "./types";
 import { analyzeActionPerformance, type AnalyzeActionPerformanceOutput } from "@/ai/flows/analyze-action-performance";
 import { generatePostText, type GeneratePostTextInput } from "@/ai/flows/generate-post-text";
+import { analyzeOverallPerformance, type AnalyzeOverallPerformanceOutput } from "@/ai/flows/analyze-overall-performance";
 import { addDoc, collection, doc, updateDoc, getDoc, deleteField } from "firebase/firestore";
 import { db } from "./firebase";
 import { redirect } from 'next/navigation';
@@ -1896,5 +1897,48 @@ export async function restoreTask(formData: FormData): Promise<DeleteFormState> 
     } catch(e) {
         const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
         return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
+    }
+}
+
+
+// AI Actions
+export type AnalyzeActionState = {
+  status: 'idle' | 'loading' | 'success' | 'error';
+  analysis?: AnalyzeActionPerformanceOutput;
+  error?: string;
+};
+
+export async function analyzeAction(
+    action: Action,
+    campaign: Campaign,
+    socialPosts: AiSocialPost[]
+): Promise<AnalyzeActionState> {
+    const actionContext = JSON.stringify({ action, campaign, socialPosts }, null, 2);
+    try {
+        const analysis = await analyzeActionPerformance({ actionContext });
+        return { status: 'success', analysis };
+    } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка при анализе.";
+        return { status: 'error', error: errorMessage };
+    }
+}
+
+
+export type AnalyzeOverallState = {
+  status: 'idle' | 'loading' | 'success' | 'error';
+  analysis?: AnalyzeOverallPerformanceOutput;
+  error?: string;
+};
+
+export async function analyzeOverallPerformance(
+    data: { campaigns: Campaign[]; tasks: Task[]; posts: SocialPost[] }
+): Promise<AnalyzeOverallState> {
+    const allDataContext = JSON.stringify(data, null, 2);
+    try {
+        const analysis = await analyzeOverallPerformanceFlow({ allDataContext });
+        return { status: 'success', analysis };
+    } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка при анализе.";
+        return { status: 'error', error: errorMessage };
     }
 }
