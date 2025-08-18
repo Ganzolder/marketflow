@@ -1026,35 +1026,6 @@ export async function deleteKpiMetric(prevState: DeleteFormState, formData: Form
 }
 
 
-// --- AI Analyzer Action ---
-export type AnalyzeActionState = 
-    | { status: 'idle' }
-    | { status: 'loading' }
-    | { status: 'success'; analysis: AnalyzeActionPerformanceOutput }
-    | { status: 'error'; error: string };
-
-export async function analyzeAction(action: Action, campaign: Campaign, socialPosts: AiSocialPost[]): Promise<AnalyzeActionState> {
-    const actionContext = {
-        campaignName: campaign.name,
-        campaignBudget: campaign.budget,
-        campaignStartDate: campaign.startDate,
-        campaignEndDate: campaign.endDate,
-        ...action,
-        socialPosts: socialPosts,
-    };
-
-    try {
-        const analysis = await analyzeActionPerformance({
-            actionContext: JSON.stringify(actionContext, null, 2),
-        });
-        return { status: 'success', analysis };
-    } catch(e) {
-        console.error("AI Analysis failed:", e);
-        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка при анализе.";
-        return { status: 'error', error: errorMessage };
-    }
-}
-
 // --- Responsibility Actions ---
 const ResponsibilitySchema = z.object({
   campaignId: z.string(),
@@ -1847,9 +1818,9 @@ export async function updateTaskLinks(prevState: TaskLinkState, formData: FormDa
   
   const processedData = {
       taskId: rawData.taskId,
-      campaignId: rawData.campaignId === '' ? undefined : rawData.campaignId,
-      actionId: rawData.actionId === '' ? undefined : rawData.actionId,
-      activityId: rawData.activityId === '' ? undefined : rawData.activityId,
+      campaignId: rawData.campaignId === 'none' ? undefined : rawData.campaignId,
+      actionId: rawData.actionId === 'none' ? undefined : rawData.actionId,
+      activityId: rawData.activityId === 'none' ? undefined : rawData.activityId,
   };
 
   const validatedFields = TaskLinkSchema.safeParse(processedData);
