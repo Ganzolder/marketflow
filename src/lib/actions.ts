@@ -1641,6 +1641,7 @@ export async function exportDatabase(): Promise<ExportState> {
     try {
         const campaigns = await getCampaigns();
         const posts = await getAllSocialPosts();
+        const tasks = await getAllTasks();
 
         const wb = XLSX.utils.book_new();
 
@@ -1691,6 +1692,8 @@ export async function exportDatabase(): Promise<ExportState> {
         const wsExpenses = XLSX.utils.json_to_sheet(flatExpenses);
         const wsResources = XLSX.utils.json_to_sheet(flatResources);
         const wsPosts = XLSX.utils.json_to_sheet(posts);
+        const wsTasks = XLSX.utils.json_to_sheet(tasks);
+
 
         XLSX.utils.book_append_sheet(wb, wsCampaigns, "Campaigns");
         XLSX.utils.book_append_sheet(wb, wsActions, "Actions");
@@ -1699,6 +1702,7 @@ export async function exportDatabase(): Promise<ExportState> {
         XLSX.utils.book_append_sheet(wb, wsExpenses, "Expenses");
         XLSX.utils.book_append_sheet(wb, wsResources, "Resources");
         XLSX.utils.book_append_sheet(wb, wsPosts, "SocialPosts");
+        XLSX.utils.book_append_sheet(wb, wsTasks, "Tasks");
 
         const buffer = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
 
@@ -1726,6 +1730,7 @@ export async function importDatabase(data: Uint8Array): Promise<ImportState> {
         const expenses = XLSX.utils.sheet_to_json<any>(workbook.Sheets['Expenses'] || {});
         const resources = XLSX.utils.sheet_to_json<any>(workbook.Sheets['Resources'] || {});
         const socialPosts = XLSX.utils.sheet_to_json<SocialPost>(workbook.Sheets['SocialPosts'] || {});
+        const tasks = XLSX.utils.sheet_to_json<Task>(workbook.Sheets['Tasks'] || []);
         
         // Reconstruct the nested structure
         const reconstructedCampaigns = campaigns.map(c => {
@@ -1744,7 +1749,7 @@ export async function importDatabase(data: Uint8Array): Promise<ImportState> {
             return { ...c, actions: campaignActions };
         });
         
-        await restoreDatabase(reconstructedCampaigns, socialPosts);
+        await restoreDatabase(reconstructedCampaigns, socialPosts, tasks);
 
         revalidatePath('/'); // Revalidate all paths
         return { message: "База данных успешно импортирована." };
@@ -1757,11 +1762,11 @@ export async function importDatabase(data: Uint8Array): Promise<ImportState> {
 
 // --- Task Actions ---
 const TaskSchema = z.object({
-  title: z.string().min(3, "Заголовок должен содержать не менее 3 символов."),
+  title: z.string().optional(),
   description: z.string().optional(),
   status: z.enum(['planned', 'in-progress', 'completed']),
-  deadline: z.string().refine((date) => !isNaN(Date.parse(date)), "Неверный формат дедлайна."),
-  responsiblePerson: z.string().min(1, "Укажите ответственного."),
+  deadline: z.string().optional(),
+  responsiblePerson: z.string().optional(),
   campaignId: z.string().optional(),
   actionId: z.string().optional(),
   activityId: z.string().optional(),
@@ -1769,11 +1774,11 @@ const TaskSchema = z.object({
 
 export async function addTask(prevState: TaskFormState, formData: FormData): Promise<TaskFormState> {
   const validatedFields = TaskSchema.safeParse({
-    title: formData.get('title'),
-    description: formData.get('description'),
+    title: formData.get('title') || '',
+    description: formData.get('description') || '',
     status: formData.get('status'),
-    deadline: formData.get('deadline'),
-    responsiblePerson: formData.get('responsiblePerson'),
+    deadline: formData.get('deadline') || new Date().toISOString().split('T')[0],
+    responsiblePerson: formData.get('responsiblePerson') || '',
     campaignId: formData.get('campaignId') === 'none' ? undefined : formData.get('campaignId'),
     actionId: formData.get('actionId') === 'none' ? undefined : formData.get('actionId'),
     activityId: formData.get('activityId') === 'none' ? undefined : formData.get('activityId'),
@@ -1788,7 +1793,7 @@ export async function addTask(prevState: TaskFormState, formData: FormData): Pro
   }
 
   try {
-    await addTaskData(validatedFields.data);
+    await addTaskData(validatedFields.data as Omit<Task, 'id' | 'createdAt' | 'isArchived'>);
     revalidatePath('/tasks');
     revalidatePath('/');
     return { message: "Задача успешно создана." };
