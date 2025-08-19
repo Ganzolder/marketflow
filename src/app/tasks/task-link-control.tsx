@@ -103,7 +103,7 @@ export function TaskLinkControl({ task, campaigns }: { task: Task, campaigns: Ca
                             <div className="grid gap-2">
                                 <div className="grid grid-cols-1 items-center gap-2">
                                     <Label>Кампания</Label>
-                                    <Select name="campaignId" value={selectedCampaignId} onValueChange={setSelectedCampaignId}>
+                                    <Select name="campaignId" value={selectedCampaignId || 'none'} onValueChange={setSelectedCampaignId}>
                                         <SelectTrigger><SelectValue placeholder="Выберите кампанию" /></SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="none">Нет</SelectItem>
@@ -113,7 +113,7 @@ export function TaskLinkControl({ task, campaigns }: { task: Task, campaigns: Ca
                                 </div>
                                 <div className="grid grid-cols-1 items-center gap-2">
                                     <Label>Акция</Label>
-                                    <Select name="actionId" value={selectedActionId} onValueChange={setSelectedActionId} disabled={!actions.length}>
+                                    <Select name="actionId" value={selectedActionId || 'none'} onValueChange={setSelectedActionId} disabled={!actions.length}>
                                         <SelectTrigger><SelectValue placeholder="Выберите акцию" /></SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="none">Нет</SelectItem>
@@ -123,7 +123,7 @@ export function TaskLinkControl({ task, campaigns }: { task: Task, campaigns: Ca
                                 </div>
                                  <div className="grid grid-cols-1 items-center gap-2">
                                     <Label>Активность</Label>
-                                    <Select name="activityId" value={selectedActivityId} onValueChange={setSelectedActivityId} disabled={!activities.length}>
+                                    <Select name="activityId" value={selectedActivityId || 'none'} onValueChange={setSelectedActivityId} disabled={!activities.length}>
                                         <SelectTrigger><SelectValue placeholder="Выберите активность" /></SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="none">Нет</SelectItem>
