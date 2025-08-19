@@ -6,7 +6,7 @@ import { updateTaskStatus, type StatusFormState } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Task, TaskStatus } from '@/lib/types';
-import { Badge } from '../ui/badge';
+import { Badge } from '@/components/ui/badge';
 
 const statusTranslations: Record<TaskStatus, string> = {
   planned: "Запланирована",
