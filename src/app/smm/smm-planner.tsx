@@ -18,19 +18,13 @@ import { PublicationCalendar } from './publication-calendar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { CheckCircle2, MinusCircle, Trash2 } from 'lucide-react';
 import { DeleteSocialPostButton } from '../campaigns/[id]/[actionId]/delete-social-post-button';
+import { UpdateSocialPostStatus } from './update-social-post-status';
 
 const statusTranslations: Record<SocialPostStatus, string> = {
   draft: "Черновик",
   ready: "Готово",
   published: "Опубликован",
 };
-
-const statusStyles: Record<SocialPostStatus, string> = {
-  draft: "bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-100 dark:bg-gray-800/50 dark:text-gray-300 dark:border-gray-700/50",
-  ready: "bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700/50",
-  published: "bg-green-100 text-green-800 border-green-200 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700/50",
-};
-
 
 function Filters({ campaigns }: { campaigns: Campaign[] }) {
     const router = useRouter();
@@ -238,7 +232,7 @@ export function SmmPlanner({ posts, campaigns }: { posts: EnrichedSocialPost[], 
                             <div>
                             <div className="flex flex-wrap items-center gap-2">
                                 <p className="font-semibold">{post.title}</p>
-                                <Badge variant="outline" className={statusStyles[post.status]}>{statusTranslations[post.status]}</Badge>
+                                <UpdateSocialPostStatus post={post} />
                             </div>
                             <div className="flex flex-wrap gap-1 mt-2">
                                 {(post.platforms || []).map(p => <Badge key={p} variant="secondary">{p}</Badge>)}

@@ -1986,3 +1986,44 @@ export async function generateActionIdeas(campaign: Campaign): Promise<GenerateA
         return { status: 'error', error: errorMessage };
     }
 }
+
+
+// --- Social Post Status Action ---
+const UpdateSocialPostStatusSchema = z.object({
+  postId: z.string(),
+  status: z.enum(['draft', 'ready', 'published']),
+});
+
+export type SocialPostStatusFormState = {
+  message: string;
+  error?: boolean;
+};
+
+export async function updateSocialPostStatus(
+  prevState: SocialPostStatusFormState,
+  formData: FormData
+): Promise<SocialPostStatusFormState> {
+  const validatedFields = UpdateSocialPostStatusSchema.safeParse({
+    postId: formData.get('postId'),
+    status: formData.get('status'),
+  });
+
+  if (!validatedFields.success) {
+    return { message: "Неверные данные.", error: true };
+  }
+
+  const { postId, status } = validatedFields.data;
+
+  try {
+    const postRef = doc(db, "socialPosts", postId);
+    await updateDoc(postRef, { status });
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+    return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
+  }
+
+  revalidatePath('/smm');
+  revalidatePath('/campaigns'); // Revalidate all, as posts can be linked anywhere
+
+  return { message: "Статус поста обновлен." };
+}

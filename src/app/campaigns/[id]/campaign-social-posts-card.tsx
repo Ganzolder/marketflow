@@ -21,17 +21,12 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { EditSocialPostButton } from './[actionId]/edit-social-post-button';
 import { DeleteSocialPostButton } from './[actionId]/delete-social-post-button';
 import Link from 'next/link';
+import { UpdateSocialPostStatus } from '@/app/smm/update-social-post-status';
 
 const statusTranslations: Record<SocialPostStatus, string> = {
   draft: "Черновик",
   ready: "Готово",
   published: "Опубликован",
-};
-
-const statusStyles: Record<SocialPostStatus, string> = {
-  draft: "bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-100 dark:bg-gray-800/50 dark:text-gray-300 dark:border-gray-700/50",
-  ready: "bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700/50",
-  published: "bg-green-100 text-green-800 border-green-200 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700/50",
 };
 
 const AddSocialPostToCampaignButton = ({ campaign }: { campaign: Campaign }) => {
@@ -221,7 +216,7 @@ export function CampaignSocialPostsCard({ campaign, posts }: { campaign: Campaig
                              <div>
                                <div className="flex flex-wrap items-center gap-2">
                                     <p className="font-semibold">{post.title}</p>
-                                    <Badge variant="outline" className={statusStyles[post.status]}>{statusTranslations[post.status]}</Badge>
+                                    <UpdateSocialPostStatus post={post} />
                                 </div>
                                 <div className="flex flex-wrap items-center gap-2 mt-2">
                                     {post.platforms.map((p: SocialPlatform) => <Badge key={p} variant="secondary">{p}</Badge>)}
