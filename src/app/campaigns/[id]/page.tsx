@@ -1,7 +1,7 @@
 
 
 import { notFound } from 'next/navigation';
-import { getCampaignById, getSocialPostsForCampaign } from '@/lib/data';
+import { getCampaignById, getSocialPostsForCampaign, getAllTasks } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Calendar as CalendarIcon, Target, FilePlus, Eye, TrendingUp, Landmark, CalendarDays, ShoppingCart, PiggyBank, BarChart, Archive, ArchiveRestore } from 'lucide-react';
@@ -17,6 +17,7 @@ import { EditActionButton } from './edit-action-button';
 import { CampaignSocialPostsCard } from './campaign-social-posts-card';
 import { DeleteActionButton } from './delete-action-button';
 import { GenerateIdeasButton } from './generate-ideas-button';
+import { CampaignTasksCard } from './campaign-tasks-card';
 
 
 type CampaignDetailPageProps = {
@@ -36,6 +37,8 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
   }
   
   const socialPosts = await getSocialPostsForCampaign(campaign.id);
+  const allTasks = await getAllTasks();
+  const campaignTasks = allTasks.filter(task => task.campaignId === campaign.id);
 
 
   const startDateFilter = searchParams.startDate || '';
@@ -278,6 +281,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                     )}
             </CardContent>
         </Card>
+        <CampaignTasksCard tasks={campaignTasks} />
         <CampaignSocialPostsCard campaign={campaign} posts={socialPosts} />
       </div>
     </div>

@@ -1,7 +1,7 @@
 
 
 import { notFound } from 'next/navigation';
-import { getCampaignById, getSocialPostsForAction } from '@/lib/data';
+import { getCampaignById, getSocialPostsForAction, getAllTasks } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -30,6 +30,7 @@ import Link from 'next/link';
 import { ActionResourcesCard } from './action-resources-card';
 import { ActionSocialPostsPlanner } from './action-social-posts-planner';
 import { ActionConditionsCard } from './action-conditions-card';
+import { CampaignTasksCard } from '../campaign-tasks-card';
 
 type ActionDetailPageProps = {
     params: { id: string; actionId: string };
@@ -41,6 +42,8 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
   
   const campaign = await getCampaignById(id);
   const socialPosts = await getSocialPostsForAction(actionId);
+  const allTasks = await getAllTasks();
+  const actionTasks = allTasks.filter(task => task.actionId === actionId);
   
   if (!campaign) {
     notFound();
@@ -317,6 +320,7 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
             </CardContent>
         </Card>
         
+        <CampaignTasksCard tasks={actionTasks} />
         <ActionResourcesCard action={action} campaignId={campaign.id} />
         <ActionSocialPostsPlanner action={action} campaignId={campaign.id} posts={socialPosts} />
       </div>
