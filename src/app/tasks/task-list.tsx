@@ -17,18 +17,7 @@ import { DeleteTaskButton } from './delete-task-button';
 import { ArchiveTaskButton } from './archive-task-button';
 import { RestoreTaskButton } from './restore-task-button';
 import { TaskLinkControl } from './task-link-control';
-
-const statusTranslations = {
-  planned: "Запланирована",
-  "in-progress": "В процессе",
-  completed: "Выполнена",
-};
-
-const statusStyles = {
-  planned: "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-700/50",
-  "in-progress": "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700/50",
-  completed: "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700/50",
-};
+import { UpdateTaskStatus } from './update-task-status';
 
 export function TaskList({ initialTasks, allCampaigns, allTasks }: { initialTasks: EnrichedTask[], allCampaigns: Campaign[], allTasks: EnrichedTask[] }) {
   const searchParams = useSearchParams();
@@ -97,9 +86,7 @@ export function TaskList({ initialTasks, allCampaigns, allTasks }: { initialTask
                             <span>Ответственный: {task.responsiblePerson || 'Не назначен'}</span>
                         </div>
                     </div>
-                     <Badge variant="outline" className={statusStyles[task.status]}>
-                        {statusTranslations[task.status]}
-                    </Badge>
+                     <UpdateTaskStatus task={task} />
                 </CardFooter>
             </Card>
         ))}

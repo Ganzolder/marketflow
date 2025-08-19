@@ -1334,6 +1334,11 @@ export async function updateTask(taskId: string, data: Partial<Task>) {
     await updateDoc(taskRef, data);
 }
 
+export async function updateTaskStatus(taskId: string, status: TaskStatus) {
+    const taskRef = doc(db, "tasks", taskId);
+    await updateDoc(taskRef, { status });
+}
+
 export async function deleteTask(taskId: string) {
     const taskRef = doc(db, "tasks", taskId);
     await deleteDoc(taskRef);
