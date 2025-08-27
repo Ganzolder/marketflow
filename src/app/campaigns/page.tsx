@@ -23,6 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArchiveCampaignButton } from './archive-campaign-button';
 import { Button } from '@/components/ui/button';
 import { RestoreCampaignButton } from './restore-campaign-button';
+import { cn } from '@/lib/utils';
 
 type CampaignsPageProps = {
   searchParams: {
@@ -76,7 +77,7 @@ export default async function CampaignsPage({ searchParams: searchParamsPromise 
           const endDate = new Date(campaign.endDate);
           const totalDuration = Math.max(1, endDate.getTime() - startDate.getTime());
           const elapsedDuration = Math.max(0, today.getTime() - startDate.getTime());
-          let durationProgress = Math.min(100, (elapsedDuration / totalDuration) * 100);
+          let durationProgress = Math.min(100, (elapsedCampaignDuration / totalDuration) * 100);
 
           let totalPlannedSales = 0, totalActualSales = 0;
           let totalPlannedRevenue = 0, totalActualRevenue = 0;
@@ -159,6 +160,17 @@ export default async function CampaignsPage({ searchParams: searchParamsPromise 
                     </div>
                      <div className="flex items-center gap-3">
                         <div className="p-2 bg-muted rounded-md">
+                            <Landmark className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <div>
+                            <p className="text-muted-foreground">Запланированный бюджет</p>
+                            <p className={cn("font-semibold", totalPlannedBudget > campaign.budget && "text-destructive")}>
+                                {new Intl.NumberFormat(locale, currencyOptions).format(totalPlannedBudget)}
+                            </p>
+                        </div>
+                    </div>
+                     <div className="flex items-center gap-3">
+                        <div className="p-2 bg-muted rounded-md">
                             <Calendar className="h-5 w-5 text-muted-foreground" />
                         </div>
                         <div>
@@ -168,11 +180,12 @@ export default async function CampaignsPage({ searchParams: searchParamsPromise 
                             </p>
                         </div>
                     </div>
-                </div>
-                 <div>
+                     <div>
                       <p className="text-sm text-muted-foreground mb-1">Статус</p>
                       <UpdateCampaignStatus campaign={campaign} />
+                    </div>
                 </div>
+                 
                  <Separator />
                 <div className="space-y-4">
                   <h4 className="font-semibold">Ключевые показатели</h4>
