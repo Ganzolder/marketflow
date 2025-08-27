@@ -16,10 +16,11 @@ import Link from 'next/link';
 import { EditSocialPostButton } from '../campaigns/[id]/[actionId]/edit-social-post-button';
 import { PublicationCalendar } from './publication-calendar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CheckCircle2, MinusCircle, Trash2, ArrowUpNarrowWide, ArrowDownNarrowWide } from 'lucide-react';
+import { CheckCircle2, MinusCircle, Trash2, ArrowUpNarrowWide, ArrowDownNarrowWide, ChevronRight } from 'lucide-react';
 import { DeleteSocialPostButton } from '../campaigns/[id]/[actionId]/delete-social-post-button';
 import { UpdateSocialPostStatus } from './update-social-post-status';
 import { MultiSelect } from '@/components/ui/multi-select';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 const statusTranslations: Record<SocialPostStatus, string> = {
   draft: "Черновик",
@@ -143,66 +144,82 @@ function Filters({ campaigns }: { campaigns: Campaign[] }) {
     )
 }
 
-const PublicationMatrix = ({ posts }: { posts: SocialPost[] }) => {
-    const { postsByDate, allPlatforms } = React.useMemo(() => {
-        const postsByDate: Record<string, any> = {};
-        const platformSet = new Set<SocialPlatform>();
-
+const PublicationMatrix = ({ posts }: { posts: EnrichedSocialPost[] }) => {
+    const { postsByDate } = React.useMemo(() => {
+        const postsByDate: Record<string, EnrichedSocialPost[]> = {};
         posts.forEach(post => {
             const dateKey = new Date(post.publicationDate).toISOString().split('T')[0];
             if (!postsByDate[dateKey]) {
-                postsByDate[dateKey] = { date: post.publicationDate, platforms: {} };
+                postsByDate[dateKey] = [];
             }
-            (post.platforms || []).forEach(platform => {
-                if (!postsByDate[dateKey].platforms[platform]) {
-                    postsByDate[dateKey].platforms[platform] = [];
-                }
-                postsByDate[dateKey].platforms[platform].push(post.title);
-                platformSet.add(platform);
-            });
+            postsByDate[dateKey].push(post);
+        });
+        
+        const sortedDates = Object.keys(postsByDate).sort((a,b) => new Date(a).getTime() - new Date(b).getTime());
+        
+        const sortedPostsByDate: Record<string, EnrichedSocialPost[]> = {};
+        sortedDates.forEach(date => {
+            sortedPostsByDate[date] = postsByDate[date];
         });
 
-        const allPlatforms = Array.from(platformSet).sort();
-        return { postsByDate: Object.values(postsByDate).sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime()), allPlatforms };
+        return { postsByDate: sortedPostsByDate };
     }, [posts]);
 
-    if (posts.length === 0 || allPlatforms.length === 0) {
+    if (posts.length === 0) {
         return null;
     }
+    
+    const locale = 'ru-RU';
 
     return (
         <Card className="mb-8">
             <CardHeader>
                 <CardTitle>Матрица публикаций</CardTitle>
-                <CardDescription>Обзор запланированных постов по датам и платформам.</CardDescription>
+                <CardDescription>Обзор запланированных постов по датам.</CardDescription>
             </CardHeader>
             <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Дата</TableHead>
-                            {allPlatforms.map(platform => (
-                                <TableHead key={platform} className="text-center">{platform}</TableHead>
-                            ))}
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {postsByDate.map(row => (
-                            <TableRow key={row.date}>
-                                <TableCell className="font-medium">{new Date(row.date).toLocaleDateString('ru-RU', { day: '2-digit', month: 'short' })}</TableCell>
-                                {allPlatforms.map(platform => (
-                                    <TableCell key={platform} className="text-center">
-                                        {row.platforms[platform] ? (
-                                            <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" />
-                                        ) : (
-                                            <MinusCircle className="w-5 h-5 text-muted-foreground/50 mx-auto" />
-                                        )}
-                                    </TableCell>
-                                ))}
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+                <Accordion type="multiple" className="w-full space-y-2">
+                    {Object.entries(postsByDate).map(([date, postsOnDate]) => (
+                        <AccordionItem value={date} key={date} className="border rounded-md px-4">
+                            <AccordionTrigger className="py-3 hover:no-underline">
+                               <div className="flex-1 text-left flex items-center justify-between">
+                                 <p className="font-semibold">{new Date(date).toLocaleDateString(locale, {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'})}</p>
+                                 <Badge variant="secondary" className="mr-4">{postsOnDate.length} {postsOnDate.length === 1 ? 'пост' : (postsOnDate.length > 1 && postsOnDate.length < 5) ? 'поста' : 'постов'}</Badge>
+                               </div>
+                            </AccordionTrigger>
+                            <AccordionContent className="pt-2 pb-4">
+                                <div className="overflow-x-auto">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Заголовок</TableHead>
+                                            <TableHead>Платформы</TableHead>
+                                            <TableHead>Привязка</TableHead>
+                                            <TableHead>Статус</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {postsOnDate.map(post => (
+                                            <TableRow key={post.id}>
+                                                <TableCell className="font-medium max-w-xs truncate">{post.title}</TableCell>
+                                                <TableCell><div className="flex gap-1">{post.platforms.map(p => <Badge key={p} variant="outline">{p}</Badge>)}</div></TableCell>
+                                                <TableCell>
+                                                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                                        {post.campaignName && <span>{post.campaignName}</span>}
+                                                        {post.actionName && <><ChevronRight className="w-3 h-3"/><span>{post.actionName}</span></>}
+                                                        {post.activityName && <><ChevronRight className="w-3 h-3"/><span>{post.activityName}</span></>}
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell><UpdateSocialPostStatus post={post}/></TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                                </div>
+                            </AccordionContent>
+                        </AccordionItem>
+                    ))}
+                </Accordion>
             </CardContent>
         </Card>
     );
@@ -217,7 +234,7 @@ export function SmmPlanner({ posts, campaigns }: { posts: EnrichedSocialPost[], 
         return [...posts].sort((a, b) => {
             const dateA = new Date(a.publicationDate).getTime();
             const dateB = new Date(b.publicationDate).getTime();
-            return sortOrder === 'desc' ? dateB - dateA : dateA - b;
+            return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
         });
     }, [posts, sortOrder]);
 
