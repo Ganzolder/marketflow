@@ -3,7 +3,7 @@
 "use server";
 
 import { z } from "zod";
-import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData, updateExpenseStatus as updateExpenseStatusData, getSocialPostById, deleteSocialPost as deleteSocialPostData, getSocialPostsForAction, clearDatabase as clearDatabaseData, deleteAction as deleteActionData, getCampaigns, getAllSocialPosts, restoreDatabase, getAllTasks, addTask as addTaskData, updateTask as updateTaskData, deleteTask as deleteTaskData, updateTaskStatus as updateTaskStatusData } from "./data";
+import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData, updateExpenseStatus as updateExpenseStatusData, getSocialPostById, deleteSocialPost as deleteSocialPostData, getSocialPostsForAction, clearDatabase as clearDatabaseData, deleteAction as deleteActionData, getCampaigns, getAllSocialPosts, restoreDatabase, getAllTasks, addTask as addTaskData, updateTask as updateTaskData, deleteTask as deleteTaskData, updateTaskStatus as updateTaskStatusData, moveActionToCampaign } from "./data";
 import { revalidatePath } from "next/cache";
 import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog, Campaign, ResponsibilityFormState, Resource, ResourceStatus, ResourceStatusFormState, ExpenseStatus, ExpenseStatusFormState, SocialPost, SocialPlatform, SocialPostStatus, SocialPostMetricsFormState, AiSocialPost, Task, EnrichedTask, TaskFormState, TaskLinkState, TaskStatus } from "./types";
 import { analyzeActionPerformance, type AnalyzeActionPerformanceOutput } from "@/ai/flows/analyze-action-performance";
@@ -31,10 +31,12 @@ const AddActionSchema = ActionSchema.extend({
 
 const EditActionSchema = ActionSchema.extend({
   id: z.string(),
+  newCampaignId: z.string(),
 });
 
 export type ActionFormState = {
   message: string;
+  error?: boolean;
   errors?: {
     name?: string[];
     description?: string[];
@@ -44,6 +46,7 @@ export type ActionFormState = {
     endDate?: string[];
     status?: string[];
     campaignId?: string[];
+    newCampaignId?: string[];
     id?: string[];
     responsiblePerson?: string[];
     marketingHead?: string[];
@@ -75,6 +78,7 @@ export async function addActionToCampaign(
     return {
       message: `Ошибка валидации: ${errorMessages}`,
       errors: validatedFields.error.flatten().fieldErrors,
+      error: true,
     };
   }
   
@@ -84,7 +88,7 @@ export async function addActionToCampaign(
     await addAction(campaignId, { ...actionData, status: status as 'planned' | 'in-progress' | 'completed' });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Произошла неизвестная ошибка.";
-    return { message: `Ошибка базы данных: не удалось создать акцию. ${errorMessage}` };
+    return { message: `Ошибка базы данных: не удалось создать акцию. ${errorMessage}`, error: true };
   }
 
   revalidatePath(`/campaigns/${campaignId}`);
@@ -93,7 +97,7 @@ export async function addActionToCampaign(
 }
 
 export async function editActionInCampaign(
-  prevState: ActionFormState,
+  prevState: ActionFormState | null,
   formData: FormData
 ): Promise<ActionFormState> {
   
@@ -105,7 +109,8 @@ export async function editActionInCampaign(
     startDate: formData.get('start-date'),
     endDate: formData.get('end-date'),
     status: formData.get('status'),
-    campaignId: formData.get('campaignId'),
+    campaignId: formData.get('campaignId'), // Original campaign ID
+    newCampaignId: formData.get('newCampaignId'), // New campaign ID
     conditions: formData.get('conditions') || '',
   };
 
@@ -116,20 +121,39 @@ export async function editActionInCampaign(
     return {
         message: `Ошибка валидации: ${errorMessages}`,
         errors: validatedFields.error.flatten().fieldErrors,
+        error: true,
     };
   }
   
-  const { campaignId, ...actionData } = validatedFields.data;
+  const { campaignId, newCampaignId, id, ...actionData } = validatedFields.data;
+
+  const actionToUpdate = {
+      id,
+      name: actionData.name,
+      description: actionData.description,
+      targetAudience: actionData.targetAudience,
+      startDate: actionData.startDate,
+      endDate: actionData.endDate,
+      status: actionData.status,
+      conditions: actionData.conditions,
+  }
 
   try {
-    await updateAction(campaignId, actionData as Action);
+    if (campaignId !== newCampaignId) {
+      await moveActionToCampaign(actionId, campaignId, newCampaignId, actionToUpdate);
+    } else {
+      await updateAction(campaignId, { id, ...actionData });
+    }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Произошла неизвестная ошибка.";
-    return { message: `Ошибка базы данных: не удалось обновить акцию. ${errorMessage}` };
+    return { message: `Ошибка базы данных: не удалось обновить акцию. ${errorMessage}`, error: true };
   }
 
   revalidatePath(`/campaigns/${campaignId}`);
-  revalidatePath(`/campaigns/${campaignId}/${actionData.id}`);
+  if (campaignId !== newCampaignId) {
+      revalidatePath(`/campaigns/${newCampaignId}`);
+  }
+  revalidatePath(`/campaigns/${newCampaignId}/${id}`); // Revalidate the new action page
   revalidatePath('/actions');
   return { message: "Акция успешно обновлена." };
 }

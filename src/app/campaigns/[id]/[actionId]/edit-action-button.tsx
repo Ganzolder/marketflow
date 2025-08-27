@@ -9,10 +9,11 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Edit, Edit2 } from "lucide-react";
 import { editActionInCampaign, type ActionFormState } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
-import type { Action } from '@/lib/types';
+import type { Action, Campaign } from '@/lib/types';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { getCampaigns } from '@/lib/data';
 
 export function EditActionButton({ action, campaignId, asChild = false }: { action: Action, campaignId: string, asChild?: boolean }) {
     const [open, setOpen] = useState(false);
@@ -20,6 +21,15 @@ export function EditActionButton({ action, campaignId, asChild = false }: { acti
     const formRef = useRef<HTMLFormElement>(null);
     const [isPending, startTransition] = useTransition();
     const [state, setState] = useState<ActionFormState | null>(null);
+    const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+    const [selectedCampaignId, setSelectedCampaignId] = useState(campaignId);
+
+    useEffect(() => {
+        if(open) {
+            getCampaigns().then(setCampaigns);
+            setSelectedCampaignId(campaignId);
+        }
+    }, [open, campaignId]);
 
     useEffect(() => {
         if (state?.message) {
@@ -71,6 +81,21 @@ export function EditActionButton({ action, campaignId, asChild = false }: { acti
                     <input type="hidden" name="actionId" value={action.id} />
                     <ScrollArea className="max-h-[70vh] p-1 pr-4">
                         <div className="grid gap-4 py-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="newCampaignId">Кампания</Label>
+                                <Select name="newCampaignId" value={selectedCampaignId} onValueChange={setSelectedCampaignId}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Выберите кампанию" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {campaigns.map((c) => (
+                                            <SelectItem key={c.id} value={c.id}>
+                                                {c.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="action-name">Название акции</Label>
                                 <Input id="action-name" name="action-name" defaultValue={action.name} />

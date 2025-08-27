@@ -4,7 +4,7 @@
 
 import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction, ActionStatus, CampaignStatus, KpiMetricLog, EnrichedActivity, Resource, ResourceStatus, ExpenseStatus, SocialPost, EnrichedSocialPost, Task, TaskStatus, EnrichedTask, UpcomingEvent } from './types';
 import { db } from './firebase';
-import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, addDoc, writeBatch, runTransaction, deleteDoc } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, addDoc, writeBatch, runTransaction, deleteDoc, arrayRemove } from "firebase/firestore";
 
 // Helper function to seed the database with initial data if it's empty
 async function seedDatabase() {
@@ -128,7 +128,7 @@ export async function addAction(campaignId: string, action: Omit<Action, 'id' | 
     });
 }
 
-export async function updateAction(campaignId: string, updatedAction: Action) {
+export async function updateAction(campaignId: string, updatedAction: Partial<Action> & { id: string }) {
   const campaignRef = doc(db, 'campaigns', campaignId);
   
   try {
@@ -155,6 +155,37 @@ export async function updateAction(campaignId: string, updatedAction: Action) {
     throw new Error('Failed to update action.');
   }
 }
+
+export async function moveActionToCampaign(actionId: string, oldCampaignId: string, newCampaignId: string, updatedActionData: Partial<Omit<Action, 'id'>>) {
+    const oldCampaignRef = doc(db, 'campaigns', oldCampaignId);
+    const newCampaignRef = doc(db, 'campaigns', newCampaignId);
+
+    try {
+        await runTransaction(db, async (transaction) => {
+            const oldCampaignDoc = await transaction.get(oldCampaignRef);
+            const newCampaignDoc = await transaction.get(newCampaignRef);
+
+            if (!oldCampaignDoc.exists()) throw new Error(`Source campaign ${oldCampaignId} not found`);
+            if (!newCampaignDoc.exists()) throw new Error(`Destination campaign ${newCampaignId} not found`);
+
+            const oldCampaignData = oldCampaignDoc.data() as Campaign;
+            
+            const actionToMoveIndex = oldCampaignData.actions.findIndex(a => a.id === actionId);
+            if (actionToMoveIndex === -1) throw new Error(`Action ${actionId} not found in source campaign`);
+
+            const [actionToMove] = oldCampaignData.actions.splice(actionToMoveIndex, 1);
+            
+            const updatedAction = { ...actionToMove, ...updatedActionData };
+
+            transaction.update(oldCampaignRef, { actions: oldCampaignData.actions });
+            transaction.update(newCampaignRef, { actions: arrayUnion(updatedAction) });
+        });
+    } catch(e) {
+        console.error("Move action transaction failed:", e);
+        throw e;
+    }
+}
+
 
 export async function addActivity(campaignId: string, actionId: string, activity: Omit<Activity, 'id'>) {
     const campaignRef = doc(db, 'campaigns', campaignId);
