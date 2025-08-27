@@ -62,7 +62,7 @@ export function AppSidebar() {
                 tooltip={{children: item.label, side:"right", align:"center"}}
               >
                 <Link href={item.href}>
-                  <item.icon />
+                  <item.icon className="h-4 w-4" />
                   <span>{item.label}</span>
                 </Link>
               </SidebarMenuButton>

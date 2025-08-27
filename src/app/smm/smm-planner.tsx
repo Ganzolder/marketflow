@@ -10,13 +10,13 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { EditSocialPostButton } from '../campaigns/[id]/[actionId]/edit-social-post-button';
 import { PublicationCalendar } from './publication-calendar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CheckCircle2, MinusCircle, Trash2 } from 'lucide-react';
+import { CheckCircle2, MinusCircle, Trash2, ArrowUpNarrowWide, ArrowDownNarrowWide } from 'lucide-react';
 import { DeleteSocialPostButton } from '../campaigns/[id]/[actionId]/delete-social-post-button';
 import { UpdateSocialPostStatus } from './update-social-post-status';
 
@@ -212,7 +212,16 @@ const PublicationMatrix = ({ posts }: { posts: SocialPost[] }) => {
 
 export function SmmPlanner({ posts, campaigns }: { posts: EnrichedSocialPost[], campaigns: Campaign[] }) {
     const locale = 'ru-RU';
-    const sortedPosts = posts.sort((a,b) => new Date(b.publicationDate).getTime() - new Date(a.publicationDate).getTime());
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
+    const sortedPosts = useMemo(() => {
+        return [...posts].sort((a, b) => {
+            const dateA = new Date(a.publicationDate).getTime();
+            const dateB = new Date(b.publicationDate).getTime();
+            return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+        });
+    }, [posts, sortOrder]);
+
 
     return (
         <div>
@@ -223,6 +232,19 @@ export function SmmPlanner({ posts, campaigns }: { posts: EnrichedSocialPost[], 
             </div>
 
             <PublicationMatrix posts={posts} />
+
+            {posts.length > 1 && (
+                 <div className="flex justify-end gap-2 mb-4">
+                    <Button variant={sortOrder === 'desc' ? 'secondary' : 'ghost'} size="icon" onClick={() => setSortOrder('desc')} className="h-8 w-8">
+                        <ArrowDownNarrowWide className="h-4 w-4" />
+                        <span className="sr-only">Сортировать по убыванию</span>
+                    </Button>
+                    <Button variant={sortOrder === 'asc' ? 'secondary' : 'ghost'} size="icon" onClick={() => setSortOrder('asc')} className="h-8 w-8">
+                        <ArrowUpNarrowWide className="h-4 w-4" />
+                        <span className="sr-only">Сортировать по возрастанию</span>
+                    </Button>
+                </div>
+            )}
 
             <div className="grid gap-4 md:grid-cols-2">
                 {sortedPosts.map(post => {

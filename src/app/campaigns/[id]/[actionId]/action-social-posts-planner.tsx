@@ -2,10 +2,10 @@
 
 "use client";
 
-import { useState, useActionState, useRef, useTransition, useEffect } from 'react';
+import { useState, useActionState, useRef, useTransition, useEffect, useMemo } from 'react';
 import type { Action, Activity, SocialPostStatus, SocialPlatform, SocialPost } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Share2, PlusCircle, Loader2, Save, MessageSquare, Users, ArrowUp, ArrowDown, Minus, Wand2, Info, ChevronDown } from 'lucide-react';
+import { Share2, PlusCircle, Loader2, Save, MessageSquare, Users, ArrowUp, ArrowDown, Minus, Wand2, Info, ChevronDown, ArrowUpNarrowWide, ArrowDownNarrowWide } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { addSocialPost, type SocialPostFormState, type SocialPostMetricsFormState, updateSocialPostMetrics, generatePostTextAction } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
@@ -311,13 +311,21 @@ function ActualMetricsForm({ post, actionId, campaignId }: { post: any, actionId
 
 export function ActionSocialPostsPlanner({ action, campaignId, posts, allPosts }: { action: Action, campaignId: string, posts: SocialPost[], allPosts: SocialPost[] }) {
   const locale = 'ru-RU';
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   
   const getActivityName = (activityId?: string) => {
     if (!activityId || activityId === 'general') return 'Общий пост';
     return (action.activities || []).find(a => a.id === activityId)?.name || 'Неизвестная активность';
   }
   
-  const sortedPosts = posts.sort((a,b) => new Date(b.publicationDate).getTime() - new Date(a.publicationDate).getTime());
+  const sortedPosts = useMemo(() => {
+    return [...posts].sort((a, b) => {
+      const dateA = new Date(a.publicationDate).getTime();
+      const dateB = new Date(b.publicationDate).getTime();
+      return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+    });
+  }, [posts, sortOrder]);
+
 
   return (
     <Card>
@@ -329,7 +337,23 @@ export function ActionSocialPostsPlanner({ action, campaignId, posts, allPosts }
             <AddSocialPostButton action={action} campaignId={campaignId} />
         </CardHeader>
         <CardContent>
-            {posts.length > 0 && <div className="mb-8"><PublicationCalendar posts={posts} allPosts={allPosts} /></div>}
+            {posts.length > 0 && (
+                <div className="mb-8">
+                    <PublicationCalendar posts={posts} allPosts={allPosts} />
+                </div>
+            )}
+            {posts.length > 1 && (
+                 <div className="flex justify-end gap-2 mb-4">
+                    <Button variant={sortOrder === 'desc' ? 'secondary' : 'ghost'} size="icon" onClick={() => setSortOrder('desc')} className="h-8 w-8">
+                        <ArrowDownNarrowWide className="h-4 w-4" />
+                        <span className="sr-only">Сортировать по убыванию</span>
+                    </Button>
+                    <Button variant={sortOrder === 'asc' ? 'secondary' : 'ghost'} size="icon" onClick={() => setSortOrder('asc')} className="h-8 w-8">
+                        <ArrowUpNarrowWide className="h-4 w-4" />
+                        <span className="sr-only">Сортировать по возрастанию</span>
+                    </Button>
+                </div>
+            )}
              <div className="grid gap-4 md:grid-cols-2">
                 {sortedPosts.length > 0 ? (
                     sortedPosts.map(post => (
