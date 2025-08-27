@@ -3,7 +3,7 @@
 
 import { useMemo } from 'react';
 import type { SocialPost } from "@/lib/types";
-import { format, eachDayOfInterval, startOfMonth, endOfMonth, addMonths, isSameDay, startOfWeek, endOfWeek, isSameMonth } from 'date-fns';
+import { format, eachDayOfInterval, startOfMonth, endOfMonth, addMonths, isSameDay, startOfWeek, isSameMonth } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { cn } from "@/lib/utils";
 import {
@@ -45,7 +45,7 @@ const CalendarMonth = ({ monthDate, postsByDate, allPostsByDate }: { monthDate: 
           const dateKey = format(day, 'yyyy-MM-dd');
           const data = postsByDate[dateKey] || { count: 0, posts: [] };
           const allData = allPostsByDate ? (allPostsByDate[dateKey] || { count: 0, posts: [] }) : null;
-          const colorClass = getIntensityColor(allData?.count || 0);
+          const colorClass = getIntensityColor(allData?.count || data.count);
           const isCurrentMonth = isSameMonth(day, monthDate);
 
           return (
@@ -64,9 +64,9 @@ const CalendarMonth = ({ monthDate, postsByDate, allPostsByDate }: { monthDate: 
                         {format(day, 'd')}
                     </div>
                   
-                  {isCurrentMonth && (allData?.count || 0) > 0 && (
+                  {isCurrentMonth && (allData?.count || data.count) > 0 && (
                      <div className="text-center font-bold text-sm text-primary-foreground mix-blend-hard-light self-end w-full pb-1">
-                      {allPostsByDate ? `${data.count}/${allData.count}` : data.count}
+                      {allData ? `${data.count}/${allData.count}` : data.count}
                     </div>
                   )}
                 </div>
@@ -74,17 +74,17 @@ const CalendarMonth = ({ monthDate, postsByDate, allPostsByDate }: { monthDate: 
               {isCurrentMonth && (
                 <PopoverContent className="w-80">
                   <p className="font-bold">{format(day, 'd MMMM yyyy г.', { locale: ru })}</p>
-                  {allData && allData.count > 0 ? (
+                  {(allData?.count || data.count) > 0 ? (
                     <div className="mt-2 text-xs space-y-2">
                        {data.count > 0 && (
                         <>
-                            <p className="font-semibold">{data.count} {data.count === 1 ? 'пост' : data.count > 1 && data.count < 5 ? 'поста' : 'постов'} в этой выборке:</p>
+                            <p className="font-semibold">{allData ? `${data.count} из ${allData.count} постов в этой выборке:` : `${data.count} ${data.count === 1 ? 'пост' : 'поста'}:`}</p>
                              <ul className="list-disc list-inside max-h-40 overflow-y-auto">
                                 {data.posts.map((p, i) => <li key={i} className="truncate max-w-xs">{p.title || p.text}</li>)}
                             </ul>
                         </>
                        )}
-                       {allPostsByDate && (
+                       {allData && allData.count > data.count && (
                          <p className="font-semibold mt-2 border-t pt-2">Всего постов в этот день: {allData.count}</p>
                        )}
                     </div>
