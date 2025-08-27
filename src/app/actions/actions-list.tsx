@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -137,7 +138,8 @@ export function ActionsList() {
           });
           
           const actualRevenue = actualSales * (action.actualAverageCheck || 0);
-          const actualProfit = actualRevenue - totalSpent;
+          const actualGrossProfit = actualRevenue * ((action.actualMarginality || 0) / 100);
+          const actualProfit = actualGrossProfit - totalSpent;
 
           const startDate = new Date(action.startDate);
           const endDate = new Date(action.endDate);
