@@ -39,7 +39,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
     notFound();
   }
   
-  const socialPosts = await getSocialPostsForAction(id);
+  const socialPosts = await getSocialPostsForCampaign(campaign.id);
   const allTasks = await getAllTasks();
   const campaignTasks = allTasks.filter(task => task.campaignId === campaign.id);
 
@@ -326,7 +326,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                                                 <span className="text-muted-foreground flex items-center"><Landmark className="w-3 h-3 mr-1.5"/>Прибыль</span>
                                                 <div className="font-medium">
                                                     <span className="text-accent">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualProfit)}</span>
-                                                    <span className="text-muted-foreground text-xs"> / {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(action.plannedProfit || 0)}</span>
+                                                     <span className="text-muted-foreground text-xs"> / {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(action.plannedProfit)}</span>
                                                 </div>
                                             </div>
                                         </div>
