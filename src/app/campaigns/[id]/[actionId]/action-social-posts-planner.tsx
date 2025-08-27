@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, useActionState, useRef, useTransition, useEffect } from 'react';
-import type { Action, Activity, SocialPostStatus, SocialPlatform } from '@/lib/types';
+import type { Action, Activity, SocialPostStatus, SocialPlatform, SocialPost } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Share2, PlusCircle, Loader2, Save, MessageSquare, Users, ArrowUp, ArrowDown, Minus, Wand2, Info, ChevronDown } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
@@ -309,7 +309,7 @@ function ActualMetricsForm({ post, actionId, campaignId }: { post: any, actionId
     );
 }
 
-export function ActionSocialPostsPlanner({ action, campaignId, posts }: { action: Action, campaignId: string, posts: any[] }) {
+export function ActionSocialPostsPlanner({ action, campaignId, posts, allPosts }: { action: Action, campaignId: string, posts: SocialPost[], allPosts: SocialPost[] }) {
   const locale = 'ru-RU';
   
   const getActivityName = (activityId?: string) => {
@@ -329,7 +329,7 @@ export function ActionSocialPostsPlanner({ action, campaignId, posts }: { action
             <AddSocialPostButton action={action} campaignId={campaignId} />
         </CardHeader>
         <CardContent>
-            {posts.length > 0 && <div className="mb-8"><PublicationCalendar posts={posts} /></div>}
+            {posts.length > 0 && <div className="mb-8"><PublicationCalendar posts={posts} allPosts={allPosts} /></div>}
              <div className="grid gap-4 md:grid-cols-2">
                 {sortedPosts.length > 0 ? (
                     sortedPosts.map(post => (

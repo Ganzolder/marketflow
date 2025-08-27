@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useMemo } from 'react';
@@ -29,51 +30,41 @@ const getIntensityColor = (count: number) => {
   return 'bg-muted';
 };
 
-export function PublicationCalendar({ posts }: { posts: SocialPost[] }) {
-  const { startDate, endDate, postsByDate, weekDays, monthLabels } = useMemo(() => {
+export function PublicationCalendar({ posts, allPosts }: { posts: SocialPost[], allPosts?: SocialPost[] }) {
+  const { startDate, postsByDate, allPostsByDate } = useMemo(() => {
     const today = new Date();
     const startDate = startOfMonth(today);
-    const endDate = endOfMonth(addMonths(today, 1));
 
-    const postsByDate: PostsByDate = posts.reduce((acc, post) => {
-      const dateKey = format(new Date(post.publicationDate), 'yyyy-MM-dd');
-      if (!acc[dateKey]) {
-        acc[dateKey] = { count: 0, posts: [] };
-      }
-      acc[dateKey].count += 1;
-      acc[dateKey].posts.push({ title: post.title, text: post.text });
-      return acc;
-    }, {} as PostsByDate);
-
-    const weekDays = ['Пн', 'Ср', 'Пт'];
-
-    const monthLabels = Array.from({ length: 2 }).map((_, i) => {
-        const date = addMonths(startDate, i);
-        return {
-            label: format(date, 'MMM', { locale: ru }),
-            month: date.getMonth()
-        };
-    });
-
-    return { startDate, endDate, postsByDate, weekDays, monthLabels };
-  }, [posts]);
-
-  const allDays = eachDayOfInterval({ start: startDate, end: endDate });
-  
-  // Create a grid of weeks
-  const weeks: Date[][] = [];
-  let currentWeek: Date[] = [];
-
-  allDays.forEach(day => {
-    if (getDay(day) === 1 && currentWeek.length > 0) { // Monday starts a new week
-        weeks.push(currentWeek);
-        currentWeek = [];
+    const processPosts = (postList: SocialPost[]): PostsByDate => {
+        return postList.reduce((acc, post) => {
+            const dateKey = format(new Date(post.publicationDate), 'yyyy-MM-dd');
+            if (!acc[dateKey]) {
+                acc[dateKey] = { count: 0, posts: [] };
+            }
+            acc[dateKey].count += 1;
+            acc[dateKey].posts.push({ title: post.title, text: post.text });
+            return acc;
+        }, {} as PostsByDate);
     }
-    currentWeek.push(day);
-  });
-  if (currentWeek.length > 0) {
-    weeks.push(currentWeek);
-  }
+    
+    const postsByDate = processPosts(posts);
+    const allPostsByDate = allPosts ? processPosts(allPosts) : null;
+
+    return { startDate, postsByDate, allPostsByDate };
+  }, [posts, allPosts]);
+  
+  const today = new Date();
+  const firstMonthStart = startOfMonth(today);
+  const secondMonthStart = startOfMonth(addMonths(today, 1));
+  const secondMonthEnd = endOfMonth(addMonths(today, 1));
+
+  const allDays = eachDayOfInterval({ start: firstMonthStart, end: secondMonthEnd });
+  
+  const weekDays = ['Пн', 'Ср', 'Пт'];
+  const monthLabels = [
+      { label: format(firstMonthStart, 'LLLL', { locale: ru }), month: firstMonthStart.getMonth() },
+      { label: format(secondMonthStart, 'LLLL', { locale: ru }), month: secondMonthStart.getMonth() }
+  ];
 
   return (
      <Card>
@@ -86,43 +77,43 @@ export function PublicationCalendar({ posts }: { posts: SocialPost[] }) {
                <div className="flex flex-col gap-2 text-xs text-muted-foreground self-stretch justify-around pr-2">
                  {weekDays.map(day => <div key={day}>{day}</div>)}
                </div>
-               <div className="flex flex-col">
-                    <div className="flex gap-4 text-xs text-muted-foreground pl-1 mb-2">
-                        {monthLabels.map(m => <div key={m.label} className="min-w-[50px]">{m.label}</div>)}
-                    </div>
-                    <div className="grid grid-flow-col grid-rows-7 gap-1">
-                        {allDays.map(day => {
-                            const dateKey = format(day, 'yyyy-MM-dd');
-                            const data = postsByDate[dateKey] || { count: 0, posts: [] };
-                            const colorClass = getIntensityColor(data.count);
-                             const isCurrentMonth = isSameMonth(day, startDate) || isSameMonth(day, endDate);
+                <div className="grid grid-rows-7 grid-flow-col auto-cols-max gap-1">
+                    {allDays.map(day => {
+                        const dateKey = format(day, 'yyyy-MM-dd');
+                        const data = postsByDate[dateKey] || { count: 0, posts: [] };
+                        const allData = allPostsByDate ? (allPostsByDate[dateKey] || { count: 0 }) : null;
+                        const colorClass = getIntensityColor(data.count);
 
-                            return (
-                                <Popover key={day.toString()}>
-                                    <PopoverTrigger asChild>
-                                        <div className={cn("h-6 w-6 rounded-sm cursor-pointer flex items-center justify-center", colorClass)}>
-                                           {data.count > 0 && isCurrentMonth && (
-                                                <span className="text-xs font-bold text-primary-foreground mix-blend-difference">{data.count}</span>
-                                            )}
-                                        </div>
-                                    </PopoverTrigger>
-                                    <PopoverContent>
-                                        <p className="font-bold">{format(day, 'd MMMM yyyy г.', { locale: ru })}</p>
-                                        {data.count > 0 ? (
-                                            <div className="mt-1 text-xs space-y-1">
-                                                <p className="font-semibold">{data.count} {data.count === 1 ? 'пост' : data.count > 1 && data.count < 5 ? 'поста' : 'постов'}:</p>
-                                                <ul className="list-disc list-inside">
-                                                    {data.posts.map((p, i) => <li key={i} className="truncate max-w-xs">{p.title || p.text}</li>)}
-                                                </ul>
-                                            </div>
-                                        ) : (
-                                            <p className="text-xs text-muted-foreground">Нет постов</p>
+                        return (
+                            <Popover key={day.toString()}>
+                                <PopoverTrigger asChild>
+                                    <div className={cn("h-8 w-8 rounded-sm cursor-pointer flex items-center justify-center", colorClass)}>
+                                        {data.count > 0 && (
+                                            <span className="text-xs font-bold text-primary-foreground mix-blend-difference">
+                                                {allData ? `${data.count}/${allData.count}` : data.count}
+                                            </span>
                                         )}
-                                    </PopoverContent>
-                                </Popover>
-                            )
-                        })}
-                    </div>
+                                    </div>
+                                </PopoverTrigger>
+                                <PopoverContent>
+                                    <p className="font-bold">{format(day, 'd MMMM yyyy г.', { locale: ru })}</p>
+                                    {data.count > 0 ? (
+                                        <div className="mt-1 text-xs space-y-1">
+                                            <p className="font-semibold">{data.count} {data.count === 1 ? 'пост' : data.count > 1 && data.count < 5 ? 'поста' : 'постов'} в этой акции:</p>
+                                            <ul className="list-disc list-inside">
+                                                {data.posts.map((p, i) => <li key={i} className="truncate max-w-xs">{p.title || p.text}</li>)}
+                                            </ul>
+                                             {allData && allData.count > data.count && (
+                                                <p className="font-semibold mt-2">Всего постов в этот день: {allData.count}</p>
+                                             )}
+                                        </div>
+                                    ) : (
+                                        <p className="text-xs text-muted-foreground">Нет постов в этот день</p>
+                                    )}
+                                </PopoverContent>
+                            </Popover>
+                        )
+                    })}
                 </div>
             </div>
            <div className="flex justify-end items-center gap-2 text-xs text-muted-foreground mt-4">

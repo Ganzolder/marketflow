@@ -1,7 +1,7 @@
 
 
 import { notFound } from 'next/navigation';
-import { getCampaignById, getSocialPostsForAction, getAllTasks } from '@/lib/data';
+import { getCampaignById, getSocialPostsForAction, getAllTasks, getAllSocialPosts } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -43,7 +43,8 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
   const { id, actionId } = params;
   
   const campaign = await getCampaignById(id);
-  const socialPosts = await getSocialPostsForAction(actionId);
+  const socialPostsForAction = await getSocialPostsForAction(actionId);
+  const allSocialPosts = await getAllSocialPosts();
   const allTasks = await getAllTasks();
   const actionTasks = allTasks.filter(task => task.actionId === actionId);
   
@@ -113,7 +114,7 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
                     <span className="hidden sm:inline ml-2">Назад</span>
                 </Link>
             </Button>
-            <ActionPageHeaderActions action={action} campaign={campaign} socialPosts={socialPosts} />
+            <ActionPageHeaderActions action={action} campaign={campaign} socialPosts={socialPostsForAction} />
         </div>
       </PageHeader>
 
@@ -327,8 +328,8 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
         </Card>
         
         <CampaignTasksCard tasks={actionTasks} />
+        <ActionSocialPostsPlanner action={action} campaignId={campaign.id} posts={socialPostsForAction} allPosts={allSocialPosts} />
         <ActionResourcesCard action={action} campaignId={campaign.id} />
-        <ActionSocialPostsPlanner action={action} campaignId={campaign.id} posts={socialPosts} />
       </div>
     </div>
   );
