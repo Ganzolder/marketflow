@@ -3,7 +3,7 @@
 
 import { useMemo } from 'react';
 import type { SocialPost } from "@/lib/types";
-import { format, eachDayOfInterval, startOfMonth, endOfMonth, addMonths, isSameDay, getDay, startOfWeek, endOfWeek, isSameMonth } from 'date-fns';
+import { format, eachDayOfInterval, startOfMonth, endOfMonth, addMonths, isSameDay, startOfWeek, endOfWeek, isSameMonth } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { cn } from "@/lib/utils";
 import {
@@ -52,20 +52,21 @@ const CalendarMonth = ({ monthDate, postsByDate, allPostsByDate }: { monthDate: 
             <Popover key={day.toString()}>
               <PopoverTrigger asChild>
                 <div className={cn(
-                  "h-12 w-12 rounded-md flex items-center justify-center relative transition-colors",
+                  "h-14 w-14 rounded-md flex flex-col justify-between p-1 relative transition-colors",
                   isCurrentMonth ? 'cursor-pointer hover:ring-2 hover:ring-primary' : 'cursor-default',
                   isCurrentMonth ? colorClass : 'bg-muted/20',
                   isSameDay(day, today) && isCurrentMonth && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
                 )}>
-                  <span className={cn(
-                    "text-xs font-medium text-foreground",
-                    !isCurrentMonth && "text-muted-foreground/50"
-                  )}>
-                    {format(day, 'd')}
-                  </span>
+                    <div className={cn(
+                        "text-xs font-medium text-foreground text-center self-start w-full",
+                        !isCurrentMonth && "text-muted-foreground/50"
+                    )}>
+                        {format(day, 'd')}
+                    </div>
+                  
                   {isCurrentMonth && data.count > 0 && (
-                     <div className="absolute inset-0 flex items-center justify-center font-bold text-lg text-primary-foreground mix-blend-hard-light">
-                      {allData ? `${data.count}/${allData.count}` : data.count}
+                     <div className="text-center font-bold text-sm text-primary-foreground mix-blend-hard-light self-end w-full">
+                      {allData && allPostsByDate ? `${data.count}/${allData.count}` : data.count}
                     </div>
                   )}
                 </div>
