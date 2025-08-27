@@ -87,7 +87,11 @@ export function PublicationCalendar({ posts, allPosts }: { posts: SocialPost[], 
                         return (
                             <Popover key={day.toString()}>
                                 <PopoverTrigger asChild>
-                                    <div className={cn("h-8 w-8 rounded-sm cursor-pointer flex items-center justify-center", colorClass)}>
+                                    <div className={cn(
+                                        "h-8 w-8 rounded-sm cursor-pointer flex items-center justify-center", 
+                                        colorClass,
+                                        isSameDay(day, today) && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
+                                    )}>
                                         {data.count > 0 && (
                                             <span className="text-xs font-bold text-primary-foreground mix-blend-difference">
                                                 {allData ? `${data.count}/${allData.count}` : data.count}
