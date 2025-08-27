@@ -1,10 +1,10 @@
 
 
 import { notFound } from 'next/navigation';
-import { getCampaignById, getSocialPostsForCampaign, getSocialPostsForAction, getAllTasks, getAllSocialPosts } from '@/lib/data';
+import { getCampaignById, getSocialPostsForAction, getAllTasks, getAllSocialPosts } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { Calendar as CalendarIcon, Target, FilePlus, Eye, TrendingUp, Landmark, CalendarDays, ShoppingCart, PiggyBank, BarChart, Archive, ArchiveRestore } from 'lucide-react';
+import { Calendar as CalendarIcon, Target, FilePlus, Eye, TrendingUp, Landmark, CalendarDays, ShoppingCart, PiggyBank, BarChart, Archive, ArchiveRestore, ArrowLeft } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/status-badge';
@@ -37,7 +37,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
     notFound();
   }
   
-  const socialPosts = await getSocialPostsForCampaign(campaign.id);
+  const socialPosts = await getSocialPostsForAction(id);
   const allTasks = await getAllTasks();
   const campaignTasks = allTasks.filter(task => task.campaignId === campaign.id);
 
@@ -306,10 +306,9 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                                             <div className="flex justify-between items-center text-sm mb-1">
                                                 <span className="text-muted-foreground flex items-center"><TrendingUp className="w-3 h-3 mr-1.5"/>Выручка</span>
                                                 <span className="font-medium text-accent">
-                                                    {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualRevenue)} / <span className="text-muted-foreground">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(action.plannedRevenue || 0)}</span>
+                                                    {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualRevenue)}
                                                 </span>
                                             </div>
-                                            <Progress value={(action.plannedRevenue || 0) > 0 ? (actualRevenue / (action.plannedRevenue || 0)) * 100 : 0} className="h-2" indicatorClassName="bg-accent" />
                                         </div>
                                         <div>
                                             <div className="flex justify-between items-center text-sm mb-1">
