@@ -38,9 +38,10 @@ type ActionEffectivenessCardProps = {
     locale: string;
     currencyOptions: Intl.NumberFormatOptions;
     totalSpent: number;
+    plannedBudget: number;
 }
 
-export function ActionEffectivenessCard({ action, campaignId, locale, currencyOptions, totalSpent }: ActionEffectivenessCardProps) {
+export function ActionEffectivenessCard({ action, campaignId, locale, currencyOptions, totalSpent, plannedBudget }: ActionEffectivenessCardProps) {
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
     
@@ -84,7 +85,10 @@ export function ActionEffectivenessCard({ action, campaignId, locale, currencyOp
 
     const plannedRevenue = plannedSales * (action.plannedAverageCheck || 0);
     const actualRevenue = actualSales * (action.actualAverageCheck || 0);
-    const plannedProfit = plannedRevenue * ((action.plannedMarginality || 0) / 100);
+    
+    const plannedGrossProfit = plannedRevenue * ((action.plannedMarginality || 0) / 100);
+    const plannedProfit = plannedGrossProfit - plannedBudget;
+
     const actualProfit = actualRevenue * ((action.actualMarginality || 0) / 100);
     const netProfit = actualProfit - totalSpent;
     const roi = totalSpent > 0 ? (netProfit / totalSpent) * 100 : 0;

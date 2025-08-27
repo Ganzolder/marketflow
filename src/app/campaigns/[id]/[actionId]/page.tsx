@@ -98,6 +98,7 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
   const elapsedDuration = Math.max(0, today.getTime() - startDate.getTime());
   let durationProgress = Math.min(100, (elapsedDuration / totalDuration) * 100);
 
+  const plannedBudget = action.activities?.reduce((sum, activity) => sum + activity.budget, 0) || 0;
 
   return (
     <div>
@@ -179,7 +180,7 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
 
         <ActionResponsibilityCard action={action} campaignId={campaign.id} />
         
-        <ActionEffectivenessCard action={action} campaignId={campaign.id} locale={locale} currencyOptions={currencyOptions} totalSpent={totalSpent} />
+        <ActionEffectivenessCard action={action} campaignId={campaign.id} locale={locale} currencyOptions={currencyOptions} totalSpent={totalSpent} plannedBudget={plannedBudget}/>
         
         <Card>
           <CardHeader>
