@@ -699,7 +699,7 @@ export async function getAllSocialPosts(): Promise<EnrichedSocialPost[]> {
             campaignName,
             actionName,
         };
-    }).sort((a, b) => new Date(b.publicationDate).getTime() - new Date(a.publicationDate).getTime());
+    }).sort((a, b) => new Date(b.publicationDate).getTime() - new Date(b.publicationDate).getTime());
 }
 
 

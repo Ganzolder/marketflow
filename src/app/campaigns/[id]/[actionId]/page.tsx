@@ -5,7 +5,7 @@ import { getCampaignById, getSocialPostsForAction, getAllTasks } from '@/lib/dat
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Calendar as CalendarIcon, Target, Users, Landmark, TrendingUp, CalendarDays, LocateFixed, History, Ruble, FileText, Share2, ArrowLeft, ChevronDown, Edit } from 'lucide-react';
+import { Calendar as CalendarIcon, Target, Users, Landmark, TrendingUp, CalendarDays, LocateFixed, History, Ruble, FileText, Share2, ArrowLeft, ChevronDown, Edit, ClipboardCheck } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { NewActivityButton } from './new-activity-button';
 import { EditActivityButton } from './edit-activity-button';
