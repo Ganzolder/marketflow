@@ -1,7 +1,7 @@
 
 
 import { notFound } from 'next/navigation';
-import { getCampaignById, getSocialPostsForAction, getAllTasks, getAllSocialPosts } from '@/lib/data';
+import { getCampaignById, getSocialPostsForCampaign, getSocialPostsForAction, getAllTasks, getAllSocialPosts } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Calendar as CalendarIcon, Target, FilePlus, Eye, TrendingUp, Landmark, CalendarDays, ShoppingCart, PiggyBank, BarChart, Archive, ArchiveRestore } from 'lucide-react';
