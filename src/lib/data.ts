@@ -1458,6 +1458,9 @@ export async function updateActionSalesKpiName(campaignId: string, actionId: str
             if (actionIndex === -1) throw new Error("Action not found in this campaign!");
 
             const newActions = [...campaignData.actions];
+            if (!newActions[actionIndex]) {
+                 newActions[actionIndex] = {} as Action;
+            }
             newActions[actionIndex].salesKpiName = salesKpiName;
 
             transaction.update(campaignRef, { actions: newActions });

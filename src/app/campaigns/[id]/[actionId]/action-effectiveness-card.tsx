@@ -64,7 +64,7 @@ function SalesKpiSelector({ action, campaignId, uniqueKpiNames }: { action: Acti
     return (
         <Select 
             onValueChange={handleValueChange} 
-            defaultValue={action.salesKpiName} 
+            defaultValue={action.salesKpiName || (uniqueKpiNames.find(name => name.toLowerCase().includes('продаж')) || uniqueKpiNames[0])}
             disabled={isPending}
         >
             <SelectTrigger>
