@@ -1,7 +1,7 @@
 
 
 import { notFound } from 'next/navigation';
-import { getCampaignById, getSocialPostsForAction, getAllTasks, getAllSocialPosts } from '@/lib/data';
+import { getCampaignById, getSocialPostsForCampaign, getAllTasks, getAllSocialPosts } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Calendar as CalendarIcon, Target, FilePlus, Eye, TrendingUp, Landmark, CalendarDays, ShoppingCart, PiggyBank, BarChart, Archive, ArchiveRestore, ArrowLeft } from 'lucide-react';
@@ -37,7 +37,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
     notFound();
   }
   
-  const socialPosts = await getSocialPostsForAction(id);
+  const socialPosts = await getSocialPostsForCampaign(campaign.id);
   const allTasks = await getAllTasks();
   const campaignTasks = allTasks.filter(task => task.campaignId === campaign.id);
 
@@ -314,7 +314,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                                             <div className="flex justify-between items-center text-sm mb-1">
                                                 <span className="text-muted-foreground flex items-center"><Landmark className="w-3 h-3 mr-1.5"/>Прибыль</span>
                                                 <span className="font-medium text-accent">
-                                                    {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualProfit)} / <span className="text-muted-foreground">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(action.plannedProfit || 0)}</span>
+                                                    {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualProfit)}
                                                 </span>
                                             </div>
                                             <Progress value={(action.plannedProfit || 0) > 0 ? (actualProfit / (action.plannedProfit || 0)) * 100 : 0} className="h-2" indicatorClassName="bg-accent" />

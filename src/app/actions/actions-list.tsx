@@ -210,7 +210,7 @@ export function ActionsList() {
                             <div className="flex justify-between items-center text-sm mb-1">
                                 <span className="text-muted-foreground flex items-center"><Landmark className="w-3 h-3 mr-1.5"/>Прибыль</span>
                                 <span className="font-medium text-accent">
-                                    {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualProfit)} / <span className="text-muted-foreground">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(action.plannedProfit || 0)}</span>
+                                    {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualProfit)}
                                 </span>
                             </div>
                             <Progress value={(action.plannedProfit || 0) > 0 ? (actualProfit / (action.plannedProfit || 0)) * 100 : 0} className="h-2" indicatorClassName="bg-accent" />
