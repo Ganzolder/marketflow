@@ -76,7 +76,6 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
   let totalPlannedRevenue = 0, totalActualRevenue = 0;
   let totalPlannedBudget = 0, totalActualSpent = 0;
   let totalPlannedProfit = 0, totalActualProfit = 0;
-  let totalPlannedNetProfit = 0, totalActualNetProfit = 0;
 
   (campaign.actions || []).forEach(action => {
       const salesKpiName = action.salesKpiName || "Продажи";
@@ -91,26 +90,22 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
           });
       });
       
-      const plannedActionRevenue = plannedSales * (action.plannedAverageCheck || 0);
+      totalPlannedRevenue += action.plannedRevenue || 0;
       const actualActionRevenue = actualSales * (action.actualAverageCheck || 0);
+      
       const plannedActionBudget = action.activities?.reduce((sum, activity) => sum + activity.budget, 0) || 0;
       const actualActionSpent = (action.activities?.reduce((sum, activity) => sum + activity.spent, 0) || 0) + (action.generalExpenses?.reduce((sum, expense) => sum + expense.amount, 0) || 0);
       
-      const plannedActionProfit = plannedActionRevenue * ((action.plannedMarginality || 0) / 100);
-      const actualActionProfit = actualActionRevenue * ((action.actualMarginality || 0) / 100);
+      totalPlannedProfit += action.plannedProfit || 0;
+      const actualActionProfit = actualActionRevenue * ((action.actualMarginality || 0) / 100) - actualActionSpent;
       
       totalPlannedSales += plannedSales;
       totalActualSales += actualSales;
-      totalPlannedRevenue += plannedActionRevenue;
       totalActualRevenue += actualActionRevenue;
       totalPlannedBudget += plannedActionBudget;
       totalActualSpent += actualActionSpent;
-      totalPlannedProfit += plannedActionProfit;
       totalActualProfit += actualActionProfit;
   });
-
-  totalPlannedNetProfit = totalPlannedProfit - totalPlannedBudget;
-  totalActualNetProfit = totalActualProfit - totalActualSpent;
 
   return (
     <div>
@@ -206,8 +201,8 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                         {/* Profit */}
                         <div className="flex items-center gap-2"><PiggyBank className="w-4 h-4 text-primary"/>Прибыль (чистая)</div>
                         <div className="grid grid-cols-2 gap-4 text-right font-mono">
-                           <div>{new Intl.NumberFormat(locale, currencyOptions).format(totalPlannedNetProfit)}</div>
-                           <div className={`font-bold ${totalActualNetProfit >=0 ? 'text-accent' : 'text-destructive'}`}>{new Intl.NumberFormat(locale, currencyOptions).format(totalActualNetProfit)}</div>
+                           <div>{new Intl.NumberFormat(locale, currencyOptions).format(totalPlannedProfit)}</div>
+                           <div className={`font-bold ${totalActualProfit >=0 ? 'text-accent' : 'text-destructive'}`}>{new Intl.NumberFormat(locale, currencyOptions).format(totalActualProfit)}</div>
                         </div>
                    </div>
                 </div>
@@ -251,21 +246,17 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                         const budgetProgress = plannedBudget > 0 ? (totalSpent / plannedBudget) * 100 : 0;
                         
                         const salesKpiName = action.salesKpiName || "Продажи";
-                        let plannedSales = 0;
                         let actualSales = 0;
 
                         action.activities?.forEach(activity => {
                             activity.kpis?.forEach(kpi => {
                                 if (kpi.name === salesKpiName) {
-                                    plannedSales += kpi.target;
                                     actualSales += kpi.current;
                                 }
                             });
                         });
-
-                        const plannedRevenue = plannedSales * (action.plannedAverageCheck || 0);
+                        
                         const actualRevenue = actualSales * (action.actualAverageCheck || 0);
-                        const plannedProfit = plannedRevenue * ((action.plannedMarginality || 0) / 100);
                         const actualProfit = actualRevenue * ((action.actualMarginality || 0) / 100);
                         const hasRevenueData = action.plannedAverageCheck || action.actualAverageCheck;
                         const hasProfitData = action.actualMarginality || action.plannedMarginality;
@@ -314,10 +305,10 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                                                 <div className="flex justify-between items-center text-sm mb-1">
                                                     <span className="text-muted-foreground flex items-center"><TrendingUp className="w-3 h-3 mr-1.5"/>Выручка</span>
                                                     <span className="font-medium text-accent">
-                                                        {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualRevenue)} / <span className="text-muted-foreground">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(plannedRevenue)}</span>
+                                                        {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualRevenue)} / <span className="text-muted-foreground">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(action.plannedRevenue || 0)}</span>
                                                     </span>
                                                 </div>
-                                                <Progress value={plannedRevenue > 0 ? (actualRevenue / plannedRevenue) * 100 : 0} className="h-2" indicatorClassName="bg-accent" />
+                                                <Progress value={(action.plannedRevenue || 0) > 0 ? (actualRevenue / (action.plannedRevenue || 0)) * 100 : 0} className="h-2" indicatorClassName="bg-accent" />
                                             </div>
                                         )}
                                         {hasProfitData && (
@@ -325,10 +316,10 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                                                 <div className="flex justify-between items-center text-sm mb-1">
                                                     <span className="text-muted-foreground flex items-center"><Landmark className="w-3 h-3 mr-1.5"/>Прибыль</span>
                                                     <span className="font-medium text-accent">
-                                                        {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualProfit)} / <span className="text-muted-foreground">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(plannedProfit)}</span>
+                                                        {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualProfit)} / <span className="text-muted-foreground">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(action.plannedProfit || 0)}</span>
                                                     </span>
                                                 </div>
-                                                <Progress value={plannedProfit > 0 ? (actualProfit / plannedProfit) * 100 : 0} className="h-2" indicatorClassName="bg-accent" />
+                                                <Progress value={(action.plannedProfit || 0) > 0 ? (actualProfit / (action.plannedProfit || 0)) * 100 : 0} className="h-2" indicatorClassName="bg-accent" />
                                             </div>
                                         )}
                                         {plannedBudget > 0 && (

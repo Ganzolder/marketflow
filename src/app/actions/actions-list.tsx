@@ -126,21 +126,17 @@ export function ActionsList() {
           const budgetProgress = plannedBudget > 0 ? (totalSpent / plannedBudget) * 100 : 0;
           
           const salesKpiName = action.salesKpiName || "Продажи";
-          let plannedSales = 0;
           let actualSales = 0;
 
           action.activities?.forEach(activity => {
               activity.kpis?.forEach(kpi => {
                   if (kpi.name === salesKpiName) {
-                      plannedSales += kpi.target;
                       actualSales += kpi.current;
                   }
               });
           });
-
-          const plannedRevenue = plannedSales * (action.plannedAverageCheck || 0);
+          
           const actualRevenue = actualSales * (action.actualAverageCheck || 0);
-          const plannedProfit = plannedRevenue - plannedBudget;
           const actualProfit = actualRevenue - totalSpent;
           const hasRevenueData = action.plannedAverageCheck || action.actualAverageCheck;
           const hasProfitData = hasRevenueData;
@@ -207,10 +203,10 @@ export function ActionsList() {
                                 <div className="flex justify-between items-center text-sm mb-1">
                                     <span className="text-muted-foreground flex items-center"><TrendingUp className="w-3 h-3 mr-1.5"/>Выручка</span>
                                     <span className="font-medium text-accent">
-                                        {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualRevenue)} / <span className="text-muted-foreground">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(plannedRevenue)}</span>
+                                        {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualRevenue)} / <span className="text-muted-foreground">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(action.plannedRevenue || 0)}</span>
                                     </span>
                                 </div>
-                                <Progress value={plannedRevenue > 0 ? (actualRevenue / plannedRevenue) * 100 : 0} className="h-2" indicatorClassName="bg-accent" />
+                                <Progress value={(action.plannedRevenue || 0) > 0 ? (actualRevenue / (action.plannedRevenue || 0)) * 100 : 0} className="h-2" indicatorClassName="bg-accent" />
                             </div>
                         )}
                         {hasProfitData && (
@@ -218,10 +214,10 @@ export function ActionsList() {
                                 <div className="flex justify-between items-center text-sm mb-1">
                                     <span className="text-muted-foreground flex items-center"><Landmark className="w-3 h-3 mr-1.5"/>Прибыль</span>
                                     <span className="font-medium text-accent">
-                                        {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualProfit)} / <span className="text-muted-foreground">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(plannedProfit)}</span>
+                                        {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualProfit)} / <span className="text-muted-foreground">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(action.plannedProfit || 0)}</span>
                                     </span>
                                 </div>
-                                <Progress value={plannedProfit > 0 ? (actualProfit / plannedProfit) * 100 : 0} className="h-2" indicatorClassName="bg-accent" />
+                                <Progress value={(action.plannedProfit || 0) > 0 ? (actualProfit / (action.plannedProfit || 0)) * 100 : 0} className="h-2" indicatorClassName="bg-accent" />
                             </div>
                         )}
                         {plannedBudget > 0 && (

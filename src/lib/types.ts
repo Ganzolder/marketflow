@@ -103,6 +103,8 @@ export type Action = {
   actualAverageCheck?: number;
   plannedMarginality?: number;
   actualMarginality?: number;
+  plannedRevenue?: number;
+  plannedProfit?: number;
   responsiblePerson?: string;
   marketingHead?: string;
   financeHead?: string;

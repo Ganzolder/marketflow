@@ -2,7 +2,7 @@
 "use server";
 
 import { z } from "zod";
-import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData, updateExpenseStatus as updateExpenseStatusData, getSocialPostById, deleteSocialPost as deleteSocialPostData, getSocialPostsForAction, clearDatabase as clearDatabaseData, deleteAction as deleteActionData, getCampaigns, getAllSocialPosts, restoreDatabase, getAllTasks, addTask as addTaskData, updateTask as updateTaskData, deleteTask as deleteTaskData, updateTaskStatus as updateTaskStatusData, moveActionToCampaign, updateActionMechanics as updateActionMechanicsData, updateActionSalesKpiName as updateActionSalesKpiNameData } from "./data";
+import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData, updateExpenseStatus as updateExpenseStatusData, getSocialPostById, deleteSocialPost as deleteSocialPostData, getSocialPostsForAction, clearDatabase as clearDatabaseData, deleteAction as deleteActionData, getCampaigns, getAllSocialPosts, restoreDatabase, getAllTasks, addTask as addTaskData, updateTask as updateTaskData, deleteTask as deleteTaskData, updateTaskStatus as updateTaskStatusData, moveActionToCampaign, updateActionMechanics as updateActionMechanicsData, updateActionSalesKpiName as updateActionSalesKpiNameData, getCampaignById } from "./data";
 import { revalidatePath } from "next/cache";
 import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog, Campaign, ResponsibilityFormState, Resource, ResourceStatus, ResourceStatusFormState, ExpenseStatus, ExpenseStatusFormState, SocialPost, SocialPlatform, SocialPostStatus, SocialPostMetricsFormState, AiSocialPost, Task, EnrichedTask, TaskFormState, TaskLinkState, TaskStatus } from "./types";
 import { analyzeActionPerformance, type AnalyzeActionPerformanceOutput } from "@/ai/flows/analyze-action-performance";
@@ -272,11 +272,7 @@ export async function addActivityToAction(
       ...activityData,
       spent: 0,
       expenses: [],
-      kpis: activityData.kpis?.map(kpi => ({
-          ...kpi, 
-          current: 0, 
-          metrics: [],
-        })) || [] 
+      kpis: activityData.kpis?.map(kpi => ({...kpi, current: 0, metrics: []})) || [] 
   }
 
   try {
@@ -749,16 +745,45 @@ export async function updateActionEffectiveness(
   }
 
   const { campaignId, actionId, plannedAverageCheck, actualAverageCheck, plannedMarginality, actualMarginality } = validatedFields.data;
+  
+  const campaign = await getCampaignById(campaignId);
+  const action = campaign?.actions.find(a => a.id === actionId);
+  
+  if (!action) {
+    return { message: "Акция не найдена.", error: true };
+  }
+
+  // Calculate and store planned revenue and profit
+  const salesKpiName = action.salesKpiName || "Продажи";
+  let plannedSales = 0;
+  action.activities?.forEach(activity => {
+      activity.kpis?.forEach(kpi => {
+          if (kpi.name === salesKpiName) {
+              plannedSales += kpi.target;
+          }
+      });
+  });
+
+  const pAverageCheck = Number(plannedAverageCheck) || 0;
+  const pMarginality = Number(plannedMarginality) || 0;
+  const plannedRevenue = plannedSales * pAverageCheck;
+  
+  const plannedActionBudget = action.activities?.reduce((sum, activity) => sum + activity.budget, 0) || 0;
+  const plannedGrossProfit = plannedRevenue * (pMarginality / 100);
+  const plannedProfit = plannedGrossProfit - plannedActionBudget;
+
 
   try {
     await updateActionEffectivenessData(
         campaignId, 
         actionId, 
         {
-            plannedAverageCheck: Number(plannedAverageCheck) || 0, 
+            plannedAverageCheck: pAverageCheck, 
             actualAverageCheck: Number(actualAverageCheck) || 0,
-            plannedMarginality: Number(plannedMarginality) || 0,
+            plannedMarginality: pMarginality,
             actualMarginality: Number(actualMarginality) || 0,
+            plannedRevenue,
+            plannedProfit
         }
     );
   } catch (e) {
@@ -1485,7 +1510,7 @@ export async function updateSocialPost(prevState: SocialPostFormState, formData:
     try {
         const postRef = doc(db, "socialPosts", postId);
         
-        const updateData: { [key: string]: any } = {
+        const dataToUpdate: { [key: string]: any } = {
             title: postData.title || '',
             platforms: (postData.platforms as SocialPlatform[]) || [],
             text: postData.text || '',
@@ -1506,7 +1531,7 @@ export async function updateSocialPost(prevState: SocialPostFormState, formData:
             }
         });
 
-        await updateDoc(postRef, updateData);
+        await updateDoc(postRef, dataToUpdate);
     } catch (e) {
         const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
         return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
