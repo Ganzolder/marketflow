@@ -1,7 +1,7 @@
 
 
 import { notFound } from 'next/navigation';
-import { getCampaignById, getSocialPostsForCampaign, getAllTasks } from '@/lib/data';
+import { getCampaignById, getSocialPostsForCampaign, getAllTasks, getAllSocialPosts } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Calendar as CalendarIcon, Target, FilePlus, Eye, TrendingUp, Landmark, CalendarDays, ShoppingCart, PiggyBank, BarChart, Archive, ArchiveRestore } from 'lucide-react';
@@ -75,7 +75,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
   let totalPlannedSales = 0, totalActualSales = 0;
   let totalPlannedRevenue = 0, totalActualRevenue = 0;
   let totalPlannedBudget = 0, totalActualSpent = 0;
-  let totalPlannedNetProfit = 0, totalActualProfit = 0;
+  let totalPlannedProfit = 0, totalActualNetProfit = 0;
 
   (campaign.actions || []).forEach(action => {
       const salesKpiName = action.salesKpiName || "Продажи";
@@ -96,16 +96,19 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
       const plannedActionBudget = action.activities?.reduce((sum, activity) => sum + activity.budget, 0) || 0;
       const actualActionSpent = (action.activities?.reduce((sum, activity) => sum + activity.spent, 0) || 0) + (action.generalExpenses?.reduce((sum, expense) => sum + expense.amount, 0) || 0);
       
-      totalPlannedNetProfit += action.plannedProfit || 0;
-      const actualActionProfit = actualActionRevenue * ((action.actualMarginality || 0) / 100);
+      totalPlannedProfit += action.plannedProfit || 0;
       
       totalPlannedSales += plannedSales;
       totalActualSales += actualSales;
       totalActualRevenue += actualActionRevenue;
       totalPlannedBudget += plannedActionBudget;
       totalActualSpent += actualActionSpent;
-      totalActualProfit += actualActionProfit - actualActionSpent;
+      const actualGrossProfit = actualActionRevenue * ((action.actualMarginality || 0) / 100);
+      totalActualNetProfit += actualGrossProfit - actualActionSpent;
   });
+  
+  const totalPlannedNetProfit = totalPlannedProfit;
+
 
   return (
     <div>
@@ -202,7 +205,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                         <div className="flex items-center gap-2"><PiggyBank className="w-4 h-4 text-primary"/>Прибыль (чистая)</div>
                         <div className="grid grid-cols-2 gap-4 text-right font-mono">
                            <div>{new Intl.NumberFormat(locale, currencyOptions).format(totalPlannedNetProfit)}</div>
-                           <div className={`font-bold ${totalActualProfit >=0 ? 'text-accent' : 'text-destructive'}`}>{new Intl.NumberFormat(locale, currencyOptions).format(totalActualProfit)}</div>
+                           <div className={`font-bold ${totalActualNetProfit >=0 ? 'text-accent' : 'text-destructive'}`}>{new Intl.NumberFormat(locale, currencyOptions).format(totalActualNetProfit)}</div>
                         </div>
                    </div>
                 </div>
@@ -257,7 +260,8 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                         });
                         
                         const actualRevenue = actualSales * (action.actualAverageCheck || 0);
-                        const actualProfit = actualRevenue - totalSpent;
+                        const actualGrossProfit = actualRevenue * ((action.actualMarginality || 0) / 100);
+                        const actualProfit = actualGrossProfit - totalSpent;
                         
                         const startDate = new Date(action.startDate);
                         const endDate = new Date(action.endDate);
@@ -295,31 +299,27 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                                         </div>
                                     )}
                                     
-                                    {(summaryKpisToShow.length > 0 || plannedBudget > 0 || action.plannedRevenue) && <Separator />}
+                                    {(summaryKpisToShow.length > 0 || plannedBudget > 0 || action.plannedRevenue !== undefined) && <Separator />}
 
                                     <div className="space-y-3">
-                                        {action.plannedRevenue ? (
-                                            <div>
-                                                <div className="flex justify-between items-center text-sm mb-1">
-                                                    <span className="text-muted-foreground flex items-center"><TrendingUp className="w-3 h-3 mr-1.5"/>Выручка</span>
-                                                    <span className="font-medium text-accent">
-                                                        {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualRevenue)} / <span className="text-muted-foreground">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(action.plannedRevenue || 0)}</span>
-                                                    </span>
-                                                </div>
-                                                <Progress value={(action.plannedRevenue || 0) > 0 ? (actualRevenue / (action.plannedRevenue || 0)) * 100 : 0} className="h-2" indicatorClassName="bg-accent" />
+                                        <div>
+                                            <div className="flex justify-between items-center text-sm mb-1">
+                                                <span className="text-muted-foreground flex items-center"><TrendingUp className="w-3 h-3 mr-1.5"/>Выручка</span>
+                                                <span className="font-medium text-accent">
+                                                    {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualRevenue)} / <span className="text-muted-foreground">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(action.plannedRevenue || 0)}</span>
+                                                </span>
                                             </div>
-                                        ) : null}
-                                        {action.plannedProfit ? (
-                                            <div>
-                                                <div className="flex justify-between items-center text-sm mb-1">
-                                                    <span className="text-muted-foreground flex items-center"><Landmark className="w-3 h-3 mr-1.5"/>Прибыль</span>
-                                                    <span className="font-medium text-accent">
-                                                        {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualProfit)} / <span className="text-muted-foreground">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(action.plannedProfit || 0)}</span>
-                                                    </span>
-                                                </div>
-                                                <Progress value={(action.plannedProfit || 0) > 0 ? (actualProfit / (action.plannedProfit || 0)) * 100 : 0} className="h-2" indicatorClassName="bg-accent" />
+                                            <Progress value={(action.plannedRevenue || 0) > 0 ? (actualRevenue / (action.plannedRevenue || 0)) * 100 : 0} className="h-2" indicatorClassName="bg-accent" />
+                                        </div>
+                                        <div>
+                                            <div className="flex justify-between items-center text-sm mb-1">
+                                                <span className="text-muted-foreground flex items-center"><Landmark className="w-3 h-3 mr-1.5"/>Прибыль</span>
+                                                <span className="font-medium text-accent">
+                                                    {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualProfit)} / <span className="text-muted-foreground">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(action.plannedProfit || 0)}</span>
+                                                </span>
                                             </div>
-                                        ) : null}
+                                            <Progress value={(action.plannedProfit || 0) > 0 ? (actualProfit / (action.plannedProfit || 0)) * 100 : 0} className="h-2" indicatorClassName="bg-accent" />
+                                        </div>
                                         {plannedBudget > 0 && (
                                             <div>
                                                 <div className="flex justify-between items-center text-sm mb-1">

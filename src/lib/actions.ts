@@ -792,6 +792,8 @@ export async function updateActionEffectiveness(
   }
 
   revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+  revalidatePath(`/campaigns/${campaignId}`);
+  revalidatePath(`/actions`);
   return { message: "Данные эффективности обновлены." };
 }
 
@@ -1525,9 +1527,9 @@ export async function updateSocialPost(prevState: SocialPostFormState, formData:
             activityId: postData.activityId,
         };
         
-        Object.keys(updateData).forEach(key => {
-            if (updateData[key] === undefined) {
-                updateData[key] = deleteField();
+        Object.keys(dataToUpdate).forEach(key => {
+            if (dataToUpdate[key] === undefined) {
+                dataToUpdate[key] = deleteField();
             }
         });
 
