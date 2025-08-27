@@ -24,6 +24,7 @@ import { DeleteSocialPostButton } from './delete-social-post-button';
 import { useFormStatus } from 'react-dom';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { UpdateSocialPostStatus } from '@/app/smm/update-social-post-status';
+import { PublicationCalendar } from '@/app/smm/publication-calendar';
 
 
 const statusTranslations: Record<SocialPostStatus, string> = {
@@ -328,6 +329,7 @@ export function ActionSocialPostsPlanner({ action, campaignId, posts }: { action
             <AddSocialPostButton action={action} campaignId={campaignId} />
         </CardHeader>
         <CardContent>
+            {posts.length > 0 && <div className="mb-8"><PublicationCalendar posts={posts} /></div>}
              <div className="grid gap-4 md:grid-cols-2">
                 {sortedPosts.length > 0 ? (
                     sortedPosts.map(post => (
