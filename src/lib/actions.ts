@@ -1,5 +1,4 @@
 
-
 "use server";
 
 import { z } from "zod";
@@ -153,8 +152,14 @@ export async function editActionInCampaign(
   if (campaignId !== newCampaignId) {
       revalidatePath(`/campaigns/${newCampaignId}`);
   }
-  revalidatePath(`/campaigns/${newCampaignId}/${id}`); // Revalidate the new action page
   revalidatePath('/actions');
+
+  if (campaignId !== newCampaignId) {
+    redirect(`/campaigns/${newCampaignId}/${id}`);
+  } else {
+    revalidatePath(`/campaigns/${campaignId}/${id}`);
+  }
+
   return { message: "Акция успешно обновлена." };
 }
 
@@ -1139,6 +1144,7 @@ export async function updateActionConditions(prevState: ConditionsFormState, for
     revalidatePath(`/campaigns/${campaignId}/${actionId}`);
     return { message: "Условия акции успешно обновлены." };
 }
+
 
 // --- Resource Actions ---
 
