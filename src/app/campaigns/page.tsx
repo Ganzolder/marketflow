@@ -121,7 +121,7 @@ export default async function CampaignsPage({ searchParams: searchParamsPromise 
           });
 
           const totalPlannedProfit = totalPlannedRevenue - totalPlannedBudget;
-          const totalActualProfit = totalActualRevenue - totalSpent;
+          const totalActualProfit = totalActualRevenue - totalActualSpent;
 
           const avgPlannedRoi = actionRois.length > 0 ? actionRois.reduce((acc, val) => acc + val.planned, 0) / actionRois.length : 0;
           const avgActualRoi = actionRois.length > 0 ? actionRois.reduce((acc, val) => acc + val.actual, 0) / actionRois.length : 0;
