@@ -1,7 +1,7 @@
 
 
 import { notFound } from 'next/navigation';
-import { getCampaignById, getAllTasks, getSocialPostsForCampaign } from '@/lib/data';
+import { getCampaignById, getSocialPostsForCampaign, getAllTasks } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Calendar as CalendarIcon, Target, FilePlus, Eye, TrendingUp, Landmark, CalendarDays, ShoppingCart, PiggyBank, BarChart, Archive, ArchiveRestore } from 'lucide-react';
@@ -75,7 +75,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
   let totalPlannedSales = 0, totalActualSales = 0;
   let totalPlannedRevenue = 0, totalActualRevenue = 0;
   let totalPlannedBudget = 0, totalActualSpent = 0;
-  let totalPlannedProfit = 0, totalActualProfit = 0;
+  let totalPlannedNetProfit = 0, totalActualProfit = 0;
 
   (campaign.actions || []).forEach(action => {
       const salesKpiName = action.salesKpiName || "Продажи";
@@ -96,15 +96,15 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
       const plannedActionBudget = action.activities?.reduce((sum, activity) => sum + activity.budget, 0) || 0;
       const actualActionSpent = (action.activities?.reduce((sum, activity) => sum + activity.spent, 0) || 0) + (action.generalExpenses?.reduce((sum, expense) => sum + expense.amount, 0) || 0);
       
-      totalPlannedProfit += action.plannedProfit || 0;
-      const actualActionProfit = actualActionRevenue * ((action.actualMarginality || 0) / 100) - actualActionSpent;
+      totalPlannedNetProfit += action.plannedProfit || 0;
+      const actualActionProfit = actualActionRevenue * ((action.actualMarginality || 0) / 100);
       
       totalPlannedSales += plannedSales;
       totalActualSales += actualSales;
       totalActualRevenue += actualActionRevenue;
       totalPlannedBudget += plannedActionBudget;
       totalActualSpent += actualActionSpent;
-      totalActualProfit += actualActionProfit;
+      totalActualProfit += actualActionProfit - actualActionSpent;
   });
 
   return (
@@ -201,7 +201,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                         {/* Profit */}
                         <div className="flex items-center gap-2"><PiggyBank className="w-4 h-4 text-primary"/>Прибыль (чистая)</div>
                         <div className="grid grid-cols-2 gap-4 text-right font-mono">
-                           <div>{new Intl.NumberFormat(locale, currencyOptions).format(totalPlannedProfit)}</div>
+                           <div>{new Intl.NumberFormat(locale, currencyOptions).format(totalPlannedNetProfit)}</div>
                            <div className={`font-bold ${totalActualProfit >=0 ? 'text-accent' : 'text-destructive'}`}>{new Intl.NumberFormat(locale, currencyOptions).format(totalActualProfit)}</div>
                         </div>
                    </div>
@@ -257,10 +257,8 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                         });
                         
                         const actualRevenue = actualSales * (action.actualAverageCheck || 0);
-                        const actualProfit = actualRevenue * ((action.actualMarginality || 0) / 100);
-                        const hasRevenueData = action.plannedAverageCheck || action.actualAverageCheck;
-                        const hasProfitData = action.actualMarginality || action.plannedMarginality;
-
+                        const actualProfit = actualRevenue - totalSpent;
+                        
                         const startDate = new Date(action.startDate);
                         const endDate = new Date(action.endDate);
                         const totalDuration = Math.max(1, endDate.getTime() - startDate.getTime());
@@ -297,10 +295,10 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                                         </div>
                                     )}
                                     
-                                    {(summaryKpisToShow.length > 0 || plannedBudget > 0 || hasRevenueData) && <Separator />}
+                                    {(summaryKpisToShow.length > 0 || plannedBudget > 0 || action.plannedRevenue) && <Separator />}
 
                                     <div className="space-y-3">
-                                        {hasRevenueData && (
+                                        {action.plannedRevenue ? (
                                             <div>
                                                 <div className="flex justify-between items-center text-sm mb-1">
                                                     <span className="text-muted-foreground flex items-center"><TrendingUp className="w-3 h-3 mr-1.5"/>Выручка</span>
@@ -310,8 +308,8 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                                                 </div>
                                                 <Progress value={(action.plannedRevenue || 0) > 0 ? (actualRevenue / (action.plannedRevenue || 0)) * 100 : 0} className="h-2" indicatorClassName="bg-accent" />
                                             </div>
-                                        )}
-                                        {hasProfitData && (
+                                        ) : null}
+                                        {action.plannedProfit ? (
                                             <div>
                                                 <div className="flex justify-between items-center text-sm mb-1">
                                                     <span className="text-muted-foreground flex items-center"><Landmark className="w-3 h-3 mr-1.5"/>Прибыль</span>
@@ -321,7 +319,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                                                 </div>
                                                 <Progress value={(action.plannedProfit || 0) > 0 ? (actualProfit / (action.plannedProfit || 0)) * 100 : 0} className="h-2" indicatorClassName="bg-accent" />
                                             </div>
-                                        )}
+                                        ) : null}
                                         {plannedBudget > 0 && (
                                             <div>
                                                 <div className="flex justify-between items-center text-sm mb-1">
