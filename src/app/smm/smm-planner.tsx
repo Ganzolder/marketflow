@@ -19,12 +19,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { CheckCircle2, MinusCircle, Trash2, ArrowUpNarrowWide, ArrowDownNarrowWide } from 'lucide-react';
 import { DeleteSocialPostButton } from '../campaigns/[id]/[actionId]/delete-social-post-button';
 import { UpdateSocialPostStatus } from './update-social-post-status';
+import { MultiSelect } from '@/components/ui/multi-select';
 
 const statusTranslations: Record<SocialPostStatus, string> = {
   draft: "Черновик",
   ready: "Готово",
   published: "Опубликован",
 };
+
+const statusOptions = Object.entries(statusTranslations).map(([value, label]) => ({ value, label }));
+
 
 function Filters({ campaigns }: { campaigns: Campaign[] }) {
     const router = useRouter();
@@ -34,6 +38,7 @@ function Filters({ campaigns }: { campaigns: Campaign[] }) {
     const [actionsForCampaign, setActionsForCampaign] = useState<Action[]>([]);
     
     const selectedCampaignId = searchParams.get('campaignId') || 'all';
+    const selectedStatuses = useMemo(() => searchParams.get('status')?.split(',') || [], [searchParams]);
 
     useEffect(() => {
         const campaign = campaigns.find(c => c.id === selectedCampaignId);
@@ -68,9 +73,10 @@ function Filters({ campaigns }: { campaigns: Campaign[] }) {
         router.push(`${pathname}?${newQueryString}`);
     }
 
-    const handleStatusChange = (status: string) => {
-        router.push(pathname + '?' + createQueryString([{name: 'status', value: status}]));
+    const handleStatusChange = (newStatuses: string[]) => {
+        router.push(pathname + '?' + createQueryString([{name: 'status', value: newStatuses.join(',')}]));
     }
+
      const handleDateChange = (name: 'startDate' | 'endDate', value: string) => {
         router.push(pathname + '?' + createQueryString([{name, value}]));
     }
@@ -83,19 +89,12 @@ function Filters({ campaigns }: { campaigns: Campaign[] }) {
             <CardContent className="grid sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="grid gap-2">
                     <Label htmlFor="status">Статус</Label>
-                    <Select onValueChange={handleStatusChange} defaultValue={searchParams.get('status') || 'all'}>
-                        <SelectTrigger id="status">
-                            <SelectValue placeholder="Все статусы" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">Все статусы</SelectItem>
-                            {Object.entries(statusTranslations).map(([status, translation]) => (
-                                <SelectItem key={status} value={status}>
-                                    {translation}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <MultiSelect
+                        options={statusOptions}
+                        selected={selectedStatuses}
+                        onChange={handleStatusChange}
+                        placeholder="Все статусы"
+                    />
                 </div>
                  <div className="grid gap-2">
                     <Label htmlFor="startDate">Дата публикации от</Label>
@@ -218,7 +217,7 @@ export function SmmPlanner({ posts, campaigns }: { posts: EnrichedSocialPost[], 
         return [...posts].sort((a, b) => {
             const dateA = new Date(a.publicationDate).getTime();
             const dateB = new Date(b.publicationDate).getTime();
-            return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+            return sortOrder === 'desc' ? dateB - dateA : dateA - b;
         });
     }, [posts, sortOrder]);
 

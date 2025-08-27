@@ -4,10 +4,11 @@ import { PageHeader } from "@/components/page-header";
 import { getAllSocialPosts, getCampaigns } from "@/lib/data";
 import { SmmPlanner } from "./smm-planner";
 import { AddSmmPostButton } from "./add-smm-post-button";
+import type { SocialPostStatus } from "@/lib/types";
 
 type SmmPageProps = {
     searchParams: {
-        status?: 'draft' | 'ready' | 'published';
+        status?: string; // Can be a single status or comma-separated
         startDate?: string;
         endDate?: string;
         campaignId?: string;
@@ -21,8 +22,11 @@ export default async function SmmPage({ searchParams: searchParamsPromise }: Smm
   const allCampaigns = await getCampaigns();
   
   const filteredPosts = allPosts.filter(post => {
-      if (searchParams.status && post.status !== searchParams.status) {
-          return false;
+      if (searchParams.status) {
+          const statuses = searchParams.status.split(',') as SocialPostStatus[];
+          if (!statuses.includes(post.status)) {
+              return false;
+          }
       }
       if (searchParams.startDate) {
           const postDate = new Date(post.publicationDate);

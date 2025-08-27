@@ -13,11 +13,12 @@ import {
 } from "@/components/ui/popover"
 import { Checkbox } from "./checkbox"
 import { Label } from "./label"
+import { ScrollArea } from "./scroll-area"
 
 type MultiSelectProps = {
     options: { value: string; label: string }[];
     selected: string[];
-    onChange: React.Dispatch<React.SetStateAction<string[]>>;
+    onChange: (selected: string[]) => void;
     className?: string;
     placeholder?: string;
 }
@@ -46,27 +47,28 @@ export function MultiSelect({ options, selected, onChange, className, placeholde
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-        <div className="flex flex-col space-y-1 p-1">
-             {options.map((option) => (
-                <Label 
-                    key={option.value}
-                    className="flex items-center space-x-2 p-2 rounded-md hover:bg-accent/50 cursor-pointer"
-                >
-                    <Checkbox
-                        checked={selected.includes(option.value)}
-                        onCheckedChange={(checked) => {
-                           return checked
-                            ? onChange(prev => [...prev, option.value])
-                            : onChange(prev => prev.filter(v => v !== option.value))
-                        }}
-                    />
-                    <span>{option.label}</span>
-                </Label>
-          ))}
-        </div>
+        <ScrollArea className="max-h-60">
+            <div className="flex flex-col space-y-1 p-1">
+                {options.map((option) => (
+                    <Label 
+                        key={option.value}
+                        className="flex items-center space-x-2 p-2 rounded-md hover:bg-accent/50 cursor-pointer"
+                    >
+                        <Checkbox
+                            checked={selected.includes(option.value)}
+                            onCheckedChange={(checked) => {
+                                const newSelected = checked
+                                ? [...selected, option.value]
+                                : selected.filter(v => v !== option.value);
+                                onChange(newSelected);
+                            }}
+                        />
+                        <span>{option.label}</span>
+                    </Label>
+            ))}
+            </div>
+        </ScrollArea>
       </PopoverContent>
     </Popover>
   )
 }
-
-    
