@@ -82,7 +82,7 @@ export default async function CampaignsPage({ searchParams: searchParamsPromise 
           let totalPlannedSales = 0, totalActualSales = 0;
           let totalPlannedRevenue = 0, totalActualRevenue = 0;
           let totalPlannedBudget = 0, totalActualSpent = 0;
-          const actionRois: { planned: number; actual: number }[] = [];
+          let totalPlannedProfit = 0, totalActualProfit = 0;
 
           (campaign.actions || []).forEach(action => {
               const salesKpiName = "Продажи";
@@ -105,27 +105,15 @@ export default async function CampaignsPage({ searchParams: searchParamsPromise 
               const plannedActionBudget = action.activities?.reduce((sum, activity) => sum + activity.budget, 0) || 0;
               const actualActionSpent = (action.activities?.reduce((sum, activity) => sum + activity.spent, 0) || 0) + (action.generalExpenses?.reduce((sum, expense) => sum + expense.amount, 0) || 0);
 
-              const plannedActionNetProfit = plannedActionProfit - plannedActionBudget;
-              const actualActionNetProfit = actualActionProfit - actualActionSpent;
-              
-              const plannedRoi = plannedActionBudget > 0 ? (plannedActionNetProfit / plannedActionBudget) * 100 : 0;
-              const actualRoi = actualActionSpent > 0 ? (actualActionNetProfit / actualActionSpent) * 100 : 0;
-              
-              actionRois.push({ planned: plannedRoi, actual: actualRoi });
-
               totalPlannedSales += plannedSales;
               totalActualSales += actualSales;
               totalPlannedRevenue += plannedActionRevenue;
               totalActualRevenue += actualActionRevenue;
               totalPlannedBudget += plannedActionBudget;
               totalActualSpent += actualActionSpent;
+              totalPlannedProfit += plannedActionProfit;
+              totalActualProfit += actualActionProfit;
           });
-
-          const totalPlannedProfit = totalPlannedRevenue - totalPlannedBudget;
-          const totalActualProfit = totalActualRevenue - totalActualSpent;
-
-          const avgPlannedRoi = actionRois.length > 0 ? actionRois.reduce((acc, val) => acc + val.planned, 0) / actionRois.length : 0;
-          const avgActualRoi = actionRois.length > 0 ? actionRois.reduce((acc, val) => acc + val.actual, 0) / actionRois.length : 0;
           
           return (
             <Card key={campaign.id} className="flex flex-col">
@@ -225,13 +213,6 @@ export default async function CampaignsPage({ searchParams: searchParamsPromise 
                         <div className="grid grid-cols-2 gap-4 text-right font-mono">
                           <div>{new Intl.NumberFormat(locale, currencyOptions).format(totalPlannedProfit)}</div>
                           <div className={`font-bold ${totalActualProfit >=0 ? 'text-accent' : 'text-destructive'}`}>{new Intl.NumberFormat(locale, currencyOptions).format(totalActualProfit)}</div>
-                        </div>
-
-                         {/* ROI */}
-                        <div className="flex items-center gap-2"><BarChart className="w-4 h-4 text-primary"/>Средний ROI</div>
-                        <div className="grid grid-cols-2 gap-4 text-right font-mono">
-                          <div>{avgPlannedRoi.toFixed(1)}%</div>
-                          <div className={`font-bold ${avgActualRoi >=0 ? 'text-accent' : 'text-destructive'}`}>{avgActualRoi.toFixed(1)}%</div>
                         </div>
                    </div>
                 </div>
