@@ -1,7 +1,7 @@
 
 
 import { notFound } from 'next/navigation';
-import { getCampaignById, getSocialPostsForAction, getAllTasks, getAllSocialPosts } from '@/lib/data';
+import { getCampaignById, getSocialPostsForCampaign, getAllTasks, getAllSocialPosts } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -63,8 +63,7 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
   const today = new Date();
   const locale = 'ru-RU';
   const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
-  const currencyOptions = { style: 'currency', currency: 'RUB', minimumFractionDigits: 2, maximumFractionDigits: 2 };
-  const shortCurrencyOptions = { style: 'currency', currency: 'RUB', minimumFractionDigits: 0, maximumFractionDigits: 0 };
+  const currencyOptions = { style: 'currency', currency: 'RUB', minimumFractionDigits: 0, maximumFractionDigits: 0 };
 
 
   const aggregatedKpis: Record<string, { current: number; target: number; }> = {};
@@ -200,8 +199,8 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
           <CardContent>
               <div className="space-y-2">
                   <div className="flex justify-between items-end">
-                      <span className="text-4xl font-bold">{new Intl.NumberFormat(locale, shortCurrencyOptions).format(totalSpent)}</span>
-                      <span className="text-muted-foreground">/ {new Intl.NumberFormat(locale, shortCurrencyOptions).format(totalBudget)}</span>
+                      <span className="text-4xl font-bold">{new Intl.NumberFormat(locale, currencyOptions).format(totalSpent)}</span>
+                      <span className="text-muted-foreground">/ {new Intl.NumberFormat(locale, currencyOptions).format(totalBudget)}</span>
                   </div>
                   <Progress value={budgetProgress} indicatorClassName={budgetProgress > 100 ? 'bg-destructive' : 'bg-primary'} />
                   <div className="flex justify-between text-sm text-muted-foreground">
@@ -305,7 +304,7 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
                                                         <TooltipProvider>
                                                             <Tooltip>
                                                                 <TooltipTrigger className="flex items-center gap-1">
-                                                                    <span className="font-bold text-blue-500">{new Intl.NumberFormat(locale, currencyOptions).format(costPerUnit)} р.</span>
+                                                                    <span className="font-bold text-blue-500">{new Intl.NumberFormat(locale, currencyOptions).format(costPerUnit)}</span>
                                                                 </TooltipTrigger>
                                                                 <TooltipContent>
                                                                 <p>Стоимость за {kpi.multiplicity || 1} ед. (факт)</p>

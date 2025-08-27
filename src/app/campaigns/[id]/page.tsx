@@ -317,7 +317,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                                             <div className="flex justify-between items-center text-sm mb-1">
                                                 <span className="text-muted-foreground flex items-center"><TrendingUp className="w-3 h-3 mr-1.5"/>Выручка</span>
                                                 <div className="font-medium">
-                                                    <span className="text-accent">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualRevenue)}</span>
+                                                    <span className="text-accent">{new Intl.NumberFormat(locale, currencyOptions).format(actualRevenue)}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -325,8 +325,8 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                                             <div className="flex justify-between items-center text-sm mb-1">
                                                 <span className="text-muted-foreground flex items-center"><Landmark className="w-3 h-3 mr-1.5"/>Прибыль</span>
                                                 <div className="font-medium">
-                                                    <span className="text-accent">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualProfit)}</span>
-                                                     <span className="text-muted-foreground text-xs"> / {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(action.plannedProfit)}</span>
+                                                    <span className="text-accent">{new Intl.NumberFormat(locale, currencyOptions).format(actualProfit)}</span>
+                                                     <span className="text-muted-foreground text-xs"> / {new Intl.NumberFormat(locale, currencyOptions).format(action.plannedProfit || 0)}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -335,7 +335,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                                                 <div className="flex justify-between items-center text-sm mb-1">
                                                     <span className="text-muted-foreground flex items-center"><Landmark className="w-3 h-3 mr-1.5"/>Бюджет</span>
                                                     <span className="font-medium">
-                                                        {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(totalSpent)} / {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(plannedBudget)}
+                                                        {new Intl.NumberFormat(locale, currencyOptions).format(totalSpent)} / {new Intl.NumberFormat(locale, currencyOptions).format(plannedBudget)}
                                                     </span>
                                                 </div>
                                                 <Progress value={budgetProgress} className="h-2" indicatorClassName={budgetProgress > 100 ? 'bg-destructive' : ''} />

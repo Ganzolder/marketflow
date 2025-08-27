@@ -58,6 +58,8 @@ export function ActionsList() {
   }, [searchParams]);
 
   const locale = 'ru-RU';
+  const currencyOptions = { style: 'currency', currency: 'RUB', minimumFractionDigits: 0, maximumFractionDigits: 0 };
+
 
   if (isLoading) {
     return (
@@ -202,7 +204,7 @@ export function ActionsList() {
                             <div className="flex justify-between items-center text-sm mb-1">
                                 <span className="text-muted-foreground flex items-center"><TrendingUp className="w-3 h-3 mr-1.5"/>Выручка</span>
                                 <div className="font-medium">
-                                    <span className="text-accent">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualRevenue)}</span>
+                                    <span className="text-accent">{new Intl.NumberFormat(locale, currencyOptions).format(actualRevenue)}</span>
                                 </div>
                             </div>
                         </div>
@@ -210,8 +212,8 @@ export function ActionsList() {
                             <div className="flex justify-between items-center text-sm mb-1">
                                 <span className="text-muted-foreground flex items-center"><Landmark className="w-3 h-3 mr-1.5"/>Прибыль</span>
                                  <div className="font-medium">
-                                    <span className="text-accent">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualProfit)}</span>
-                                    <span className="text-muted-foreground text-xs"> / {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(action.plannedProfit || 0)}</span>
+                                    <span className="text-accent">{new Intl.NumberFormat(locale, currencyOptions).format(actualProfit)}</span>
+                                    <span className="text-muted-foreground text-xs"> / {new Intl.NumberFormat(locale, currencyOptions).format(action.plannedProfit || 0)}</span>
                                 </div>
                             </div>
                         </div>
@@ -220,7 +222,7 @@ export function ActionsList() {
                                 <div className="flex justify-between items-center text-sm mb-1">
                                     <span className="text-muted-foreground flex items-center"><Landmark className="w-3 h-3 mr-1.5"/>Бюджет</span>
                                     <span className="font-medium">
-                                        {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(totalSpent)} / {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(plannedBudget)}
+                                        {new Intl.NumberFormat(locale, currencyOptions).format(totalSpent)} / {new Intl.NumberFormat(locale, currencyOptions).format(plannedBudget)}
                                     </span>
                                 </div>
                                 <Progress value={budgetProgress} className="h-2" indicatorClassName={budgetProgress > 100 ? 'bg-destructive' : ''} />

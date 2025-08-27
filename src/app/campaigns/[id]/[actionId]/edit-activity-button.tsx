@@ -19,7 +19,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useFieldArray } from 'react-hook-form';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Combobox } from '@/components/ui/combobox';
 import { getUniqueKpiNames } from '@/lib/data';
@@ -61,7 +61,7 @@ export function EditActivityButton({ activity, campaignId, actionId }: { activit
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
     const locale = 'ru-RU';
-    const currencyOptions = { style: 'currency', currency: 'RUB', minimumFractionDigits: 2, maximumFractionDigits: 2 };
+    const currencyOptions = { style: 'currency', currency: 'RUB', minimumFractionDigits: 0, maximumFractionDigits: 0 };
     const [kpiOptions, setKpiOptions] = useState<{value: string, label: string}[]>([]);
     
     const initialState: ActivityFormState = { message: "", error: false, errors: {} };

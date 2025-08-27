@@ -48,7 +48,7 @@ export function NewActivityButton({ campaignId, actionId }: { campaignId: string
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
     const locale = 'ru-RU';
-    const currencyOptions = { style: 'currency', currency: 'RUB', minimumFractionDigits: 2, maximumFractionDigits: 2 };
+    const currencyOptions = { style: 'currency', currency: 'RUB', minimumFractionDigits: 0, maximumFractionDigits: 0 };
     const [kpiOptions, setKpiOptions] = useState<{value: string, label: string}[]>([]);
 
     useEffect(() => {

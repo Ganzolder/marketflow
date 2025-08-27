@@ -1,4 +1,5 @@
 
+
 import { PageHeader } from '@/components/page-header';
 import { getAllActivities, getCampaigns, getAllActions } from '@/lib/data';
 import {
@@ -157,7 +158,7 @@ export default async function ActivitiesPage({ searchParams: searchParamsPromise
                                     )}
                                     {costPerUnit !== null && (
                                         <Badge variant="outline" className="font-mono text-blue-600 border-blue-200">
-                                            {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 2 }).format(costPerUnit)}
+                                            {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(costPerUnit)}
                                         </Badge>
                                     )}
                                 </div>
