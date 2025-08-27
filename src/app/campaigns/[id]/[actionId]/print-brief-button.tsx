@@ -50,7 +50,7 @@ function PrintContent({ action, campaign }: { action: Action, campaign: Campaign
                     .prose h1, .prose h2, .prose h3, .prose h4 {
                         color: black;
                     }
-                     .prose p, .prose li {
+                     .prose p, .prose li, .prose dt, .prose dd {
                         color: #333;
                     }
                 `}
@@ -87,6 +87,20 @@ function PrintContent({ action, campaign }: { action: Action, campaign: Campaign
                         <div>
                             <h3 className="font-bold text-base mt-4 mb-2 border-b pb-1">Механика акции</h3>
                              <div className="whitespace-pre-wrap prose prose-sm">{action.mechanics}</div>
+                        </div>
+                    )}
+
+                    {(action.activities && action.activities.length > 0) && (
+                        <div>
+                            <h3 className="font-bold text-base mt-4 mb-2 border-b pb-1">Активности и способы отслеживания</h3>
+                            <div className="prose prose-sm space-y-3">
+                                {action.activities.map(activity => (
+                                    <div key={activity.id}>
+                                        <dt className="font-semibold">{activity.name}</dt>
+                                        <dd>Способ отслеживания: {activity.trackingMethod || 'Не указан'}</dd>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
                 </div>
