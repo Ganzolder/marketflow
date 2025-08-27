@@ -89,6 +89,7 @@ export type Action = {
   name: string;
   description?: string;
   conditions?: string;
+  mechanics?: string;
   targetAudience?: string;
   status: ActionStatus;
   startDate: string;
@@ -201,6 +202,14 @@ export type ResponsibilityFormState = {
         curator?: string[];
         salesHead?: string[];
     }
+}
+
+export type MechanicsFormState = {
+  message: string;
+  error?: boolean;
+  errors?: {
+    mechanics?: string[];
+  }
 }
 
 export type ResourceStatusFormState = {

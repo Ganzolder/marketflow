@@ -31,6 +31,8 @@ import { ActionResourcesCard } from './action-resources-card';
 import { ActionSocialPostsPlanner } from './action-social-posts-planner';
 import { ActionConditionsCard } from './action-conditions-card';
 import { CampaignTasksCard } from '../campaign-tasks-card';
+import { ActionMechanicsCard } from './action-mechanics-card';
+import { AddTaskButton } from '@/app/tasks/add-task-button';
 
 type ActionDetailPageProps = {
     params: { id: string; actionId: string };
@@ -104,6 +106,7 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
     <div>
       <PageHeader title={action.name} description={`Акция в рамках кампании: ${campaign.name}`}>
         <div className="flex items-center gap-2">
+            <AddTaskButton campaigns={[campaign]} />
             <Button variant="outline" asChild>
                 <Link href={`/campaigns/${campaign.id}`}>
                     <ArrowLeft className="h-4 w-4" />
@@ -177,6 +180,8 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
         </Card>
 
         <ActionConditionsCard action={action} campaignId={campaign.id} />
+        
+        <ActionMechanicsCard action={action} campaignId={campaign.id} />
 
         <ActionResponsibilityCard action={action} campaignId={campaign.id} />
         
