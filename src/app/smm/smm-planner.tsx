@@ -247,7 +247,17 @@ export function SmmPlanner({ posts, campaigns }: { posts: EnrichedSocialPost[], 
               <PublicationCalendar posts={posts} />
             </div>
 
-            <PublicationMatrix posts={posts} />
+            <Accordion type="single" collapsible className="w-full mb-8">
+                <AccordionItem value="item-1">
+                    <AccordionTrigger>
+                        <h3 className="text-lg font-medium">Матрица публикаций</h3>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                        <PublicationMatrix posts={posts} />
+                    </AccordionContent>
+                </AccordionItem>
+            </Accordion>
+            
 
             {posts.length > 1 && (
                  <div className="flex justify-end gap-2 mb-4">
