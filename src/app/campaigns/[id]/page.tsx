@@ -18,6 +18,7 @@ import { CampaignSocialPostsCard } from './campaign-social-posts-card';
 import { DeleteActionButton } from './delete-action-button';
 import { GenerateIdeasButton } from './generate-ideas-button';
 import { CampaignTasksCard } from './campaign-tasks-card';
+import { cn } from '@/lib/utils';
 
 
 type CampaignDetailPageProps = {
