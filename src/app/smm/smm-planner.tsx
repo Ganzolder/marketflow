@@ -39,7 +39,7 @@ function Filters({ campaigns }: { campaigns: Campaign[] }) {
     const [actionsForCampaign, setActionsForCampaign] = useState<Action[]>([]);
     
     const selectedCampaignId = searchParams.get('campaignId') || 'all';
-    const selectedStatuses = useMemo(() => searchParams.get('status')?.split(',') || [], [searchParams]);
+    const selectedStatuses = useMemo(() => (searchParams.get('status') || 'planned,ready').split(','), [searchParams]);
 
     useEffect(() => {
         const campaign = campaigns.find(c => c.id === selectedCampaignId);
@@ -228,7 +228,7 @@ const PublicationMatrix = ({ posts }: { posts: EnrichedSocialPost[] }) => {
 
 export function SmmPlanner({ posts, campaigns }: { posts: EnrichedSocialPost[], campaigns: Campaign[] }) {
     const locale = 'ru-RU';
-    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
     const sortedPosts = useMemo(() => {
         return [...posts].sort((a, b) => {

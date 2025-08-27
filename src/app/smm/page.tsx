@@ -22,11 +22,9 @@ export default async function SmmPage({ searchParams: searchParamsPromise }: Smm
   const allCampaigns = await getCampaigns();
   
   const filteredPosts = allPosts.filter(post => {
-      if (searchParams.status) {
-          const statuses = searchParams.status.split(',') as SocialPostStatus[];
-          if (!statuses.includes(post.status)) {
-              return false;
-          }
+      const statuses = (searchParams.status || 'planned,ready').split(',') as SocialPostStatus[];
+      if (!statuses.includes(post.status)) {
+          return false;
       }
       if (searchParams.startDate) {
           const postDate = new Date(post.publicationDate);
