@@ -3,7 +3,7 @@
 
 import { useMemo } from 'react';
 import type { SocialPost } from "@/lib/types";
-import { format, eachDayOfInterval, startOfMonth, endOfMonth, addMonths, isSameDay, startOfWeek, isSameMonth } from 'date-fns';
+import { format, eachDayOfInterval, startOfMonth, endOfMonth, addMonths, isSameDay, startOfWeek, endOfWeek, isSameMonth } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { cn } from "@/lib/utils";
 import {
@@ -61,10 +61,10 @@ const CalendarMonth = ({ monthDate, postsByDate, allPostsByDate }: { monthDate: 
                         "text-xs font-medium text-foreground text-center self-start w-full",
                         !isCurrentMonth && "text-muted-foreground/50"
                     )}>
-                        {format(day, 'd')}
+                        {isCurrentMonth ? format(day, 'd') : ''}
                     </div>
                   
-                  {isCurrentMonth && (allData?.count || data.count) > 0 && (
+                  {isCurrentMonth && (allData ? allData.count > 0 : data.count > 0) && (
                      <div className="text-center font-bold text-sm text-primary-foreground mix-blend-hard-light self-end w-full pb-1">
                       {allData ? `${data.count}/${allData.count}` : data.count}
                     </div>
@@ -123,9 +123,7 @@ export function PublicationCalendar({ posts, allPosts }: { posts: SocialPost[], 
     let postsByDate: PostsByDate;
 
     if (allPostsByDate) {
-      // If allPosts are provided, ensure postsByDate has keys for all days present in allPostsByDate
-      const basePostsByDate = processPosts(posts);
-      postsByDate = { ...basePostsByDate };
+      postsByDate = processPosts(posts);
       for (const dateKey in allPostsByDate) {
         if (!postsByDate[dateKey]) {
           postsByDate[dateKey] = { count: 0, posts: [] };
