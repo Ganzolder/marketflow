@@ -1131,6 +1131,28 @@ export async function updateActionConditions(campaignId: string, actionId: strin
     }
 }
 
+export async function updateActionMechanics(campaignId: string, actionId: string, mechanics: string) {
+    const campaignRef = doc(db, 'campaigns', campaignId);
+    try {
+        await runTransaction(db, async (transaction) => {
+            const campaignDoc = await transaction.get(campaignRef);
+            if (!campaignDoc.exists()) throw new Error("Campaign document does not exist!");
+
+            const campaignData = campaignDoc.data() as Campaign;
+            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
+            if (actionIndex === -1) throw new Error("Action not found in this campaign!");
+
+            const newActions = [...campaignData.actions];
+            newActions[actionIndex].mechanics = mechanics;
+
+            transaction.update(campaignRef, { actions: newActions });
+        });
+    } catch (e) {
+        console.error("Transaction failed: ", e);
+        throw new Error('Failed to update action mechanics.');
+    }
+}
+
 
 export async function addResourceToAction(campaignId: string, actionId: string, resource: Omit<Resource, 'id'>) {
     const campaignRef = doc(db, 'campaigns', campaignId);
@@ -1424,28 +1446,6 @@ export async function getUpcomingEvents(days: number): Promise<UpcomingEvent[]> 
   return allEvents.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 }
 
-export async function updateActionMechanics(campaignId: string, actionId: string, mechanics: string) {
-    const campaignRef = doc(db, 'campaigns', campaignId);
-    try {
-        await runTransaction(db, async (transaction) => {
-            const campaignDoc = await transaction.get(campaignRef);
-            if (!campaignDoc.exists()) throw new Error("Campaign document does not exist!");
-
-            const campaignData = campaignDoc.data() as Campaign;
-            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
-            if (actionIndex === -1) throw new Error("Action not found in this campaign!");
-
-            const newActions = [...campaignData.actions];
-            newActions[actionIndex].mechanics = mechanics;
-
-            transaction.update(campaignRef, { actions: newActions });
-        });
-    } catch (e) {
-        console.error("Transaction failed: ", e);
-        throw new Error('Failed to update action mechanics.');
-    }
-}
-
 export async function updateActionSalesKpiName(campaignId: string, actionId: string, salesKpiName: string) {
     const campaignRef = doc(db, 'campaigns', campaignId);
     try {
@@ -1467,5 +1467,3 @@ export async function updateActionSalesKpiName(campaignId: string, actionId: str
         throw new Error('Failed to update sales KPI name.');
     }
 }
-
-    
