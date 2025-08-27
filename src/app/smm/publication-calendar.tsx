@@ -3,7 +3,7 @@
 
 import { useMemo } from 'react';
 import type { SocialPost } from "@/lib/types";
-import { format, subMonths, eachDayOfInterval, startOfWeek, endOfWeek, isSameDay, getDay, startOfMonth, endOfMonth, addMonths } from 'date-fns';
+import { format, subMonths, eachDayOfInterval, startOfWeek, endOfWeek, isSameDay, getDay, startOfMonth, endOfMonth, addMonths, isSameMonth } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { cn } from "@/lib/utils";
 import {
@@ -95,11 +95,16 @@ export function PublicationCalendar({ posts }: { posts: SocialPost[] }) {
                             const dateKey = format(day, 'yyyy-MM-dd');
                             const data = postsByDate[dateKey] || { count: 0, posts: [] };
                             const colorClass = getIntensityColor(data.count);
+                             const isCurrentMonth = isSameMonth(day, startDate) || isSameMonth(day, endDate);
 
                             return (
                                 <Popover key={day.toString()}>
                                     <PopoverTrigger asChild>
-                                        <div className={cn("h-4 w-4 rounded-sm cursor-pointer", colorClass)} />
+                                        <div className={cn("h-6 w-6 rounded-sm cursor-pointer flex items-center justify-center", colorClass)}>
+                                           {data.count > 0 && isCurrentMonth && (
+                                                <span className="text-xs font-bold text-primary-foreground mix-blend-difference">{data.count}</span>
+                                            )}
+                                        </div>
                                     </PopoverTrigger>
                                     <PopoverContent>
                                         <p className="font-bold">{format(day, 'd MMMM yyyy г.', { locale: ru })}</p>
