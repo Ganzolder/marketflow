@@ -3,7 +3,7 @@
 
 import { useMemo } from 'react';
 import type { SocialPost } from "@/lib/types";
-import { format, eachDayOfInterval, startOfMonth, endOfMonth, addMonths, isSameDay, getDay, startOfWeek, endOfWeek } from 'date-fns';
+import { format, eachDayOfInterval, startOfMonth, endOfMonth, addMonths, isSameDay, getDay, startOfWeek, endOfWeek, isSameMonth } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { cn } from "@/lib/utils";
 import {
