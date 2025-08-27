@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { getCampaignById, getSocialPostsForCampaign, getAllTasks, getAllSocialPosts } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { Calendar as CalendarIcon, Target, FilePlus, Eye, TrendingUp, Landmark, CalendarDays, ShoppingCart, PiggyBank, BarChart, Archive, ArchiveRestore, ArrowLeft } from 'lucide-react';
+import { Calendar as CalendarIcon, Target, Users, Landmark, TrendingUp, CalendarDays, ShoppingCart, PiggyBank, BarChart, Archive, ArchiveRestore, ArrowLeft, ChevronDown, Edit, ClipboardCheck } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/status-badge';
@@ -19,6 +19,8 @@ import { DeleteActionButton } from './delete-action-button';
 import { GenerateIdeasButton } from './generate-ideas-button';
 import { CampaignTasksCard } from './campaign-tasks-card';
 import { cn } from '@/lib/utils';
+import { Eye, FilePlus } from 'lucide-react';
+import { AddTaskButton } from '@/app/tasks/add-task-button';
 
 
 type CampaignDetailPageProps = {
@@ -37,7 +39,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
     notFound();
   }
   
-  const socialPosts = await getSocialPostsForCampaign(campaign.id);
+  const socialPosts = await getSocialPostsForAction(id);
   const allTasks = await getAllTasks();
   const campaignTasks = allTasks.filter(task => task.campaignId === campaign.id);
 
@@ -113,7 +115,16 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
   return (
     <div>
       <PageHeader title={campaign.name}>
-        <EditCampaignButton campaign={campaign} />
+        <div className="flex items-center gap-2">
+            <AddTaskButton campaigns={[campaign]} />
+            <Button variant="outline" asChild>
+                <Link href={`/campaigns`}>
+                    <ArrowLeft className="h-4 w-4" />
+                    <span className="hidden sm:inline ml-2">К кампаниям</span>
+                </Link>
+            </Button>
+             <EditCampaignButton campaign={campaign} />
+        </div>
       </PageHeader>
 
       <div className="grid gap-8">
@@ -307,9 +318,6 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                                                 <span className="text-muted-foreground flex items-center"><TrendingUp className="w-3 h-3 mr-1.5"/>Выручка</span>
                                                 <div className="font-medium">
                                                     <span className="text-accent">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualRevenue)}</span>
-                                                    {action.plannedRevenue ? (
-                                                        <span className="text-muted-foreground text-xs"> / {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(action.plannedRevenue)}</span>
-                                                    ) : null}
                                                 </div>
                                             </div>
                                         </div>
@@ -318,9 +326,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                                                 <span className="text-muted-foreground flex items-center"><Landmark className="w-3 h-3 mr-1.5"/>Прибыль</span>
                                                 <div className="font-medium">
                                                     <span className="text-accent">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualProfit)}</span>
-                                                    {action.plannedProfit ? (
-                                                        <span className="text-muted-foreground text-xs"> / {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(action.plannedProfit)}</span>
-                                                    ) : null}
+                                                    <span className="text-muted-foreground text-xs"> / {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(action.plannedProfit || 0)}</span>
                                                 </div>
                                             </div>
                                         </div>

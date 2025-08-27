@@ -203,9 +203,6 @@ export function ActionsList() {
                                 <span className="text-muted-foreground flex items-center"><TrendingUp className="w-3 h-3 mr-1.5"/>Выручка</span>
                                 <div className="font-medium">
                                     <span className="text-accent">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualRevenue)}</span>
-                                    {action.plannedRevenue ? (
-                                        <span className="text-muted-foreground text-xs"> / {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(action.plannedRevenue)}</span>
-                                    ) : null}
                                 </div>
                             </div>
                         </div>
@@ -214,9 +211,7 @@ export function ActionsList() {
                                 <span className="text-muted-foreground flex items-center"><Landmark className="w-3 h-3 mr-1.5"/>Прибыль</span>
                                  <div className="font-medium">
                                     <span className="text-accent">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(actualProfit)}</span>
-                                    {action.plannedProfit ? (
-                                        <span className="text-muted-foreground text-xs"> / {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(action.plannedProfit)}</span>
-                                    ) : null}
+                                    <span className="text-muted-foreground text-xs"> / {new Intl.NumberFormat(locale, { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(action.plannedProfit || 0)}</span>
                                 </div>
                             </div>
                         </div>
