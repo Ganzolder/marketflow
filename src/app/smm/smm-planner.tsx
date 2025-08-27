@@ -212,6 +212,7 @@ const PublicationMatrix = ({ posts }: { posts: SocialPost[] }) => {
 
 export function SmmPlanner({ posts, campaigns }: { posts: EnrichedSocialPost[], campaigns: Campaign[] }) {
     const locale = 'ru-RU';
+    const sortedPosts = posts.sort((a,b) => new Date(b.publicationDate).getTime() - new Date(a.publicationDate).getTime());
 
     return (
         <div>
@@ -223,8 +224,8 @@ export function SmmPlanner({ posts, campaigns }: { posts: EnrichedSocialPost[], 
 
             <PublicationMatrix posts={posts} />
 
-            <div className="space-y-4">
-                {posts.map(post => {
+            <div className="grid gap-4 md:grid-cols-2">
+                {sortedPosts.map(post => {
                     
                     return (
                      <Card key={post.id} className="overflow-hidden">

@@ -328,7 +328,7 @@ export function ActionSocialPostsPlanner({ action, campaignId, posts }: { action
             <AddSocialPostButton action={action} campaignId={campaignId} />
         </CardHeader>
         <CardContent>
-             <div className="space-y-4">
+             <div className="grid gap-4 md:grid-cols-2">
                 {sortedPosts.length > 0 ? (
                     sortedPosts.map(post => (
                         <Card key={post.id} className="overflow-hidden">
@@ -374,7 +374,7 @@ export function ActionSocialPostsPlanner({ action, campaignId, posts }: { action
                         </Card>
                     ))
                 ) : (
-                    <div className="text-center text-sm text-muted-foreground py-10 border-2 border-dashed rounded-lg">
+                    <div className="text-center text-sm text-muted-foreground py-10 border-2 border-dashed rounded-lg md:col-span-2">
                         <Share2 className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
                         <p>Запланированные посты еще не добавлены.</p>
                     </div>

@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -52,7 +53,7 @@ export function TaskList({ initialTasks, allCampaigns, allTasks }: { initialTask
         </div>
       </PageHeader>
       
-      <div className="space-y-4">
+      <div className="grid gap-4 md:grid-cols-2">
         {initialTasks.map(task => (
             <Card key={task.id}>
                 <CardHeader>
@@ -91,7 +92,7 @@ export function TaskList({ initialTasks, allCampaigns, allTasks }: { initialTask
             </Card>
         ))}
          {initialTasks.length === 0 && (
-            <Card>
+            <Card className="md:col-span-2">
                 <CardContent className="py-10 text-center text-muted-foreground">
                      {view === 'archived' ? 'Нет задач в архиве.' : 'Нет задач, соответствующих фильтрам.'}
                 </CardContent>
