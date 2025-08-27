@@ -39,7 +39,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
     notFound();
   }
   
-  const socialPosts = await getSocialPostsForCampaign(campaign.id);
+  const socialPosts = await getSocialPostsForCampaign(id);
   const allTasks = await getAllTasks();
   const campaignTasks = allTasks.filter(task => task.campaignId === campaign.id);
 
@@ -220,6 +220,18 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                         </div>
                    </div>
                 </div>
+            <Separator className="my-6" />
+            <div className="space-y-4">
+                <h4 className="font-semibold">Плановая выручка по акциям</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                    {(campaign.actions || []).map(action => (
+                        <div key={action.id} className="flex justify-between items-center border-b pb-2">
+                            <span className="text-muted-foreground">{action.name}</span>
+                            <span className="font-mono font-medium">{new Intl.NumberFormat(locale, currencyOptions).format(action.plannedRevenue || 0)}</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
              <Separator className="my-6" />
             <p className="text-muted-foreground">{campaign.description}</p>
           </CardContent>
@@ -324,9 +336,9 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                                         <div>
                                             <div className="flex justify-between items-center text-sm mb-1">
                                                 <span className="text-muted-foreground flex items-center"><Landmark className="w-3 h-3 mr-1.5"/>Прибыль</span>
-                                                <div className="font-medium">
+                                                 <div className="font-medium">
                                                     <span className="text-accent">{new Intl.NumberFormat(locale, currencyOptions).format(actualProfit)}</span>
-                                                     <span className="text-muted-foreground text-xs"> / {new Intl.NumberFormat(locale, currencyOptions).format(action.plannedProfit || 0)}</span>
+                                                    <span className="text-muted-foreground text-xs"> / {new Intl.NumberFormat(locale, currencyOptions).format(action.plannedProfit || 0)}</span>
                                                 </div>
                                             </div>
                                         </div>
