@@ -71,7 +71,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
   const elapsedCampaignDuration = Math.max(0, today.getTime() - campaignStartDate.getTime());
   let campaignDurationProgress = Math.min(100, (elapsedCampaignDuration / totalCampaignDuration) * 100);
 
-  const totalActionsBudget = (campaign.actions || []).reduce((campaignSum, action) => {
+  const plannedBudget = (campaign.actions || []).reduce((campaignSum, action) => {
     const actionBudget = (action.activities || []).reduce((actionSum, activity) => actionSum + activity.budget, 0);
     return campaignSum + actionBudget;
   }, 0);
@@ -85,14 +85,23 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
       <div className="grid gap-8">
         <Card>
           <CardContent className="pt-6">
-            <div className="grid md:grid-cols-3 gap-4 text-sm">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-muted rounded-md">
                         <Landmark className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div>
-                        <p className="text-muted-foreground">Бюджет кампании</p>
-                        <p className="font-semibold text-lg">{new Intl.NumberFormat(locale, currencyOptions).format(totalActionsBudget)}</p>
+                        <p className="text-muted-foreground">Выделенный бюджет</p>
+                        <p className="font-semibold text-lg">{new Intl.NumberFormat(locale, currencyOptions).format(campaign.budget)}</p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-muted rounded-md">
+                        <Landmark className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div>
+                        <p className="text-muted-foreground">Запланированный бюджет</p>
+                        <p className="font-semibold text-lg">{new Intl.NumberFormat(locale, currencyOptions).format(plannedBudget)}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">

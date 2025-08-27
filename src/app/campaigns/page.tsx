@@ -121,17 +121,11 @@ export default async function CampaignsPage({ searchParams: searchParamsPromise 
           });
 
           const totalPlannedProfit = totalPlannedRevenue - totalPlannedBudget;
-          const totalActualProfit = totalActualRevenue - totalActualSpent;
+          const totalActualProfit = totalActualRevenue - totalSpent;
 
           const avgPlannedRoi = actionRois.length > 0 ? actionRois.reduce((acc, val) => acc + val.planned, 0) / actionRois.length : 0;
           const avgActualRoi = actionRois.length > 0 ? actionRois.reduce((acc, val) => acc + val.actual, 0) / actionRois.length : 0;
           
-          const totalActionsBudget = (campaign.actions || []).reduce((campaignSum, action) => {
-            const actionBudget = (action.activities || []).reduce((actionSum, activity) => actionSum + activity.budget, 0);
-            return campaignSum + actionBudget;
-          }, 0);
-
-
           return (
             <Card key={campaign.id} className="flex flex-col">
               <CardHeader>
@@ -159,8 +153,8 @@ export default async function CampaignsPage({ searchParams: searchParamsPromise 
                             <Landmark className="h-5 w-5 text-muted-foreground" />
                         </div>
                         <div>
-                            <p className="text-muted-foreground">Бюджет кампании</p>
-                            <p className="font-semibold">{new Intl.NumberFormat(locale, currencyOptions).format(totalActionsBudget)}</p>
+                            <p className="text-muted-foreground">Выделенный бюджет</p>
+                            <p className="font-semibold">{new Intl.NumberFormat(locale, currencyOptions).format(campaign.budget)}</p>
                         </div>
                     </div>
                      <div className="flex items-center gap-3">
