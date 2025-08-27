@@ -1,7 +1,8 @@
 
 "use client";
 
-import { useState, useEffect, useRef, useTransition } from 'react';
+import { useState, useEffect, useRef, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -15,14 +16,29 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getCampaigns } from '@/lib/data';
 
+function SubmitButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending}>
+            {pending ? (
+                <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Сохранение...
+                </>
+            ) : "Сохранить изменения"}
+        </Button>
+    )
+}
+
 export function EditActionButton({ action, campaignId, asChild = false }: { action: Action, campaignId: string, asChild?: boolean }) {
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
-    const [isPending, startTransition] = useTransition();
-    const [state, setState] = useState<ActionFormState | null>(null);
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
     const [selectedCampaignId, setSelectedCampaignId] = useState(campaignId);
+    
+    const initialState: ActionFormState = { message: "" };
+    const [state, formAction] = useActionState(editActionInCampaign, initialState);
 
     useEffect(() => {
         if(open) {
@@ -32,7 +48,7 @@ export function EditActionButton({ action, campaignId, asChild = false }: { acti
     }, [open, campaignId]);
 
     useEffect(() => {
-        if (state?.message) {
+        if (state.message) {
             if (state.error) {
                 const errorMessages = state.errors ? Object.values(state.errors).flat().join("\n") : state.message;
                 toast({
@@ -45,17 +61,12 @@ export function EditActionButton({ action, campaignId, asChild = false }: { acti
                     title: "Успех",
                     description: state.message,
                 });
-                setOpen(false);
+                if (!state.error) {
+                  setOpen(false);
+                }
             }
         }
     }, [state, toast]);
-
-    const handleFormAction = (formData: FormData) => {
-        startTransition(async () => {
-            const result = await editActionInCampaign(null, formData);
-            setState(result);
-        });
-    };
     
     const TriggerButton = (
         <Button variant={asChild ? "ghost" : "outline"} className={asChild ? "w-full justify-start p-2 h-auto" : ""}>
@@ -76,7 +87,7 @@ export function EditActionButton({ action, campaignId, asChild = false }: { acti
                         Измените информацию об акции для вашей кампании.
                     </DialogDescription>
                 </DialogHeader>
-                <form action={handleFormAction} ref={formRef}>
+                <form action={formAction} ref={formRef}>
                     <input type="hidden" name="campaignId" value={campaignId} />
                     <input type="hidden" name="actionId" value={action.id} />
                     <ScrollArea className="max-h-[70vh] p-1 pr-4">
@@ -143,14 +154,7 @@ export function EditActionButton({ action, campaignId, asChild = false }: { acti
                         <DialogClose asChild>
                             <Button variant="outline">Отмена</Button>
                         </DialogClose>
-                        <Button type="submit" disabled={isPending}>
-                            {isPending ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Сохранение...
-                                </>
-                            ) : "Сохранить изменения"}
-                        </Button>
+                        <SubmitButton />
                     </DialogFooter>
                 </form>
             </DialogContent>
