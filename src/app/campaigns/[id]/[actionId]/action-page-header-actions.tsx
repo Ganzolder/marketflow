@@ -18,6 +18,7 @@ import type { Action, Campaign, SocialPost } from "@/lib/types";
 import { EditActionButton } from "./edit-action-button";
 import { EditActionResponsibilityButton } from "./edit-action-responsibility-button";
 import { EditActionConditionsButton } from "./edit-action-conditions-button";
+import { PrintBriefButton } from "./print-brief-button";
 
 export function ActionPageHeaderActions({ action, campaign, socialPosts }: { action: Action; campaign: Campaign; socialPosts: SocialPost[] }) {
   return (
@@ -44,6 +45,9 @@ export function ActionPageHeaderActions({ action, campaign, socialPosts }: { act
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <PrintOrderButton action={action} campaign={campaign} />
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <PrintBriefButton action={action} campaign={campaign} />
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
