@@ -2,7 +2,7 @@
 "use server";
 
 import { z } from "zod";
-import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData, updateExpenseStatus as updateExpenseStatusData, getSocialPostById, deleteSocialPost as deleteSocialPostData, getSocialPostsForAction, clearDatabase as clearDatabaseData, deleteAction as deleteActionData, getCampaigns, getAllSocialPosts, restoreDatabase, getAllTasks, addTask as addTaskData, updateTask as updateTaskData, deleteTask as deleteTaskData, updateTaskStatus as updateTaskStatusData, moveActionToCampaign, updateActionMechanics as updateActionMechanicsData } from "./data";
+import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData, updateExpenseStatus as updateExpenseStatusData, getSocialPostById, deleteSocialPost as deleteSocialPostData, getSocialPostsForAction, clearDatabase as clearDatabaseData, deleteAction as deleteActionData, getCampaigns, getAllSocialPosts, restoreDatabase, getAllTasks, addTask as addTaskData, updateTask as updateTaskData, deleteTask as deleteTaskData, updateTaskStatus as updateTaskStatusData, moveActionToCampaign, updateActionMechanics as updateActionMechanicsData, updateActionSalesKpiName as updateActionSalesKpiNameData } from "./data";
 import { revalidatePath } from "next/cache";
 import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog, Campaign, ResponsibilityFormState, Resource, ResourceStatus, ResourceStatusFormState, ExpenseStatus, ExpenseStatusFormState, SocialPost, SocialPlatform, SocialPostStatus, SocialPostMetricsFormState, AiSocialPost, Task, EnrichedTask, TaskFormState, TaskLinkState, TaskStatus } from "./types";
 import { analyzeActionPerformance, type AnalyzeActionPerformanceOutput } from "@/ai/flows/analyze-action-performance";
@@ -2096,4 +2096,36 @@ export async function updateSocialPostStatus(
   revalidatePath('/campaigns'); // Revalidate all, as posts can be linked anywhere
 
   return { message: "Статус поста обновлен." };
+}
+
+const UpdateSalesKpiSchema = z.object({
+  campaignId: z.string(),
+  actionId: z.string(),
+  salesKpiName: z.string(),
+});
+
+export async function updateActionSalesKpiName(formData: FormData): Promise<{message: string, error?: boolean}> {
+    const validatedFields = UpdateSalesKpiSchema.safeParse({
+        campaignId: formData.get('campaignId'),
+        actionId: formData.get('actionId'),
+        salesKpiName: formData.get('salesKpiName'),
+    });
+
+    if (!validatedFields.success) {
+        return { message: "Ошибка валидации.", error: true };
+    }
+    
+    const { campaignId, actionId, salesKpiName } = validatedFields.data;
+
+    try {
+        await updateActionSalesKpiNameData(campaignId, actionId, salesKpiName);
+    } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+        return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
+    }
+    
+    revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+    revalidatePath(`/campaigns/${campaignId}`);
+    revalidatePath(`/actions`);
+    return { message: "KPI для продаж обновлен." };
 }

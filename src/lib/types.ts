@@ -98,6 +98,7 @@ export type Action = {
   activities: Activity[];
   generalExpenses: Expense[];
   summaryKpis?: string[]; // Names of aggregated KPIs to show on the campaign page action card
+  salesKpiName?: string; // Name of the KPI to be used for sales calculation
   plannedAverageCheck?: number;
   actualAverageCheck?: number;
   plannedMarginality?: number;

@@ -71,10 +71,45 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
   const elapsedCampaignDuration = Math.max(0, today.getTime() - campaignStartDate.getTime());
   let campaignDurationProgress = Math.min(100, (elapsedCampaignDuration / totalCampaignDuration) * 100);
 
-  const plannedBudget = (campaign.actions || []).reduce((campaignSum, action) => {
-    const actionBudget = (action.activities || []).reduce((actionSum, activity) => actionSum + activity.budget, 0);
-    return campaignSum + actionBudget;
-  }, 0);
+  let totalPlannedSales = 0, totalActualSales = 0;
+  let totalPlannedRevenue = 0, totalActualRevenue = 0;
+  let totalPlannedBudget = 0, totalActualSpent = 0;
+  let totalPlannedProfit = 0, totalActualProfit = 0;
+  let totalPlannedNetProfit = 0, totalActualNetProfit = 0;
+
+  (campaign.actions || []).forEach(action => {
+      const salesKpiName = action.salesKpiName || "Продажи";
+      let plannedSales = 0, actualSales = 0;
+
+      action.activities?.forEach(activity => {
+          activity.kpis?.forEach(kpi => {
+              if (kpi.name === salesKpiName) {
+                  plannedSales += kpi.target;
+                  actualSales += kpi.current;
+              }
+          });
+      });
+      
+      const plannedActionRevenue = plannedSales * (action.plannedAverageCheck || 0);
+      const actualActionRevenue = actualSales * (action.actualAverageCheck || 0);
+      const plannedActionBudget = action.activities?.reduce((sum, activity) => sum + activity.budget, 0) || 0;
+      const actualActionSpent = (action.activities?.reduce((sum, activity) => sum + activity.spent, 0) || 0) + (action.generalExpenses?.reduce((sum, expense) => sum + expense.amount, 0) || 0);
+      
+      const plannedActionProfit = plannedActionRevenue * ((action.plannedMarginality || 0) / 100);
+      const actualActionProfit = actualActionRevenue * ((action.actualMarginality || 0) / 100);
+      
+      totalPlannedSales += plannedSales;
+      totalActualSales += actualSales;
+      totalPlannedRevenue += plannedActionRevenue;
+      totalActualRevenue += actualActionRevenue;
+      totalPlannedBudget += plannedActionBudget;
+      totalActualSpent += actualActionSpent;
+      totalPlannedProfit += plannedActionProfit;
+      totalActualProfit += actualActionProfit;
+  });
+
+  totalPlannedNetProfit = totalPlannedProfit - totalPlannedBudget;
+  totalActualNetProfit = totalActualProfit - totalActualSpent;
 
   return (
     <div>
@@ -95,16 +130,18 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                         <p className="font-semibold text-lg">{new Intl.NumberFormat(locale, currencyOptions).format(campaign.budget)}</p>
                     </div>
                 </div>
-                <div className="flex items-center gap-3">
+                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-muted rounded-md">
                         <Landmark className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div>
                         <p className="text-muted-foreground">Запланированный бюджет</p>
-                        <p className="font-semibold text-lg">{new Intl.NumberFormat(locale, currencyOptions).format(plannedBudget)}</p>
+                        <p className={cn("font-semibold text-lg", totalPlannedBudget > campaign.budget && "text-destructive")}>
+                            {new Intl.NumberFormat(locale, currencyOptions).format(totalPlannedBudget)}
+                        </p>
                     </div>
                 </div>
-                <div className="flex items-center gap-3">
+                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-muted rounded-md">
                         <CalendarIcon className="h-5 w-5 text-muted-foreground" />
                     </div>
@@ -132,6 +169,32 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                 <Progress value={campaignDurationProgress} className="h-2" />
             </div>
             <Separator className="my-6" />
+             <div className="space-y-4">
+                  <h4 className="font-semibold">Ключевые показатели кампании</h4>
+                   <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                        {/* Headers */}
+                        <div className="font-medium text-muted-foreground">Показатель</div>
+                        <div className="grid grid-cols-2 gap-4 text-right">
+                          <div className="font-medium text-muted-foreground">План</div>
+                          <div className="font-medium text-muted-foreground">Факт</div>
+                        </div>
+
+                        {/* Revenue */}
+                        <div className="flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary"/>Выручка</div>
+                        <div className="grid grid-cols-2 gap-4 text-right font-mono">
+                          <div>{new Intl.NumberFormat(locale, currencyOptions).format(totalPlannedRevenue)}</div>
+                          <div className="font-bold text-accent">{new Intl.NumberFormat(locale, currencyOptions).format(totalActualRevenue)}</div>
+                        </div>
+                        
+                        {/* Profit */}
+                        <div className="flex items-center gap-2"><PiggyBank className="w-4 h-4 text-primary"/>Прибыль (чистая)</div>
+                        <div className="grid grid-cols-2 gap-4 text-right font-mono">
+                           <div>{new Intl.NumberFormat(locale, currencyOptions).format(totalPlannedNetProfit)}</div>
+                           <div className={`font-bold ${totalActualNetProfit >=0 ? 'text-accent' : 'text-destructive'}`}>{new Intl.NumberFormat(locale, currencyOptions).format(totalActualNetProfit)}</div>
+                        </div>
+                   </div>
+                </div>
+             <Separator className="my-6" />
             <p className="text-muted-foreground">{campaign.description}</p>
           </CardContent>
         </Card>
@@ -153,7 +216,6 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                         const allKpis = action.activities?.flatMap(a => a.kpis?.filter(k => k.includeInActionGoals !== false) || []) || [];
                         const summaryKpis: Record<string, { current: number, target: number }> = {};
                         
-                        // Aggregate KPIs
                         allKpis.forEach(kpi => {
                             if (summaryKpis[kpi.name]) {
                                 summaryKpis[kpi.name].current += kpi.current;
@@ -171,7 +233,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                         const totalSpent = (action.activities?.reduce((sum, activity) => sum + activity.spent, 0) || 0) + (action.generalExpenses?.reduce((sum, expense) => sum + expense.amount, 0) || 0);
                         const budgetProgress = plannedBudget > 0 ? (totalSpent / plannedBudget) * 100 : 0;
                         
-                        const salesKpiName = "Продажи";
+                        const salesKpiName = action.salesKpiName || "Продажи";
                         let plannedSales = 0;
                         let actualSales = 0;
 

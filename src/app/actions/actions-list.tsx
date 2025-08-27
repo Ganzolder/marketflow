@@ -125,7 +125,7 @@ export function ActionsList() {
           const totalSpent = (action.activities?.reduce((sum, activity) => sum + activity.spent, 0) || 0) + (action.generalExpenses?.reduce((sum, expense) => sum + expense.amount, 0) || 0);
           const budgetProgress = plannedBudget > 0 ? (totalSpent / plannedBudget) * 100 : 0;
           
-          const salesKpiName = "Продажи";
+          const salesKpiName = action.salesKpiName || "Продажи";
           let plannedSales = 0;
           let actualSales = 0;
 
@@ -140,10 +140,10 @@ export function ActionsList() {
 
           const plannedRevenue = plannedSales * (action.plannedAverageCheck || 0);
           const actualRevenue = actualSales * (action.actualAverageCheck || 0);
-          const plannedProfit = plannedRevenue * ((action.plannedMarginality || 0) / 100);
-          const actualProfit = actualRevenue * ((action.actualMarginality || 0) / 100);
+          const plannedProfit = plannedRevenue - plannedBudget;
+          const actualProfit = actualRevenue - totalSpent;
           const hasRevenueData = action.plannedAverageCheck || action.actualAverageCheck;
-          const hasProfitData = action.actualMarginality || action.plannedMarginality;
+          const hasProfitData = hasRevenueData;
 
           const startDate = new Date(action.startDate);
           const endDate = new Date(action.endDate);

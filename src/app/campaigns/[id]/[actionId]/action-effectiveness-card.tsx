@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useActionState, useRef, useState } from 'react';
+import { useEffect, useActionState, useRef, useState, useTransition } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Save, ShoppingCart, Banknote, Landmark, PiggyBank, BarChart, Ruble, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { updateActionEffectiveness, type EffectivenessFormState } from '@/lib/actions';
+import { updateActionEffectiveness, type EffectivenessFormState, updateActionSalesKpiName } from '@/lib/actions';
 import type { Action } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
@@ -41,15 +41,50 @@ type ActionEffectivenessCardProps = {
     plannedBudget: number;
 }
 
+function SalesKpiSelector({ action, campaignId, uniqueKpiNames }: { action: Action, campaignId: string, uniqueKpiNames: string[] }) {
+    const { toast } = useToast();
+    const [isPending, startTransition] = useTransition();
+
+    const handleValueChange = (kpiName: string) => {
+        const formData = new FormData();
+        formData.append('campaignId', campaignId);
+        formData.append('actionId', action.id);
+        formData.append('salesKpiName', kpiName);
+        
+        startTransition(async () => {
+            const result = await updateActionSalesKpiName(formData);
+            if (result.error) {
+                toast({ variant: "destructive", title: "Ошибка", description: result.message });
+            } else {
+                toast({ title: "Успех", description: result.message });
+            }
+        });
+    };
+
+    return (
+        <Select 
+            onValueChange={handleValueChange} 
+            defaultValue={action.salesKpiName} 
+            disabled={isPending}
+        >
+            <SelectTrigger>
+                <SelectValue placeholder="Выберите KPI" />
+            </SelectTrigger>
+            <SelectContent>
+                {uniqueKpiNames.map(name => (
+                    <SelectItem key={name} value={name}>{name}</SelectItem>
+                ))}
+            </SelectContent>
+        </Select>
+    );
+}
+
 export function ActionEffectivenessCard({ action, campaignId, locale, currencyOptions, totalSpent, plannedBudget }: ActionEffectivenessCardProps) {
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
     
     const uniqueKpiNames = Array.from(new Set(action.activities?.flatMap(a => a.kpis?.map(k => k.name) || []) || []));
-    const defaultSalesKpi = uniqueKpiNames.find(name => name.toLowerCase().includes('продаж')) || uniqueKpiNames[0];
-
-    const [salesKpiName, setSalesKpiName] = useState<string>(defaultSalesKpi || '');
-
+    
     const initialState: EffectivenessFormState = { message: "" };
     const [state, dispatch] = useActionState(updateActionEffectiveness, initialState);
 
@@ -70,6 +105,9 @@ export function ActionEffectivenessCard({ action, campaignId, locale, currencyOp
             }
         }
     }, [state, toast]);
+    
+    const salesKpiName = action.salesKpiName || uniqueKpiNames.find(name => name.toLowerCase().includes('продаж')) || uniqueKpiNames[0];
+
 
     let plannedSales = 0;
     let actualSales = 0;
@@ -171,16 +209,8 @@ export function ActionEffectivenessCard({ action, campaignId, locale, currencyOp
                     <>
                     <div className="mb-6 max-w-sm">
                         <Label>KPI для расчета продаж</Label>
-                        <Select value={salesKpiName} onValueChange={setSalesKpiName}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Выберите KPI" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {uniqueKpiNames.map(name => (
-                                    <SelectItem key={name} value={name}>{name}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <SalesKpiSelector action={action} campaignId={campaignId} uniqueKpiNames={uniqueKpiNames} />
+                        <p className="text-xs text-muted-foreground mt-1">Этот KPI будет использоваться для расчета выручки и прибыли.</p>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
