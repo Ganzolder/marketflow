@@ -83,9 +83,10 @@ export default async function CampaignsPage({ searchParams: searchParamsPromise 
           let totalPlannedRevenue = 0, totalActualRevenue = 0;
           let totalPlannedBudget = 0, totalActualSpent = 0;
           let totalPlannedProfit = 0, totalActualProfit = 0;
+          let totalPlannedNetProfit = 0, totalActualNetProfit = 0;
 
           (campaign.actions || []).forEach(action => {
-              const salesKpiName = "Продажи";
+              const salesKpiName = action.salesKpiName || "Продажи";
               let plannedSales = 0, actualSales = 0;
 
               action.activities?.forEach(activity => {
@@ -114,6 +115,9 @@ export default async function CampaignsPage({ searchParams: searchParamsPromise 
               totalPlannedProfit += plannedActionProfit;
               totalActualProfit += actualActionProfit;
           });
+          
+          totalPlannedNetProfit = totalPlannedProfit - totalPlannedBudget;
+          totalActualNetProfit = totalActualProfit - totalActualSpent;
           
           return (
             <Card key={campaign.id} className="flex flex-col">
@@ -209,10 +213,10 @@ export default async function CampaignsPage({ searchParams: searchParamsPromise 
                         <Separator className="col-span-full"/>
 
                         {/* Profit */}
-                        <div className="flex items-center gap-2"><PiggyBank className="w-4 h-4 text-primary"/>Прибыль</div>
+                        <div className="flex items-center gap-2"><PiggyBank className="w-4 h-4 text-primary"/>Прибыль (чистая)</div>
                         <div className="grid grid-cols-2 gap-4 text-right font-mono">
-                          <div>{new Intl.NumberFormat(locale, currencyOptions).format(totalPlannedProfit)}</div>
-                          <div className={`font-bold ${totalActualProfit >=0 ? 'text-accent' : 'text-destructive'}`}>{new Intl.NumberFormat(locale, currencyOptions).format(totalActualProfit)}</div>
+                          <div>{new Intl.NumberFormat(locale, currencyOptions).format(totalPlannedNetProfit)}</div>
+                          <div className={`font-bold ${totalActualNetProfit >=0 ? 'text-accent' : 'text-destructive'}`}>{new Intl.NumberFormat(locale, currencyOptions).format(totalActualNetProfit)}</div>
                         </div>
                    </div>
                 </div>

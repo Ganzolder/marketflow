@@ -1,7 +1,7 @@
 
 
 import { notFound } from 'next/navigation';
-import { getCampaignById, getSocialPostsForAction, getAllTasks, getAllSocialPosts, getSocialPostsForCampaign } from '@/lib/data';
+import { getCampaignById, getAllTasks, getSocialPostsForCampaign } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Calendar as CalendarIcon, Target, FilePlus, Eye, TrendingUp, Landmark, CalendarDays, ShoppingCart, PiggyBank, BarChart, Archive, ArchiveRestore } from 'lucide-react';
@@ -179,6 +179,13 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                           <div className="font-medium text-muted-foreground">План</div>
                           <div className="font-medium text-muted-foreground">Факт</div>
                         </div>
+                        
+                        {/* Sales */}
+                        <div className="flex items-center gap-2"><ShoppingCart className="w-4 h-4 text-primary"/>Продажи, шт.</div>
+                        <div className="grid grid-cols-2 gap-4 text-right font-mono">
+                          <div>{totalPlannedSales.toLocaleString(locale)}</div>
+                          <div className="font-bold text-accent">{totalActualSales.toLocaleString(locale)}</div>
+                        </div>
 
                         {/* Revenue */}
                         <div className="flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary"/>Выручка</div>
@@ -187,6 +194,15 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                           <div className="font-bold text-accent">{new Intl.NumberFormat(locale, currencyOptions).format(totalActualRevenue)}</div>
                         </div>
                         
+                        {/* Spent */}
+                        <div className="flex items-center gap-2"><Landmark className="w-4 h-4 text-primary"/>Затраты</div>
+                        <div className="grid grid-cols-2 gap-4 text-right font-mono">
+                          <div>{new Intl.NumberFormat(locale, currencyOptions).format(totalPlannedBudget)}</div>
+                          <div className="font-bold text-accent">{new Intl.NumberFormat(locale, currencyOptions).format(totalActualSpent)}</div>
+                        </div>
+                        
+                        <Separator className="col-span-full"/>
+
                         {/* Profit */}
                         <div className="flex items-center gap-2"><PiggyBank className="w-4 h-4 text-primary"/>Прибыль (чистая)</div>
                         <div className="grid grid-cols-2 gap-4 text-right font-mono">
