@@ -25,7 +25,7 @@ const nextConfig: NextConfig = {
       'net': false,
       'tls': false,
     };
-    config.externals.push('node:stream/web');
+    config.externals.push('node:stream/web', 'handlebars');
     return config;
   },
 };
