@@ -140,7 +140,7 @@ export async function editActionInCampaign(
 
   try {
     if (campaignId !== newCampaignId) {
-      await moveActionToCampaign(actionId, campaignId, newCampaignId, actionToUpdate);
+      await moveActionToCampaign(id, campaignId, newCampaignId, actionToUpdate);
     } else {
       await updateAction(campaignId, { id, ...actionData });
     }
