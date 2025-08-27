@@ -44,8 +44,8 @@ const CalendarMonth = ({ monthDate, postsByDate, allPostsByDate }: { monthDate: 
         {daysInMonth.map(day => {
           const dateKey = format(day, 'yyyy-MM-dd');
           const data = postsByDate[dateKey] || { count: 0, posts: [] };
-          const allData = allPostsByDate ? (allPostsByDate[dateKey] || { count: 0 }) : null;
-          const colorClass = getIntensityColor(data.count);
+          const allData = allPostsByDate ? (allPostsByDate[dateKey] || { count: 0, posts: [] }) : null;
+          const colorClass = getIntensityColor(allData?.count || 0);
           const isCurrentMonth = isSameMonth(day, monthDate);
 
           return (
@@ -64,9 +64,9 @@ const CalendarMonth = ({ monthDate, postsByDate, allPostsByDate }: { monthDate: 
                         {format(day, 'd')}
                     </div>
                   
-                  {isCurrentMonth && data.count > 0 && (
-                     <div className="text-center font-bold text-sm text-primary-foreground mix-blend-hard-light self-end w-full">
-                      {allData && allPostsByDate ? `${data.count}/${allData.count}` : data.count}
+                  {isCurrentMonth && (allData?.count || 0) > 0 && (
+                     <div className="text-center font-bold text-sm text-primary-foreground mix-blend-hard-light self-end w-full pb-1">
+                      {allPostsByDate ? `${data.count}/${allData.count}` : data.count}
                     </div>
                   )}
                 </div>
@@ -74,15 +74,19 @@ const CalendarMonth = ({ monthDate, postsByDate, allPostsByDate }: { monthDate: 
               {isCurrentMonth && (
                 <PopoverContent className="w-80">
                   <p className="font-bold">{format(day, 'd MMMM yyyy г.', { locale: ru })}</p>
-                  {data.count > 0 ? (
+                  {allData && allData.count > 0 ? (
                     <div className="mt-2 text-xs space-y-2">
-                      <p className="font-semibold">{data.count} {data.count === 1 ? 'пост' : data.count > 1 && data.count < 5 ? 'поста' : 'постов'} в этой выборке:</p>
-                      <ul className="list-disc list-inside max-h-40 overflow-y-auto">
-                        {data.posts.map((p, i) => <li key={i} className="truncate max-w-xs">{p.title || p.text}</li>)}
-                      </ul>
-                      {allData && allData.count > data.count && (
-                        <p className="font-semibold mt-2 border-t pt-2">Всего постов в этот день: {allData.count}</p>
-                      )}
+                       {data.count > 0 && (
+                        <>
+                            <p className="font-semibold">{data.count} {data.count === 1 ? 'пост' : data.count > 1 && data.count < 5 ? 'поста' : 'постов'} в этой выборке:</p>
+                             <ul className="list-disc list-inside max-h-40 overflow-y-auto">
+                                {data.posts.map((p, i) => <li key={i} className="truncate max-w-xs">{p.title || p.text}</li>)}
+                            </ul>
+                        </>
+                       )}
+                       {allPostsByDate && (
+                         <p className="font-semibold mt-2 border-t pt-2">Всего постов в этот день: {allData.count}</p>
+                       )}
                     </div>
                   ) : (
                     <p className="text-xs text-muted-foreground mt-1">Нет постов в этот день.</p>
@@ -115,8 +119,21 @@ export function PublicationCalendar({ posts, allPosts }: { posts: SocialPost[], 
       }, {} as PostsByDate);
     };
     
-    const postsByDate = processPosts(posts);
     const allPostsByDate = allPosts ? processPosts(allPosts) : null;
+    let postsByDate: PostsByDate;
+
+    if (allPostsByDate) {
+      // If allPosts are provided, ensure postsByDate has keys for all days present in allPostsByDate
+      const basePostsByDate = processPosts(posts);
+      postsByDate = { ...basePostsByDate };
+      for (const dateKey in allPostsByDate) {
+        if (!postsByDate[dateKey]) {
+          postsByDate[dateKey] = { count: 0, posts: [] };
+        }
+      }
+    } else {
+      postsByDate = processPosts(posts);
+    }
     
     return { postsByDate, allPostsByDate };
   }, [posts, allPosts]);
