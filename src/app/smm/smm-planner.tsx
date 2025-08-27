@@ -241,8 +241,6 @@ export function SmmPlanner({ posts, campaigns }: { posts: EnrichedSocialPost[], 
 
     return (
         <div>
-            <Filters campaigns={campaigns} />
-
             <div className="mb-8">
               <PublicationCalendar posts={posts} />
             </div>
@@ -258,6 +256,7 @@ export function SmmPlanner({ posts, campaigns }: { posts: EnrichedSocialPost[], 
                 </AccordionItem>
             </Accordion>
             
+            <Filters campaigns={campaigns} />
 
             {posts.length > 1 && (
                  <div className="flex justify-end gap-2 mb-4">
