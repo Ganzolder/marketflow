@@ -37,7 +37,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
     notFound();
   }
   
-  const socialPosts = await getSocialPostsForAction(id);
+  const socialPosts = await getSocialPostsForCampaign(campaign.id);
   const allTasks = await getAllTasks();
   const campaignTasks = allTasks.filter(task => task.campaignId === campaign.id);
 
@@ -299,7 +299,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                                         </div>
                                     )}
                                     
-                                    {(summaryKpisToShow.length > 0 || plannedBudget > 0 || action.plannedRevenue !== undefined) && <Separator />}
+                                    {(summaryKpisToShow.length > 0 || plannedBudget > 0) && <Separator />}
 
                                     <div className="space-y-3">
                                         <div>

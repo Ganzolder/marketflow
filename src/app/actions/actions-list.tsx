@@ -195,7 +195,7 @@ export function ActionsList() {
                       </div>
                     )}
                     
-                    {(summaryKpisToShow.length > 0 || plannedBudget > 0 || action.plannedRevenue !== undefined) && <Separator />}
+                    {(summaryKpisToShow.length > 0 || plannedBudget > 0) && <Separator />}
 
                     <div className="space-y-3">
                         <div>
