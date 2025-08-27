@@ -77,7 +77,7 @@ export default async function CampaignsPage({ searchParams: searchParamsPromise 
           const endDate = new Date(campaign.endDate);
           const totalDuration = Math.max(1, endDate.getTime() - startDate.getTime());
           const elapsedDuration = Math.max(0, today.getTime() - startDate.getTime());
-          let durationProgress = Math.min(100, (elapsedCampaignDuration / totalDuration) * 100);
+          let durationProgress = Math.min(100, (elapsedDuration / totalDuration) * 100);
 
           let totalPlannedSales = 0, totalActualSales = 0;
           let totalPlannedRevenue = 0, totalActualRevenue = 0;
