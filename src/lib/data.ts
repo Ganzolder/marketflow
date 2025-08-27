@@ -1,5 +1,4 @@
 
-
 "use server";
 
 import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction, ActionStatus, CampaignStatus, KpiMetricLog, EnrichedActivity, Resource, ResourceStatus, ExpenseStatus, SocialPost, EnrichedSocialPost, Task, TaskStatus, EnrichedTask, UpcomingEvent } from './types';
@@ -711,8 +710,10 @@ export async function getAllSocialPosts(): Promise<EnrichedSocialPost[]> {
     const campaigns = await getCampaigns();
     
     return posts.map(post => {
-        let campaignName = '';
-        let actionName = '';
+        let campaignName: string | undefined;
+        let actionName: string | undefined;
+        let activityName: string | undefined;
+
         if (post.campaignId) {
             const campaign = campaigns.find(c => c.id === post.campaignId);
             if (campaign) {
@@ -721,6 +722,10 @@ export async function getAllSocialPosts(): Promise<EnrichedSocialPost[]> {
                     const action = campaign.actions.find(a => a.id === post.actionId);
                     if (action) {
                         actionName = action.name;
+                        if(post.activityId) {
+                            const activity = action.activities.find(act => act.id === post.activityId);
+                            activityName = activity?.name;
+                        }
                     }
                 }
             }
@@ -729,6 +734,7 @@ export async function getAllSocialPosts(): Promise<EnrichedSocialPost[]> {
             ...post,
             campaignName,
             actionName,
+            activityName,
         };
     }).sort((a, b) => new Date(b.publicationDate).getTime() - new Date(b.publicationDate).getTime());
 }
@@ -827,11 +833,11 @@ export async function deleteGeneralExpenseFromAction(campaignId: string, actionI
     try {
         await runTransaction(db, async (transaction) => {
             const campaignDoc = await transaction.get(campaignRef);
-            if (!campaignDoc.exists()) throw new Error("Campaign does not exist!");
+            if (!campaignDoc.exists()) throw new Error("Campaign not found");
             
             const campaignData = campaignDoc.data() as Campaign;
             const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
-            if (actionIndex === -1) throw new Error("Action not found!");
+            if (actionIndex === -1) throw new Error("Action not found");
 
             const newActions = [...campaignData.actions];
             const action = newActions[actionIndex];
@@ -1417,3 +1423,49 @@ export async function getUpcomingEvents(days: number): Promise<UpcomingEvent[]> 
   
   return allEvents.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 }
+
+export async function updateActionMechanics(campaignId: string, actionId: string, mechanics: string) {
+    const campaignRef = doc(db, 'campaigns', campaignId);
+    try {
+        await runTransaction(db, async (transaction) => {
+            const campaignDoc = await transaction.get(campaignRef);
+            if (!campaignDoc.exists()) throw new Error("Campaign document does not exist!");
+
+            const campaignData = campaignDoc.data() as Campaign;
+            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
+            if (actionIndex === -1) throw new Error("Action not found in this campaign!");
+
+            const newActions = [...campaignData.actions];
+            newActions[actionIndex].mechanics = mechanics;
+
+            transaction.update(campaignRef, { actions: newActions });
+        });
+    } catch (e) {
+        console.error("Transaction failed: ", e);
+        throw new Error('Failed to update action mechanics.');
+    }
+}
+
+export async function updateActionSalesKpiName(campaignId: string, actionId: string, salesKpiName: string) {
+    const campaignRef = doc(db, 'campaigns', campaignId);
+    try {
+        await runTransaction(db, async (transaction) => {
+            const campaignDoc = await transaction.get(campaignRef);
+            if (!campaignDoc.exists()) throw new Error("Campaign document does not exist!");
+
+            const campaignData = campaignDoc.data() as Campaign;
+            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
+            if (actionIndex === -1) throw new Error("Action not found in this campaign!");
+
+            const newActions = [...campaignData.actions];
+            newActions[actionIndex].salesKpiName = salesKpiName;
+
+            transaction.update(campaignRef, { actions: newActions });
+        });
+    } catch (e) {
+        console.error("Transaction failed: ", e);
+        throw new Error('Failed to update sales KPI name.');
+    }
+}
+
+    
