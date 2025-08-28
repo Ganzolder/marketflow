@@ -24,10 +24,18 @@ import { ArchiveCampaignButton } from './archive-campaign-button';
 import { Button } from '@/components/ui/button';
 import { RestoreCampaignButton } from './restore-campaign-button';
 import { cn } from '@/lib/utils';
+import { GanttChart } from './gantt-chart';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 
 type CampaignsPageProps = {
   searchParams: {
     view?: 'archived';
+    ganttCampaigns?: string;
   }
 }
 
@@ -71,6 +79,17 @@ export default async function CampaignsPage({ searchParams: searchParamsPromise 
         </div>
       </PageHeader>
       
+      <Accordion type="single" collapsible className="w-full mb-8">
+        <AccordionItem value="gantt-chart">
+            <AccordionTrigger>
+                <h2 className="text-lg font-semibold">Диаграмма кампаний</h2>
+            </AccordionTrigger>
+            <AccordionContent>
+                <GanttChart campaigns={campaigns} />
+            </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+
       <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-6">
         {filteredCampaigns.map((campaign) => {
           const startDate = new Date(campaign.startDate);
@@ -98,7 +117,7 @@ export default async function CampaignsPage({ searchParams: searchParamsPromise 
                   });
               });
               
-              const plannedActionRevenue = plannedSales * (action.plannedAverageCheck || 0);
+              const plannedActionRevenue = action.plannedRevenue || 0;
               const actualActionRevenue = actualSales * (action.actualAverageCheck || 0);
               const plannedActionProfit = plannedActionRevenue * ((action.plannedMarginality || 0) / 100);
               const actualActionProfit = actualActionRevenue * ((action.actualMarginality || 0) / 100);
@@ -112,12 +131,9 @@ export default async function CampaignsPage({ searchParams: searchParamsPromise 
               totalActualRevenue += actualActionRevenue;
               totalPlannedBudget += plannedActionBudget;
               totalActualSpent += actualActionSpent;
-              totalPlannedProfit += plannedActionProfit;
-              totalActualProfit += actualActionProfit;
+              totalPlannedProfit += action.plannedProfit || 0;
+              totalActualNetProfit += actualActionProfit - actualActionSpent;
           });
-          
-          totalPlannedNetProfit = totalPlannedProfit - totalPlannedBudget;
-          totalActualNetProfit = totalActualProfit - totalActualSpent;
           
           return (
             <Card key={campaign.id} className="flex flex-col">
@@ -215,12 +231,23 @@ export default async function CampaignsPage({ searchParams: searchParamsPromise 
                         {/* Profit */}
                         <div className="flex items-center gap-2"><PiggyBank className="w-4 h-4 text-primary"/>Прибыль (чистая)</div>
                         <div className="grid grid-cols-2 gap-4 text-right font-mono">
-                          <div>{new Intl.NumberFormat(locale, currencyOptions).format(totalPlannedNetProfit)}</div>
-                          <div className={`font-bold ${totalActualNetProfit >=0 ? 'text-accent' : 'text-destructive'}`}>{new Intl.NumberFormat(locale, currencyOptions).format(totalActualNetProfit)}</div>
+                           <div>{new Intl.NumberFormat(locale, currencyOptions).format(totalPlannedNetProfit)}</div>
+                           <div className={`font-bold ${totalActualNetProfit >=0 ? 'text-accent' : 'text-destructive'}`}>{new Intl.NumberFormat(locale, currencyOptions).format(totalActualNetProfit)}</div>
                         </div>
                    </div>
                 </div>
-
+                 <Separator />
+                  <div className="space-y-4">
+                    <h4 className="font-semibold">Плановая выручка по акциям</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                        {(campaign.actions || []).map(action => (
+                            <div key={action.id} className="flex justify-between items-center border-b pb-2">
+                                <span className="text-muted-foreground">{action.name}</span>
+                                <span className="font-mono font-medium">{new Intl.NumberFormat(locale, currencyOptions).format(action.plannedRevenue || 0)}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
               </CardContent>
               <CardFooter className="flex-col items-start gap-2 pt-4 border-t">
                   <div className="flex justify-between w-full text-sm text-muted-foreground">
