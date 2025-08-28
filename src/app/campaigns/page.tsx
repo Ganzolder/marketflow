@@ -10,7 +10,7 @@ import {
   CardFooter
 } from "@/components/ui/card";
 import { PageHeader } from '@/components/page-header';
-import { getCampaigns, getAllSocialPosts } from '@/lib/data';
+import { getCampaigns, getAllTasks } from '@/lib/data';
 import { UpdateCampaignStatus } from './update-campaign-status';
 import { Progress } from '@/components/ui/progress';
 import type { CampaignStatus } from '@/lib/types';
@@ -42,7 +42,6 @@ type CampaignsPageProps = {
 export default async function CampaignsPage({ searchParams: searchParamsPromise }: CampaignsPageProps) {
   const searchParams = await searchParamsPromise;
   const campaigns = await getCampaigns();
-  const allPosts = await getAllSocialPosts();
   const view = searchParams.view;
   
   const filteredCampaigns = campaigns.filter(c => {
@@ -86,7 +85,7 @@ export default async function CampaignsPage({ searchParams: searchParamsPromise 
                 <h2 className="text-lg font-semibold">Диаграмма кампаний</h2>
             </AccordionTrigger>
             <AccordionContent>
-                <GanttChart campaigns={campaigns} posts={allPosts} />
+                <GanttChart campaigns={campaigns} />
             </AccordionContent>
         </AccordionItem>
       </Accordion>
@@ -97,7 +96,7 @@ export default async function CampaignsPage({ searchParams: searchParamsPromise 
           const endDate = new Date(campaign.endDate);
           const totalDuration = Math.max(1, endDate.getTime() - startDate.getTime());
           const elapsedDuration = Math.max(0, today.getTime() - startDate.getTime());
-          let durationProgress = Math.min(100, (elapsedDuration / totalDuration) * 100);
+          let durationProgress = Math.min(100, (elapsedCampaignDuration / totalDuration) * 100);
 
           let totalPlannedSales = 0, totalActualSales = 0;
           let totalPlannedRevenue = 0, totalActualRevenue = 0;

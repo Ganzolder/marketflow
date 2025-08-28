@@ -6,13 +6,13 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList, Cell } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import type { Campaign, Action, Activity, SocialPost } from '@/lib/types';
+import type { Campaign, Action, Activity } from '@/lib/types';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Label } from '@/components/ui/label';
 
 interface GanttChartData {
   name: string;
-  type: 'campaign' | 'action' | 'activity' | 'post';
+  type: 'campaign' | 'action' | 'activity';
   dates: [number, number];
   id: string;
   campaignId: string;
@@ -23,10 +23,9 @@ const COLORS = {
   campaign: 'hsl(var(--chart-1))',
   action: 'hsl(var(--chart-2))',
   activity: 'hsl(var(--chart-3))',
-  post: 'hsl(var(--chart-5))',
 };
 
-const CustomYAxisTick = ({ x, y, payload, allItems }: any) => {
+const CustomYAxisTick = ({ y, payload, allItems }: {y: number, payload: any, allItems: GanttChartData[]}) => {
   const item = allItems.find((d: GanttChartData) => d.name === payload.value);
 
   if (!item) {
@@ -36,7 +35,7 @@ const CustomYAxisTick = ({ x, y, payload, allItems }: any) => {
   const INDENTATION = 20;
   let indentation = 0;
   if (item.type === 'action') indentation = INDENTATION;
-  if (item.type === 'activity' || item.type === 'post') indentation = INDENTATION * 2;
+  if (item.type === 'activity') indentation = INDENTATION * 2;
   
   const linkHref = item.type === 'campaign' ? `/campaigns/${item.campaignId}` : 
                    item.type === 'action' ? `/campaigns/${item.campaignId}/${item.id}` : '#';
@@ -54,14 +53,13 @@ const CustomYAxisTick = ({ x, y, payload, allItems }: any) => {
         {item.type === 'campaign' && '🔹 '}
         {item.type === 'action' && '🔸 '}
         {item.type === 'activity' && '▫️ '}
-        {item.type === 'post' && '▪️ '}
         {item.name}
       </text>
   )
 
   return (
     <g transform={`translate(${indentation}, ${y})`}>
-      {item.type === 'activity' || item.type === 'post' ? (
+      {item.type === 'activity' ? (
         content
       ) : (
         <Link href={linkHref}>
@@ -73,7 +71,7 @@ const CustomYAxisTick = ({ x, y, payload, allItems }: any) => {
 };
 
 
-export function GanttChart({ campaigns, posts }: { campaigns: Campaign[], posts: SocialPost[] }) {
+export function GanttChart({ campaigns }: { campaigns: Campaign[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -93,16 +91,13 @@ export function GanttChart({ campaigns, posts }: { campaigns: Campaign[], posts:
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
   
-  const { chartData, yAxisLabels, minDate, maxDate } = useMemo(() => {
+  const { chartData, minDate, maxDate } = useMemo(() => {
     let allItems: GanttChartData[] = [];
     let overallMinDate = new Date();
     let overallMaxDate = new Date();
     overallMaxDate.setDate(overallMaxDate.getDate() + 30); // Default range
     
-    const labels: { y: number, label: string, type: 'campaign' | 'action' | 'activity' | 'post' }[] = [];
-
     const filteredCampaigns = campaigns.filter(c => selectedCampaignIds.includes(c.id));
-    const filteredPosts = posts.filter(p => p.campaignId && selectedCampaignIds.includes(p.campaignId));
 
     if (filteredCampaigns.length > 0) {
       const allDates: Date[] = [];
@@ -115,10 +110,7 @@ export function GanttChart({ campaigns, posts }: { campaigns: Campaign[], posts:
           });
         });
       });
-      filteredPosts.forEach(p => {
-        allDates.push(new Date(p.publicationDate));
-      });
-
+      
       if (allDates.length > 0) {
         overallMinDate = new Date(Math.min(...allDates.map(d => d.getTime())));
         overallMaxDate = new Date(Math.max(...allDates.map(d => d.getTime())));
@@ -140,16 +132,11 @@ export function GanttChart({ campaigns, posts }: { campaigns: Campaign[], posts:
           const activityEnd = new Date(activity.endDate).getTime();
           allItems.push({ name: activity.name, type: 'activity', dates: [activityStart, activityEnd], id: activity.id, campaignId: campaign.id, actionId: action.id });
         });
-        
-        filteredPosts.filter(p => p.actionId === action.id).forEach(post => {
-            const postDate = new Date(post.publicationDate).getTime();
-            allItems.push({ name: post.title, type: 'post', dates: [postDate, postDate], id: post.id, campaignId: campaign.id, actionId: action.id })
-        });
       });
     });
 
-    return { chartData: allItems.reverse(), yAxisLabels: labels, minDate: overallMinDate.getTime(), maxDate: overallMaxDate.getTime() };
-  }, [campaigns, posts, selectedCampaignIds]);
+    return { chartData: allItems.reverse(), minDate: overallMinDate.getTime(), maxDate: overallMaxDate.getTime() };
+  }, [campaigns, selectedCampaignIds]);
 
   const campaignOptions = campaigns.map(c => ({ value: c.id, label: c.name }));
 
@@ -233,7 +220,6 @@ export function GanttChart({ campaigns, posts }: { campaigns: Campaign[], posts:
                              <span className="flex items-center gap-2"><div className="w-3 h-3 rounded-sm" style={{backgroundColor: COLORS.campaign}} /> Кампания</span>
                              <span className="flex items-center gap-2"><div className="w-3 h-3 rounded-sm" style={{backgroundColor: COLORS.action}} /> Акция</span>
                              <span className="flex items-center gap-2"><div className="w-3 h-3 rounded-sm" style={{backgroundColor: COLORS.activity}} /> Активность</span>
-                             <span className="flex items-center gap-2"><div className="w-3 h-3 rounded-sm" style={{backgroundColor: COLORS.post}} /> Пост</span>
                         </div>
                     )}/>
                     <Bar dataKey="dates" minPointSize={5}>
