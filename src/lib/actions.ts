@@ -1838,15 +1838,15 @@ const TaskSchema = z.object({
   status: z.enum(['planned', 'in-progress', 'completed']),
   deadline: z.string().refine((date) => !isNaN(Date.parse(date)), "Неверный формат дедлайна."),
   responsiblePerson: z.string().optional(),
-  campaignId: z.string().optional(),
-  actionId: z.string().optional(),
+  campaignId: z.string().optional().nullable(),
+  actionId: z.string().optional().nullable(),
 });
 
 export async function addTask(prevState: TaskFormState | null, formData: FormData): Promise<TaskFormState> {
   const rawCampaignId = formData.get('campaignId') as string | null;
   const rawActionId = formData.get('actionId') as string | null;
 
-  const validatedFields = TaskSchema.safeParse({
+  const data = {
       title: formData.get('title') || undefined,
       description: formData.get('description') || undefined,
       status: formData.get('status'),
@@ -1854,7 +1854,9 @@ export async function addTask(prevState: TaskFormState | null, formData: FormDat
       responsiblePerson: formData.get('responsiblePerson') || undefined,
       campaignId: rawCampaignId === 'none' ? undefined : rawCampaignId,
       actionId: rawActionId === 'none' ? undefined : rawActionId,
-  });
+  };
+
+  const validatedFields = TaskSchema.safeParse(data);
 
   if (!validatedFields.success) {
       return {
@@ -1864,8 +1866,16 @@ export async function addTask(prevState: TaskFormState | null, formData: FormDat
       };
   }
 
+  const dataToSave: Partial<Task> = {};
+  for (const [key, value] of Object.entries(validatedFields.data)) {
+      if (value !== undefined) {
+          (dataToSave as any)[key] = value;
+      }
+  }
+
+
   try {
-      await addTaskData(validatedFields.data as Omit<Task, 'id' | 'createdAt' | 'isArchived'>);
+      await addTaskData(dataToSave as Omit<Task, 'id' | 'createdAt' | 'isArchived'>);
       revalidatePath('/tasks');
       revalidatePath('/');
       revalidatePath('/campaigns');
