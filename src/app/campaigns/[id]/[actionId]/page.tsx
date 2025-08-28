@@ -108,7 +108,7 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
     <div>
       <PageHeader title={action.name} description={`Акция в рамках кампании: ${campaign.name}`}>
         <div className="flex items-center gap-2">
-            <AddTaskButton campaigns={[campaign]} />
+            <AddTaskButton campaigns={[campaign]} defaultCampaignId={campaign.id} defaultActionId={action.id} />
             <Button variant="outline" asChild>
                 <Link href={`/campaigns/${campaign.id}`}>
                     <ArrowLeft className="h-4 w-4" />
@@ -328,7 +328,12 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
             </CardContent>
         </Card>
         
-        <CampaignTasksCard tasks={actionTasks} />
+        <CampaignTasksCard 
+            tasks={actionTasks} 
+            campaigns={[campaign]} 
+            defaultCampaignId={campaign.id} 
+            defaultActionId={action.id}
+        />
         <ActionSocialPostsPlanner action={action} campaignId={campaign.id} posts={socialPostsForAction} allPosts={allSocialPosts} />
         <ActionResourcesCard action={action} campaignId={campaign.id} />
       </div>

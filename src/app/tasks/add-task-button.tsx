@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useActionState, useRef, useTransition } from 'react';
@@ -20,14 +21,34 @@ const statusTranslations = {
   completed: "Выполнена",
 };
 
-export function AddTaskButton({ campaigns }: { campaigns: Campaign[] }) {
+type AddTaskButtonProps = {
+    campaigns: Campaign[];
+    defaultCampaignId?: string;
+    defaultActionId?: string;
+}
+
+export function AddTaskButton({ campaigns, defaultCampaignId, defaultActionId }: AddTaskButtonProps) {
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
     const [isPending, startTransition] = useTransition();
     
+    const [selectedCampaignId, setSelectedCampaignId] = useState(defaultCampaignId || '');
+    const [actions, setActions] = useState<Action[]>([]);
+    const [selectedActionId, setSelectedActionId] = useState(defaultActionId || '');
+
     const initialState: TaskFormState = { message: "", errors: {} };
     const [state, dispatch] = useActionState(addTask, initialState);
+
+    useEffect(() => {
+        const campaign = campaigns.find(c => c.id === selectedCampaignId);
+        setActions(campaign?.actions || []);
+        if (defaultActionId && campaign?.actions.find(a => a.id === defaultActionId)) {
+            setSelectedActionId(defaultActionId);
+        } else {
+            setSelectedActionId('');
+        }
+    }, [selectedCampaignId, campaigns, defaultActionId]);
 
     useEffect(() => {
         if (state.message && !isPending) {
@@ -42,9 +63,11 @@ export function AddTaskButton({ campaigns }: { campaigns: Campaign[] }) {
                  toast({ title: "Успех", description: state.message });
                 setOpen(false);
                 formRef.current?.reset();
+                setSelectedCampaignId(defaultCampaignId || '');
+                setSelectedActionId(defaultActionId || '');
             }
         }
-    }, [state, toast, isPending]);
+    }, [state, toast, isPending, defaultCampaignId, defaultActionId]);
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -103,6 +126,28 @@ export function AddTaskButton({ campaigns }: { campaigns: Campaign[] }) {
                                 <Label htmlFor="responsiblePerson">Ответственный</Label>
                                 <Input id="responsiblePerson" name="responsiblePerson" placeholder="Иванов И.И." />
                                 {state?.errors?.responsiblePerson && <p className="text-sm text-destructive">{state.errors.responsiblePerson[0]}</p>}
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="grid gap-2">
+                                    <Label>Кампания (необязательно)</Label>
+                                    <Select name="campaignId" value={selectedCampaignId} onValueChange={setSelectedCampaignId} disabled={!!defaultCampaignId}>
+                                        <SelectTrigger><SelectValue placeholder="Без кампании" /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="">Без кампании</SelectItem>
+                                            {campaigns.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label>Акция (необязательно)</Label>
+                                     <Select name="actionId" value={selectedActionId} onValueChange={setSelectedActionId} disabled={!!defaultActionId || !selectedCampaignId}>
+                                        <SelectTrigger><SelectValue placeholder="Без акции" /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="">Без акции</SelectItem>
+                                            {actions.map(a => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
                         </div>
                     </ScrollArea>

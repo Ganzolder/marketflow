@@ -1,4 +1,5 @@
 
+
 "use server";
 
 import { z } from "zod";
@@ -836,7 +837,7 @@ export async function updateActionStatus(
 
   revalidatePath(`/campaigns/${campaignId}/${actionId}`);
   revalidatePath(`/campaigns/${campaignId}`);
-  revalidatePath(`/actions`);
+  revalidatePath('/actions');
   return { message: "Статус акции обновлен." };
 }
 
@@ -1832,11 +1833,13 @@ export async function importDatabase(data: Uint8Array): Promise<ImportState> {
 
 // --- Task Actions ---
 const TaskSchema = z.object({
-  title: z.string().optional(),
+  title: z.string().min(1, 'Название обязательно'),
   description: z.string().optional(),
   status: z.enum(['planned', 'in-progress', 'completed']),
-  deadline: z.string().optional(),
+  deadline: z.string().refine((date) => !isNaN(Date.parse(date)), "Неверный формат дедлайна."),
   responsiblePerson: z.string().optional(),
+  campaignId: z.string().optional(),
+  actionId: z.string().optional(),
 });
 
 export async function addTask(prevState: TaskFormState | null, formData: FormData): Promise<TaskFormState> {
@@ -1846,6 +1849,8 @@ export async function addTask(prevState: TaskFormState | null, formData: FormDat
       status: formData.get('status'),
       deadline: formData.get('deadline') || undefined,
       responsiblePerson: formData.get('responsiblePerson') || undefined,
+      campaignId: formData.get('campaignId') || undefined,
+      actionId: formData.get('actionId') || undefined,
   });
 
   if (!validatedFields.success) {
@@ -1860,6 +1865,7 @@ export async function addTask(prevState: TaskFormState | null, formData: FormDat
       await addTaskData(validatedFields.data as Omit<Task, 'id' | 'createdAt' | 'isArchived'>);
       revalidatePath('/tasks');
       revalidatePath('/');
+      revalidatePath('/campaigns');
       return { message: "Задача успешно создана." };
   } catch (e) {
       const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
