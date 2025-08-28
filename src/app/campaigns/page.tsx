@@ -10,11 +10,11 @@ import {
   CardFooter
 } from "@/components/ui/card";
 import { PageHeader } from '@/components/page-header';
-import { getCampaigns } from '@/lib/data';
+import { getCampaigns, getAllSocialPosts } from '@/lib/data';
 import { UpdateCampaignStatus } from './update-campaign-status';
 import { Progress } from '@/components/ui/progress';
 import type { CampaignStatus } from '@/lib/types';
-import { EditCampaignButton } from './edit-campaign-button';
+import { EditCampaignButton } from '../edit-campaign-button';
 import { DeleteCampaignButton } from './delete-campaign-button';
 import { NewCampaignButton } from './new-campaign-button';
 import { Separator } from '@/components/ui/separator';
@@ -42,6 +42,7 @@ type CampaignsPageProps = {
 export default async function CampaignsPage({ searchParams: searchParamsPromise }: CampaignsPageProps) {
   const searchParams = await searchParamsPromise;
   const campaigns = await getCampaigns();
+  const allPosts = await getAllSocialPosts();
   const view = searchParams.view;
   
   const filteredCampaigns = campaigns.filter(c => {
@@ -85,7 +86,7 @@ export default async function CampaignsPage({ searchParams: searchParamsPromise 
                 <h2 className="text-lg font-semibold">Диаграмма кампаний</h2>
             </AccordionTrigger>
             <AccordionContent>
-                <GanttChart campaigns={campaigns} />
+                <GanttChart campaigns={campaigns} posts={allPosts} />
             </AccordionContent>
         </AccordionItem>
       </Accordion>
