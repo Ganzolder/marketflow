@@ -25,7 +25,7 @@ const COLORS = {
   activity: 'hsl(var(--chart-3))',
 };
 
-const CustomYAxisTick = ({ y, payload, allItems }: {y: number, payload: any, allItems: GanttChartData[]}) => {
+const CustomYAxisTick = ({ y, payload, allItems }: any) => {
   const item = allItems.find((d: GanttChartData) => d.name === payload.value);
 
   if (!item) {
@@ -135,7 +135,7 @@ export function GanttChart({ campaigns }: { campaigns: Campaign[] }) {
       });
     });
 
-    return { chartData: allItems.reverse(), minDate: overallMinDate.getTime(), maxDate: overallMaxDate.getTime() };
+    return { chartData: allItems, minDate: overallMinDate.getTime(), maxDate: overallMaxDate.getTime() };
   }, [campaigns, selectedCampaignIds]);
 
   const campaignOptions = campaigns.map(c => ({ value: c.id, label: c.name }));
