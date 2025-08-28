@@ -1852,8 +1852,8 @@ export async function addTask(prevState: TaskFormState | null, formData: FormDat
       status: formData.get('status'),
       deadline: formData.get('deadline') || undefined,
       responsiblePerson: formData.get('responsiblePerson') || undefined,
-      campaignId: rawCampaignId === 'none' ? undefined : rawCampaignId,
-      actionId: rawActionId === 'none' ? undefined : rawActionId,
+      campaignId: rawCampaignId === 'none' ? null : rawCampaignId,
+      actionId: rawActionId === 'none' ? null : rawActionId,
   };
 
   const validatedFields = TaskSchema.safeParse(data);
@@ -1878,7 +1878,11 @@ export async function addTask(prevState: TaskFormState | null, formData: FormDat
       await addTaskData(dataToSave as Omit<Task, 'id' | 'createdAt' | 'isArchived'>);
       revalidatePath('/tasks');
       revalidatePath('/');
-      revalidatePath('/campaigns');
+      if (data.campaignId && data.actionId) {
+        revalidatePath(`/campaigns/${data.campaignId}/${data.actionId}`);
+      } else if (data.campaignId) {
+        revalidatePath(`/campaigns/${data.campaignId}`);
+      }
       return { message: "Задача успешно создана." };
   } catch (e) {
       const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
@@ -1894,10 +1898,10 @@ export async function updateTask(prevState: TaskFormState, formData: FormData): 
 
   const validatedFields = TaskSchema.safeParse({
     title: formData.get('title') || undefined,
-    description: formData.get('description') || undefined,
+    description: formData.get('description'),
     status: formData.get('status'),
     deadline: formData.get('deadline') || undefined,
-    responsiblePerson: formData.get('responsiblePerson') || undefined,
+    responsiblePerson: formData.get('responsiblePerson'),
   });
 
   if (!validatedFields.success) {
@@ -1908,8 +1912,16 @@ export async function updateTask(prevState: TaskFormState, formData: FormData): 
     };
   }
   
+  const dataToUpdate: {[key: string]: any} = {};
+  for (const [key, value] of Object.entries(validatedFields.data)) {
+    if (value !== undefined) {
+      dataToUpdate[key] = value;
+    }
+  }
+
+
   try {
-    await updateTaskData(taskId, validatedFields.data);
+    await updateTaskData(taskId, dataToUpdate);
     revalidatePath('/tasks');
     revalidatePath('/');
     return { message: "Задача успешно обновлена." };
