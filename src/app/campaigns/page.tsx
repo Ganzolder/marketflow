@@ -14,7 +14,7 @@ import { getCampaigns, getAllSocialPosts } from '@/lib/data';
 import { UpdateCampaignStatus } from './update-campaign-status';
 import { Progress } from '@/components/ui/progress';
 import type { CampaignStatus } from '@/lib/types';
-import { EditCampaignButton } from '../edit-campaign-button';
+import { EditCampaignButton } from './edit-campaign-button';
 import { DeleteCampaignButton } from './delete-campaign-button';
 import { NewCampaignButton } from './new-campaign-button';
 import { Separator } from '@/components/ui/separator';
