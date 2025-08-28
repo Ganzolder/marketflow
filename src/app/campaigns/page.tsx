@@ -10,7 +10,7 @@ import {
   CardFooter
 } from "@/components/ui/card";
 import { PageHeader } from '@/components/page-header';
-import { getCampaigns, getAllTasks } from '@/lib/data';
+import { getCampaigns, getAllTasks, getAllSocialPosts } from '@/lib/data';
 import { UpdateCampaignStatus } from './update-campaign-status';
 import { Progress } from '@/components/ui/progress';
 import type { CampaignStatus } from '@/lib/types';
@@ -94,9 +94,9 @@ export default async function CampaignsPage({ searchParams: searchParamsPromise 
         {filteredCampaigns.map((campaign) => {
           const startDate = new Date(campaign.startDate);
           const endDate = new Date(campaign.endDate);
-          const totalDuration = Math.max(1, endDate.getTime() - startDate.getTime());
-          const elapsedDuration = Math.max(0, today.getTime() - startDate.getTime());
-          let durationProgress = Math.min(100, (elapsedCampaignDuration / totalDuration) * 100);
+          const totalCampaignDuration = Math.max(1, endDate.getTime() - startDate.getTime());
+          const elapsedCampaignDuration = Math.max(0, today.getTime() - startDate.getTime());
+          let campaignDurationProgress = Math.min(100, (elapsedCampaignDuration / totalCampaignDuration) * 100);
 
           let totalPlannedSales = 0, totalActualSales = 0;
           let totalPlannedRevenue = 0, totalActualRevenue = 0;
@@ -252,9 +252,9 @@ export default async function CampaignsPage({ searchParams: searchParamsPromise 
               <CardFooter className="flex-col items-start gap-2 pt-4 border-t">
                   <div className="flex justify-between w-full text-sm text-muted-foreground">
                       <span>Прогресс кампании</span>
-                      <span>{Math.round(durationProgress)}%</span>
+                      <span>{Math.round(campaignDurationProgress)}%</span>
                   </div>
-                  <Progress value={durationProgress} className="h-2 w-full" />
+                  <Progress value={campaignDurationProgress} className="h-2 w-full" />
               </CardFooter>
             </Card>
           )
