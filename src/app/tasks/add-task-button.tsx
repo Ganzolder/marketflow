@@ -45,10 +45,10 @@ export function AddTaskButton({ campaigns, defaultCampaignId, defaultActionId }:
         setActions(campaign?.actions || []);
         if (defaultActionId && campaign?.actions.find(a => a.id === defaultActionId)) {
             setSelectedActionId(defaultActionId);
-        } else {
+        } else if (!campaign?.actions.find(a => a.id === selectedActionId)) {
             setSelectedActionId('');
         }
-    }, [selectedCampaignId, campaigns, defaultActionId]);
+    }, [selectedCampaignId, campaigns, defaultActionId, selectedActionId]);
 
     useEffect(() => {
         if (state.message && !isPending) {
@@ -93,6 +93,8 @@ export function AddTaskButton({ campaigns, defaultCampaignId, defaultActionId }:
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} ref={formRef} className="flex-1 flex flex-col min-h-0">
+                    {defaultCampaignId && <input type="hidden" name="campaignId" value={defaultCampaignId} />}
+                    {defaultActionId && <input type="hidden" name="actionId" value={defaultActionId} />}
                     <ScrollArea className="flex-1 pr-6 -mr-6">
                         <div className="grid gap-4 py-4 pr-6">
                             <div className="grid gap-2">
