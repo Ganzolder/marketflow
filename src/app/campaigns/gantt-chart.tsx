@@ -38,7 +38,7 @@ const CustomYAxisTick = ({ y, payload, allItems }: { y: number, payload: any, al
   if (item.type === 'activity') indentation = INDENTATION * 2;
   
   const linkHref = item.type === 'campaign' ? `/campaigns/${item.campaignId}` : 
-                   item.type === 'action' ? `/campaigns/${item.campaignId}/${item.id}` : '#';
+                   item.type === 'action' ? `/campaigns/${item.campaignId}/${item.id}` : undefined;
 
   const content = (
       <text
@@ -59,12 +59,12 @@ const CustomYAxisTick = ({ y, payload, allItems }: { y: number, payload: any, al
 
   return (
     <g transform={`translate(${indentation}, ${y})`}>
-      {item.type === 'activity' ? (
-        content
-      ) : (
+      {linkHref ? (
         <Link href={linkHref}>
           {content}
         </Link>
+      ) : (
+        content
       )}
     </g>
   );
