@@ -133,7 +133,7 @@ export function AddTaskButton({ campaigns, defaultCampaignId, defaultActionId }:
                                     <Select name="campaignId" value={selectedCampaignId} onValueChange={setSelectedCampaignId} disabled={!!defaultCampaignId}>
                                         <SelectTrigger><SelectValue placeholder="Без кампании" /></SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="">Без кампании</SelectItem>
+                                            <SelectItem value="none">Без кампании</SelectItem>
                                             {campaigns.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                                         </SelectContent>
                                     </Select>
@@ -143,7 +143,7 @@ export function AddTaskButton({ campaigns, defaultCampaignId, defaultActionId }:
                                      <Select name="actionId" value={selectedActionId} onValueChange={setSelectedActionId} disabled={!!defaultActionId || !selectedCampaignId}>
                                         <SelectTrigger><SelectValue placeholder="Без акции" /></SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="">Без акции</SelectItem>
+                                            <SelectItem value="none">Без акции</SelectItem>
                                             {actions.map(a => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
                                         </SelectContent>
                                     </Select>

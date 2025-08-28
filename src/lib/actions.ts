@@ -1843,14 +1843,17 @@ const TaskSchema = z.object({
 });
 
 export async function addTask(prevState: TaskFormState | null, formData: FormData): Promise<TaskFormState> {
+  const rawCampaignId = formData.get('campaignId') as string | null;
+  const rawActionId = formData.get('actionId') as string | null;
+
   const validatedFields = TaskSchema.safeParse({
       title: formData.get('title') || undefined,
       description: formData.get('description') || undefined,
       status: formData.get('status'),
       deadline: formData.get('deadline') || undefined,
       responsiblePerson: formData.get('responsiblePerson') || undefined,
-      campaignId: formData.get('campaignId') || undefined,
-      actionId: formData.get('actionId') || undefined,
+      campaignId: rawCampaignId === 'none' ? undefined : rawCampaignId,
+      actionId: rawActionId === 'none' ? undefined : rawActionId,
   });
 
   if (!validatedFields.success) {
