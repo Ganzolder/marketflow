@@ -30,7 +30,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="flex h-full">
             <AppSidebar />
             <ResizablePanelGroup direction="horizontal" className="w-full">
-                <ResizablePanel defaultSize={30} minSize={20} maxSize={50} className="hidden lg:block">
+                <ResizablePanel defaultSize={30} collapsible={true} collapsedSize={4} minSize={20} maxSize={50} className="hidden lg:block">
                     <div className="h-full overflow-y-auto p-4">
                         <GlobalGanttChart campaigns={campaigns} isLoading={isLoading} />
                     </div>
