@@ -31,10 +31,10 @@ export type GeneratePostSeriesInput = z.infer<typeof GeneratePostSeriesInputSche
 
 const GeneratedPostSchema = z.object({
     title: z.string().describe('Яркий заголовок для поста.'),
-    text: z.string().describe('Полный текст поста, включая уникальный промокод, если он был сгенерирован.'),
-    platform: z.nativeEnum(SocialPlatforms).describe('Социальная сеть, для которой предназначен пост.'),
+    text: z.string().describe('Полный текст поста, включая уникальные промокоды, если они были сгенерированы.'),
+    platforms: z.array(z.nativeEnum(SocialPlatforms)).describe('Социальные сети, для которых предназначен пост.'),
     publicationDate: z.string().describe('Дата публикации поста в формате YYYY-MM-DD.'),
-    promoCode: z.string().optional().describe('Уникальный промокод, если он был сгенерирован для этого поста.'),
+    promoCodes: z.record(z.string()).optional().describe('Объект с уникальными промокодами для каждой платформы.'),
 });
 
 const GeneratePostSeriesOutputSchema = z.object({
@@ -61,10 +61,14 @@ const generatePostSeriesFlow = ai.defineFlow(
     const generatedPosts: z.infer<typeof GeneratedPostSchema>[] = [];
     
     // Generate a unique promo code for each platform
-    const promoCodesByPlatform: Record<SocialPlatform, string> = {} as Record<SocialPlatform, string>;
+    const promoCodesByPlatform: Record<string, string> = {};
     input.platforms.forEach(platform => {
         promoCodesByPlatform[platform] = generatePromoCode();
     });
+    
+    const promoCodesString = Object.entries(promoCodesByPlatform)
+      .map(([platform, code]) => `${platform}: ${code}`)
+      .join(', ');
 
     const prompt = ai.definePrompt({
         name: 'generateSinglePostForSeries',
@@ -73,28 +77,28 @@ const generatePostSeriesFlow = ai.defineFlow(
             actionDescription: z.string(),
             actionConditions: z.string(),
             additionalInfo: z.string().optional(),
-            platform: z.nativeEnum(SocialPlatforms),
-            promoCode: z.string(),
+            platforms: z.array(z.nativeEnum(SocialPlatforms)),
+            promoCodes: z.string(),
             publicationDate: z.string(),
             allDates: z.array(z.string()),
             postIndex: z.number(),
         }) },
         output: { schema: z.object({ title: z.string(), text: z.string() }) },
-        prompt: `Ты — опытный SMM-менеджер. Твоя задача — написать пост для социальной сети.
+        prompt: `Ты — опытный SMM-менеджер. Твоя задача — написать пост для социальных сетей.
 
 **Контекст:**
 - **Акция:** {{{actionName}}}
 - **Описание акции:** {{{actionDescription}}}
 - **Условия акции:** {{{actionConditions}}}
-- **Социальная сеть:** {{{platform}}}
+- **Социальные сети для публикации:** {{#each platforms}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
 - **Дата публикации этого поста:** {{{publicationDate}}}
 - **Всего дат публикаций:** {{{allDates}}} (этот пост номер {{postIndex}} из {{allDates.length}})
 - **Дополнительная информация, которую нужно учесть:** {{{additionalInfo}}}
-- **Уникальный промокод для этого поста:** **{{{promoCode}}}**
+- **Уникальные промокоды для каждой платформы:** **{{{promoCodes}}}**
 
 **Задача:**
-Напиши креативный и привлекательный пост. Учти особенности выбранной социальной сети ({{platform}}).
-Обязательно включи в текст промокод **{{{promoCode}}}**.
+Напиши креативный и привлекательный пост. Адаптируй текст так, чтобы он хорошо смотрелся во всех указанных соцсетях ({{{platforms}}}).
+Обязательно включи в текст все промокоды. Ты можешь написать что-то вроде: "Используйте промокод для вашей любимой соцсети: VK - XCODE, Telegram - YCODE".
 Сделай пост уникальным, учитывая, что это часть серии публикаций. Не повторяйся.
 
 **Требования к результату:**
@@ -105,27 +109,23 @@ const generatePostSeriesFlow = ai.defineFlow(
 
     let postIndex = 1;
     for (const date of input.dates) {
-      for (const platform of input.platforms) {
-        const promoCode = promoCodesByPlatform[platform];
-        const result = await prompt({
-            ...input,
-            platform,
-            promoCode,
-            publicationDate: date,
-            allDates: input.dates,
-            postIndex: postIndex,
-        });
+      const result = await prompt({
+          ...input,
+          promoCodes: promoCodesString,
+          publicationDate: date,
+          allDates: input.dates,
+          postIndex: postIndex,
+      });
 
-        if (result.output) {
-          generatedPosts.push({
-            ...result.output,
-            platform,
-            publicationDate: date,
-            promoCode,
-          });
-        }
-        postIndex++;
+      if (result.output) {
+        generatedPosts.push({
+          ...result.output,
+          platforms: input.platforms,
+          publicationDate: date,
+          promoCodes: promoCodesByPlatform,
+        });
       }
+      postIndex++;
     }
 
     return { posts: generatedPosts };

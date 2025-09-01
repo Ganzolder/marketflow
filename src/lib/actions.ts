@@ -2216,7 +2216,7 @@ export async function generatePostSeriesAction(
     actionId: formData.get('actionId'),
     campaignId: formData.get('campaignId'),
     platforms: formData.getAll('platforms'),
-    dates: (formData.get('dates') as string || '').split(','),
+    dates: (formData.get('dates') as string || '').split(',').filter(Boolean),
     additionalInfo: formData.get('additionalInfo'),
   });
 
@@ -2252,7 +2252,7 @@ export async function generatePostSeriesAction(
       const postData: Omit<SocialPost, 'id'> = {
         title: post.title,
         text: post.text,
-        platforms: [post.platform],
+        platforms: post.platforms,
         publicationDate: post.publicationDate,
         status: 'draft',
         campaignId,
