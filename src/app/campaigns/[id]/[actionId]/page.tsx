@@ -265,12 +265,18 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
                                             <DeleteActivityButton activityId={activity.id} campaignId={campaign.id} actionId={action.id} />
                                         </div>
                                     </div>
-                                    {activity.trackingMethod && (
-                                        <div className="flex items-center text-xs text-muted-foreground pt-2 gap-2">
-                                            <LocateFixed className="w-3.5 h-3.5" />
-                                            <span>{activity.trackingMethod}</span>
+                                     <div className="flex items-center text-xs text-muted-foreground pt-2 gap-4">
+                                        {activity.trackingMethod && (
+                                            <div className="flex items-center gap-2">
+                                                <LocateFixed className="w-3.5 h-3.5" />
+                                                <span>{activity.trackingMethod}</span>
+                                            </div>
+                                        )}
+                                        <div className="flex items-center gap-2">
+                                            <CalendarDays className="w-3.5 h-3.5" />
+                                            <span>{new Date(activity.startDate).toLocaleDateString(locale, {day: '2-digit', month: 'short'})} - {new Date(activity.endDate).toLocaleDateString(locale, {day: '2-digit', month: 'short'})}</span>
                                         </div>
-                                    )}
+                                    </div>
                                 </CardHeader>
                                 <CardContent className="text-sm text-muted-foreground flex-1">
                                     <UpdateMetricsForm activity={activity} campaignId={campaign.id} actionId={action.id} />

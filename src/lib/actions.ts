@@ -1872,7 +1872,7 @@ export async function addTask(prevState: TaskFormState | null, formData: FormDat
 
   const dataToSave: Partial<Task> = {};
   for (const [key, value] of Object.entries(validatedFields.data)) {
-      if (value !== undefined) {
+      if (value !== undefined && value !== null) {
           (dataToSave as any)[key] = value;
       }
   }

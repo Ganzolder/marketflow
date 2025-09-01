@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useActionState, useRef, useTransition } from 'react';
@@ -11,7 +12,7 @@ import { updateTask, type TaskFormState } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { Task, Campaign, Action, Activity } from '@/lib/types';
+import type { Task, Campaign, Action, Activity, TaskPriority } from '@/lib/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const statusTranslations = {
@@ -19,6 +20,13 @@ const statusTranslations = {
   "in-progress": "В процессе",
   completed: "Выполнена",
 };
+
+const priorityTranslations: Record<TaskPriority, string> = {
+  low: "Низкий",
+  medium: "Средний",
+  high: "Высокий",
+};
+
 
 export function EditTaskButton({ task }: { task: Task }) {
     const [open, setOpen] = useState(false);
@@ -95,10 +103,23 @@ export function EditTaskButton({ task }: { task: Task }) {
                                     {state?.errors?.deadline && <p className="text-sm text-destructive">{state.errors.deadline[0]}</p>}
                                 </div>
                             </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="responsiblePerson">Ответственный</Label>
-                                <Input id="responsiblePerson" name="responsiblePerson" defaultValue={task.responsiblePerson} />
-                                {state?.errors?.responsiblePerson && <p className="text-sm text-destructive">{state.errors.responsiblePerson[0]}</p>}
+                             <div className="grid grid-cols-2 gap-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="responsiblePerson">Ответственный</Label>
+                                    <Input id="responsiblePerson" name="responsiblePerson" defaultValue={task.responsiblePerson} />
+                                    {state?.errors?.responsiblePerson && <p className="text-sm text-destructive">{state.errors.responsiblePerson[0]}</p>}
+                                </div>
+                                 <div className="grid gap-2">
+                                    <Label htmlFor="priority">Приоритет</Label>
+                                    <Select name="priority" defaultValue={task.priority}>
+                                        <SelectTrigger><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            {Object.entries(priorityTranslations).map(([key, val]) => (
+                                                <SelectItem key={key} value={key as TaskPriority}>{val}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
                         </div>
                     </ScrollArea>

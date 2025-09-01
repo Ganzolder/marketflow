@@ -129,11 +129,13 @@ export type Campaign = {
 };
 
 export type TaskStatus = 'planned' | 'in-progress' | 'completed';
+export type TaskPriority = 'low' | 'medium' | 'high';
 export type Task = {
   id: string;
   title: string;
   description?: string;
   status: TaskStatus;
+  priority: TaskPriority;
   createdAt: string;
   deadline: string;
   responsiblePerson: string;
@@ -258,6 +260,7 @@ export type TaskFormState = {
     title?: string[];
     description?: string[];
     status?: string[];
+    priority?: string[];
     deadline?: string[];
     responsiblePerson?: string[];
   };

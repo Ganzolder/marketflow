@@ -12,7 +12,7 @@ import { addTask, type TaskFormState } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { Campaign, Action, Activity } from '@/lib/types';
+import type { Campaign, Action, Activity, TaskPriority } from '@/lib/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const statusTranslations = {
@@ -20,6 +20,13 @@ const statusTranslations = {
   "in-progress": "В процессе",
   completed: "Выполнена",
 };
+
+const priorityTranslations: Record<TaskPriority, string> = {
+  low: "Низкий",
+  medium: "Средний",
+  high: "Высокий",
+};
+
 
 type AddTaskButtonProps = {
     campaigns: Campaign[];
@@ -124,10 +131,24 @@ export function AddTaskButton({ campaigns, defaultCampaignId, defaultActionId }:
                                     {state?.errors?.deadline && <p className="text-sm text-destructive">{state.errors.deadline[0]}</p>}
                                 </div>
                             </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="responsiblePerson">Ответственный</Label>
-                                <Input id="responsiblePerson" name="responsiblePerson" placeholder="Иванов И.И." />
-                                {state?.errors?.responsiblePerson && <p className="text-sm text-destructive">{state.errors.responsiblePerson[0]}</p>}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="responsiblePerson">Ответственный</Label>
+                                    <Input id="responsiblePerson" name="responsiblePerson" placeholder="Иванов И.И." />
+                                    {state?.errors?.responsiblePerson && <p className="text-sm text-destructive">{state.errors.responsiblePerson[0]}</p>}
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="priority">Приоритет</Label>
+                                    <Select name="priority" defaultValue="medium">
+                                        <SelectTrigger><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            {Object.entries(priorityTranslations).map(([key, val]) => (
+                                                <SelectItem key={key} value={key}>{val}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {state?.errors?.priority && <p className="text-sm text-destructive">{state.errors.priority[0]}</p>}
+                                </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="grid gap-2">
