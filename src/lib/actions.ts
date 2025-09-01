@@ -2199,6 +2199,8 @@ const GeneratePostSeriesSchema = z.object({
   platforms: z.array(z.nativeEnum(SocialPlatforms)),
   dates: z.array(z.string().refine(d => !isNaN(Date.parse(d)))),
   additionalInfo: z.string().optional(),
+  plannedReach: z.coerce.number().min(0).optional(),
+  plannedComments: z.coerce.number().min(0).optional(),
 });
 
 export type GeneratePostSeriesState = {
@@ -2218,6 +2220,8 @@ export async function generatePostSeriesAction(
     platforms: formData.getAll('platforms'),
     dates: (formData.get('dates') as string || '').split(',').filter(Boolean),
     additionalInfo: formData.get('additionalInfo'),
+    plannedReach: formData.get('plannedReach') || 0,
+    plannedComments: formData.get('plannedComments') || 0,
   });
 
   if (!validatedFields.success) {
@@ -2257,8 +2261,8 @@ export async function generatePostSeriesAction(
         status: 'draft',
         campaignId,
         actionId,
-        plannedReach: 0,
-        plannedComments: 0,
+        plannedReach: post.plannedReach || 0,
+        plannedComments: post.plannedComments || 0,
       };
       batch.set(postRef, postData);
     });

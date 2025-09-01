@@ -287,7 +287,7 @@ function ActualMetricsForm({ post, actionId, campaignId }: { post: any, actionId
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <Label className="text-xs text-muted-foreground">План. охват: {post.plannedReach.toLocaleString('ru-RU')}</Label>
+                    <Label className="text-xs text-muted-foreground">План. охват: {(post.plannedReach || 0).toLocaleString('ru-RU')}</Label>
                      <div className="relative mt-1">
                         <Users className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input type="number" name="actualReach" defaultValue={post.actualReach || ''} placeholder="Факт. охват" className="pl-8"/>
@@ -295,7 +295,7 @@ function ActualMetricsForm({ post, actionId, campaignId }: { post: any, actionId
                     {state.errors?.actualReach && <p className="text-destructive text-xs mt-1">{state.errors.actualReach[0]}</p>}
                 </div>
                  <div>
-                    <Label className="text-xs text-muted-foreground">План. коммент.: {post.plannedComments.toLocaleString('ru-RU')}</Label>
+                    <Label className="text-xs text-muted-foreground">План. коммент.: {(post.plannedComments || 0).toLocaleString('ru-RU')}</Label>
                      <div className="relative mt-1">
                         <MessageSquare className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input type="number" name="actualComments" defaultValue={post.actualComments || ''} placeholder="Факт. коммент." className="pl-8" />

@@ -15,6 +15,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { Loader2, Wand2 } from 'lucide-react';
 import type { DateRange } from 'react-day-picker';
+import { Input } from '@/components/ui/input';
 
 export function GeneratePostsSeriesButton({ action, campaignId }: { action: Action, campaignId: string }) {
     const [open, setOpen] = useState(false);
@@ -85,6 +86,18 @@ export function GeneratePostsSeriesButton({ action, campaignId }: { action: Acti
                                     rows={4}
                                 />
                                 {state.errors?.additionalInfo && <p className="text-sm text-destructive mt-1">{state.errors.additionalInfo[0]}</p>}
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="plannedReach">Плановый охват (на пост)</Label>
+                                    <Input id="plannedReach" name="plannedReach" type="number" placeholder="10000" />
+                                    {state.errors?.plannedReach && <p className="text-sm text-destructive mt-1">{state.errors.plannedReach[0]}</p>}
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="plannedComments">Плановые комментарии (на пост)</Label>
+                                    <Input id="plannedComments" name="plannedComments" type="number" placeholder="50" />
+                                    {state.errors?.plannedComments && <p className="text-sm text-destructive mt-1">{state.errors.plannedComments[0]}</p>}
+                                </div>
                             </div>
                             <div>
                                 <Label>Платформы</Label>

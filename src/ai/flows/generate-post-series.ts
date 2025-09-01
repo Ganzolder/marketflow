@@ -25,6 +25,8 @@ const GeneratePostSeriesInputSchema = z.object({
   additionalInfo: z.string().optional().describe('Дополнительная информация или ключевые моменты, которые нужно обязательно упомянуть в постах.'),
   platforms: z.array(z.nativeEnum(SocialPlatforms)).describe('Список социальных сетей для публикации.'),
   dates: z.array(z.string().refine(d => !isNaN(Date.parse(d)))).describe('Массив дат для публикации постов в формате YYYY-MM-DD.'),
+  plannedReach: z.coerce.number().min(0).optional(),
+  plannedComments: z.coerce.number().min(0).optional(),
 });
 
 export type GeneratePostSeriesInput = z.infer<typeof GeneratePostSeriesInputSchema>;
@@ -35,6 +37,8 @@ const GeneratedPostSchema = z.object({
     platforms: z.array(z.nativeEnum(SocialPlatforms)).describe('Социальные сети, для которых предназначен пост.'),
     publicationDate: z.string().describe('Дата публикации поста в формате YYYY-MM-DD.'),
     promoCodes: z.record(z.string()).optional().describe('Объект с уникальными промокодами для каждой платформы.'),
+    plannedReach: z.number().optional(),
+    plannedComments: z.number().optional(),
 });
 
 const GeneratePostSeriesOutputSchema = z.object({
@@ -123,6 +127,8 @@ const generatePostSeriesFlow = ai.defineFlow(
           platforms: input.platforms,
           publicationDate: date,
           promoCodes: promoCodesByPlatform,
+          plannedReach: input.plannedReach,
+          plannedComments: input.plannedComments,
         });
       }
       postIndex++;
