@@ -33,6 +33,7 @@ import { ActionConditionsCard } from './action-conditions-card';
 import { CampaignTasksCard } from '../campaign-tasks-card';
 import { ActionMechanicsCard } from './action-mechanics-card';
 import { AddTaskButton } from '@/app/tasks/add-task-button';
+import { CopyActivityButton } from './copy-activity-button';
 
 type ActionDetailPageProps = {
     params: { id: string; actionId: string };
@@ -261,6 +262,7 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
                                             {activity.description && <CardDescription className="mt-1">{activity.description}</CardDescription>}
                                         </div>
                                         <div className="flex items-center ml-4">
+                                            <CopyActivityButton activityId={activity.id} campaignId={campaign.id} actionId={action.id} />
                                             <EditActivityButton activity={activity} campaignId={campaign.id} actionId={action.id} />
                                             <DeleteActivityButton activityId={activity.id} campaignId={campaign.id} actionId={action.id} />
                                         </div>

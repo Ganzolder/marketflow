@@ -304,6 +304,44 @@ export async function deleteActivity(campaignId: string, actionId: string, activ
     }
 }
 
+export async function copyActivity(campaignId: string, actionId: string, activityId: string) {
+    const campaignRef = doc(db, 'campaigns', campaignId);
+    try {
+        await runTransaction(db, async (transaction) => {
+            const campaignDoc = await transaction.get(campaignRef);
+            if (!campaignDoc.exists()) throw "Campaign document does not exist!";
+
+            const campaignData = campaignDoc.data() as Campaign;
+            const actionIndex = campaignData.actions.findIndex(a => a.id === actionId);
+            if (actionIndex === -1) throw "Action not found!";
+
+            const action = campaignData.actions[actionIndex];
+            const activityToCopy = action.activities?.find(act => act.id === activityId);
+            if (!activityToCopy) throw "Activity to copy not found!";
+
+            // Create a deep copy and modify it
+            const newActivity = JSON.parse(JSON.stringify(activityToCopy));
+            newActivity.id = `activity-${actionId.substring(0, 4)}-${Date.now()}`;
+            newActivity.name = `Копия ${newActivity.name}`;
+            newActivity.spent = 0;
+            newActivity.expenses = [];
+            newActivity.kpis.forEach((kpi: KPI) => {
+                kpi.current = 0;
+                kpi.metrics = [];
+            });
+
+            const newActions = [...campaignData.actions];
+            newActions[actionIndex].activities.push(newActivity);
+            
+            transaction.update(campaignRef, { actions: newActions });
+        });
+    } catch (e) {
+        console.error("Copy activity transaction failed: ", e);
+        throw new Error('Failed to copy activity.');
+    }
+}
+
+
 export async function updateActivityMetrics(campaignId: string, actionId: string, activityId: string, kpiUpdates: Record<string, number>) {
     const campaignRef = doc(db, 'campaigns', campaignId);
 

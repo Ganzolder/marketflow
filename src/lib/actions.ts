@@ -3,7 +3,7 @@
 "use server";
 
 import { z } from "zod";
-import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData, updateExpenseStatus as updateExpenseStatusData, getSocialPostById, deleteSocialPost as deleteSocialPostData, getSocialPostsForAction, clearDatabase as clearDatabaseData, deleteAction as deleteActionData, getCampaigns, getAllSocialPosts, restoreDatabase, getAllTasks, addTask as addTaskData, updateTask as updateTaskData, deleteTask as deleteTaskData, updateTaskStatus as updateTaskStatusData, moveActionToCampaign, updateActionMechanics as updateActionMechanicsData, updateActionSalesKpiName as updateActionSalesKpiNameData, getCampaignById } from "./data";
+import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData, updateExpenseStatus as updateExpenseStatusData, getSocialPostById, deleteSocialPost as deleteSocialPostData, getSocialPostsForAction, clearDatabase as clearDatabaseData, deleteAction as deleteActionData, getCampaigns, getAllSocialPosts, restoreDatabase, getAllTasks, addTask as addTaskData, updateTask as updateTaskData, deleteTask as deleteTaskData, updateTaskStatus as updateTaskStatusData, moveActionToCampaign, updateActionMechanics as updateActionMechanicsData, updateActionSalesKpiName as updateActionSalesKpiNameData, getCampaignById, copyActivity as copyActivityData } from "./data";
 import { revalidatePath } from "next/cache";
 import { SocialPlatforms, type Action, type Activity, type KPI, type Expense, type ActionStatus, type CampaignStatus, type KpiMetricLog, type Campaign, type ResponsibilityFormState, type Resource, type ResourceStatus, type ResourceStatusFormState, type ExpenseStatus, type ExpenseStatusFormState, type SocialPost, type SocialPlatform, type SocialPostStatus, type SocialPostMetricsFormState, type AiSocialPost, type Task, type EnrichedTask, type TaskFormState, type TaskLinkState, type TaskStatus, type TaskPriority } from "./types";
 import { analyzeActionPerformance, type AnalyzeActionPerformanceOutput } from "@/ai/flows/analyze-action-performance";
@@ -385,6 +385,33 @@ export async function deleteActivity(prevState: DeleteFormState | null, formData
     revalidatePath(`/campaigns/${campaignId}/${actionId}`);
     revalidatePath('/activities');
     return { message: "Активность успешно удалена." };
+}
+
+export async function copyActivity(prevState: DeleteFormState | null, formData: FormData): Promise<DeleteFormState> {
+    const validatedFields = DeleteActivitySchema.safeParse({
+        campaignId: formData.get('campaignId'),
+        actionId: formData.get('actionId'),
+        activityId: formData.get('activityId'),
+    });
+
+    if (!validatedFields.success) {
+        return {
+            message: "Ошибка валидации: не удалось получить необходимые ID.",
+            error: true,
+        };
+    }
+
+    const { campaignId, actionId, activityId } = validatedFields.data;
+
+    try {
+        await copyActivityData(campaignId, actionId, activityId);
+    } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+        return { message: `Ошибка базы данных: не удалось скопировать активность. ${errorMessage}`, error: true };
+    }
+
+    revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+    return { message: "Активность успешно скопирована." };
 }
 
 
