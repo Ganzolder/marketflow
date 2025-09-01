@@ -20,7 +20,7 @@ interface GanttChartData {
 }
 
 const COLORS = {
-  campaign: 'var(--chart-1)',
+  campaign: '#003366',
   action: 'hsl(var(--chart-2))',
   activity: 'hsl(var(--chart-5))',
 };
@@ -229,8 +229,8 @@ export function GanttChart({ campaigns }: { campaigns: Campaign[] }) {
                     />
                     <Legend content={() => (
                         <div className="flex justify-center gap-4 text-xs mt-2">
-                             <span className="flex items-center gap-2"><div className="w-3 h-3 rounded-sm" style={{backgroundColor: 'hsl(var(--chart-1))'}} /> Кампания</span>
-                             <span className="flex items-center gap-2"><div className="w-3 h-3 rounded-sm" style={{backgroundColor: 'hsl(var(--chart-2))'}} /> Акция</span>
+                             <span className="flex items-center gap-2"><div className="w-3 h-3 rounded-sm" style={{backgroundColor: '#003366'}} /> Кампания</span>
+                             <span className="flex items-center gap-2"><div className="w-3 h-3 rounded-sm" style={{backgroundColor: '#01796F'}} /> Акция</span>
                              <span className="flex items-center gap-2"><div className="w-3 h-3 rounded-sm" style={{backgroundColor: 'hsl(var(--chart-5))'}} /> Активность</span>
                         </div>
                     )}/>
