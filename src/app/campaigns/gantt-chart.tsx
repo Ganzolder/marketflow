@@ -40,6 +40,12 @@ const CustomYAxisTick = ({ y, payload, allItems }: { y: number, payload: any, al
   const linkHref = item.type === 'campaign' ? `/campaigns/${item.campaignId}` : 
                    item.type === 'action' ? `/campaigns/${item.campaignId}/${item.id}` : undefined;
 
+  const CampaignIcon = () => (
+     <svg width="1em" height="1em" viewBox="0 0 16 16" fill="#003366" className="inline-block -mt-px mr-1" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8 0L16 8L8 16L0 8L8 0Z"/>
+     </svg>
+  );
+
   const ActionIcon = () => (
     <svg width="1em" height="1em" viewBox="0 0 16 16" fill="#01796F" className="inline-block -mt-px mr-1" xmlns="http://www.w3.org/2000/svg">
       <path d="M8 0L16 8L8 16L0 8L8 0Z"/>
@@ -56,7 +62,7 @@ const CustomYAxisTick = ({ y, payload, allItems }: { y: number, payload: any, al
         className="text-xs truncate"
       >
         <title>{item.name}</title>
-        {item.type === 'campaign' && '🔹 '}
+        {item.type === 'campaign' && <tspan alignmentBaseline="middle"><CampaignIcon /></tspan>}
         {item.type === 'action' && <tspan alignmentBaseline="middle"><ActionIcon /></tspan>}
         {item.type === 'activity' && '▫️ '}
         {item.name}
