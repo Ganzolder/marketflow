@@ -5,9 +5,10 @@
 import { z } from "zod";
 import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData, updateExpenseStatus as updateExpenseStatusData, getSocialPostById, deleteSocialPost as deleteSocialPostData, getSocialPostsForAction, clearDatabase as clearDatabaseData, deleteAction as deleteActionData, getCampaigns, getAllSocialPosts, restoreDatabase, getAllTasks, addTask as addTaskData, updateTask as updateTaskData, deleteTask as deleteTaskData, updateTaskStatus as updateTaskStatusData, moveActionToCampaign, updateActionMechanics as updateActionMechanicsData, updateActionSalesKpiName as updateActionSalesKpiNameData, getCampaignById } from "./data";
 import { revalidatePath } from "next/cache";
-import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog, Campaign, ResponsibilityFormState, Resource, ResourceStatus, ResourceStatusFormState, ExpenseStatus, ExpenseStatusFormState, SocialPost, SocialPlatform, SocialPostStatus, SocialPostMetricsFormState, AiSocialPost, Task, EnrichedTask, TaskFormState, TaskLinkState, TaskStatus } from "./types";
+import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog, Campaign, ResponsibilityFormState, Resource, ResourceStatus, ResourceStatusFormState, ExpenseStatus, ExpenseStatusFormState, SocialPost, SocialPlatform, SocialPostStatus, SocialPostMetricsFormState, AiSocialPost, Task, EnrichedTask, TaskFormState, TaskLinkState, TaskStatus, TaskPriority } from "./types";
 import { analyzeActionPerformance, type AnalyzeActionPerformanceOutput } from "@/ai/flows/analyze-action-performance";
 import { generatePostText, type GeneratePostTextInput } from "@/ai/flows/generate-post-text";
+import { generatePostSeries, type GeneratePostSeriesInput, type GeneratePostSeriesOutput } from "@/ai/flows/generate-post-series";
 import { analyzeOverallPerformance as analyzeOverallPerformanceFlow, type AnalyzeOverallPerformanceOutput } from "@/ai/flows/analyze-overall-performance";
 import { generateActionIdeas as generateActionIdeasFlow, type GenerateActionIdeasOutput } from "@/ai/flows/generate-action-ideas";
 import { addDoc, collection, doc, updateDoc, getDoc, deleteField } from "firebase/firestore";
@@ -1836,6 +1837,7 @@ const TaskSchema = z.object({
   title: z.string().min(1, 'Название обязательно'),
   description: z.string().optional(),
   status: z.enum(['planned', 'in-progress', 'completed']),
+  priority: z.enum(['low', 'medium', 'high']),
   deadline: z.string().refine((date) => !isNaN(Date.parse(date)), "Неверный формат дедлайна."),
   responsiblePerson: z.string().optional(),
   campaignId: z.string().optional().nullable(),
@@ -1850,6 +1852,7 @@ export async function addTask(prevState: TaskFormState | null, formData: FormDat
       title: formData.get('title') || undefined,
       description: formData.get('description') || undefined,
       status: formData.get('status'),
+      priority: formData.get('priority'),
       deadline: formData.get('deadline') || undefined,
       responsiblePerson: formData.get('responsiblePerson') || undefined,
       campaignId: rawCampaignId === 'none' ? null : rawCampaignId,
@@ -1900,6 +1903,7 @@ export async function updateTask(prevState: TaskFormState, formData: FormData): 
     title: formData.get('title') || undefined,
     description: formData.get('description'),
     status: formData.get('status'),
+    priority: formData.get('priority'),
     deadline: formData.get('deadline') || undefined,
     responsiblePerson: formData.get('responsiblePerson'),
   });
@@ -2186,4 +2190,86 @@ export async function updateActionSalesKpiName(formData: FormData): Promise<{mes
     revalidatePath(`/campaigns/${campaignId}`);
     revalidatePath(`/actions`);
     return { message: "KPI для продаж обновлен." };
+}
+
+const GeneratePostSeriesSchema = z.object({
+  actionId: z.string(),
+  campaignId: z.string(),
+  platforms: z.array(z.nativeEnum(SocialPlatforms)),
+  dates: z.array(z.string().refine(d => !isNaN(Date.parse(d)))),
+  additionalInfo: z.string().optional(),
+});
+
+export type GeneratePostSeriesState = {
+  message: string;
+  error?: boolean;
+  errors?: z.ZodError<z.infer<typeof GeneratePostSeriesSchema>>['formErrors']['fieldErrors'];
+}
+
+export async function generatePostSeriesAction(
+  prevState: GeneratePostSeriesState, 
+  formData: FormData
+): Promise<GeneratePostSeriesState> {
+  
+  const validatedFields = GeneratePostSeriesSchema.safeParse({
+    actionId: formData.get('actionId'),
+    campaignId: formData.get('campaignId'),
+    platforms: formData.getAll('platforms'),
+    dates: (formData.get('dates') as string || '').split(','),
+    additionalInfo: formData.get('additionalInfo'),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      message: "Ошибка валидации.",
+      error: true,
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+  
+  const { campaignId, actionId, ...input } = validatedFields.data;
+  
+  try {
+    const campaign = await getCampaignById(campaignId);
+    if (!campaign) throw new Error('Кампания не найдена');
+    
+    const action = campaign.actions.find(a => a.id === actionId);
+    if (!action) throw new Error('Акция не найдена');
+
+    const result = await generatePostSeries({
+      actionName: action.name,
+      actionDescription: action.description || '',
+      actionConditions: action.conditions || '',
+      ...input
+    });
+    
+    const postsToAdd = result.posts;
+    const batch = writeBatch(db);
+
+    postsToAdd.forEach(post => {
+      const postRef = doc(collection(db, "socialPosts"));
+      const postData: Omit<SocialPost, 'id'> = {
+        title: post.title,
+        text: post.text,
+        platforms: [post.platform],
+        publicationDate: post.publicationDate,
+        status: 'draft',
+        campaignId,
+        actionId,
+        plannedReach: 0,
+        plannedComments: 0,
+      };
+      batch.set(postRef, postData);
+    });
+
+    await batch.commit();
+
+    revalidatePath(`/campaigns/${campaignId}/${actionId}`);
+    revalidatePath('/smm');
+
+    return { message: `Успешно сгенерировано и сохранено ${postsToAdd.length} постов.` };
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+    return { message: `Ошибка генерации серии постов: ${errorMessage}`, error: true };
+  }
 }

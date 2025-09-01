@@ -25,6 +25,7 @@ import { useFormStatus } from 'react-dom';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { UpdateSocialPostStatus } from '@/app/smm/update-social-post-status';
 import { PublicationCalendar } from '@/app/smm/publication-calendar';
+import { GeneratePostsSeriesButton } from './generate-posts-series-button';
 
 
 const statusTranslations: Record<SocialPostStatus, string> = {
@@ -102,9 +103,9 @@ const AddSocialPostButton = ({ action, campaignId }: { action: Action, campaignI
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button size="sm">
+                <Button size="sm" variant="outline">
                     <PlusCircle className="mr-2 h-4 w-4" />
-                    Запланировать пост
+                    Добавить пост
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-2xl h-screen flex flex-col sm:h-[90vh]">
@@ -334,7 +335,10 @@ export function ActionSocialPostsPlanner({ action, campaignId, posts, allPosts }
                 <CardTitle>Поддержка в соцсетях</CardTitle>
                 <CardDescription>План постов для продвижения акции.</CardDescription>
             </div>
-            <AddSocialPostButton action={action} campaignId={campaignId} />
+            <div className="flex items-center gap-2">
+                <GeneratePostsSeriesButton action={action} campaignId={campaignId} />
+                <AddSocialPostButton action={action} campaignId={campaignId} />
+            </div>
         </CardHeader>
         <CardContent>
             {posts.length > 0 && (
@@ -386,7 +390,7 @@ export function ActionSocialPostsPlanner({ action, campaignId, posts, allPosts }
                                     </Button>
                                 </CollapsibleTrigger>
                                 <CollapsibleContent className="pt-2">
-                                    <p className="text-sm text-foreground whitespace-pre-wrap bg-muted/50 p-3 rounded-md">{post.text}</p>
+                                    <p className="text-sm text-foreground whitespace-pre-wrap">{post.text}</p>
                                 </CollapsibleContent>
                              </Collapsible>
                            </CardContent>
