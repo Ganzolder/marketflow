@@ -20,12 +20,12 @@ interface GanttChartData {
 }
 
 const COLORS = {
-  campaign: 'hsl(var(--chart-1))',
+  campaign: 'hsl(var(--chart-3))',
   action: 'hsl(var(--chart-2))',
   activity: 'hsl(var(--chart-5))',
 };
 
-const CustomYAxisTick = ({ y, payload, allItems }: { y: number, payload: any, allItems: GanttChartData[] }) => {
+const CustomYAxisTick = ({ y, payload, allItems, ...rest }: { y: number, payload: any, allItems: GanttChartData[] }) => {
   const item = allItems.find((d: GanttChartData) => d.name === payload.value);
 
   if (!item) {
