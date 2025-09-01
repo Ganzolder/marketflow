@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useActionState, useRef, useTransition } from 'react';
+import { useState, useActionState, useRef, useTransition, useEffect } from 'react';
 import type { Action, SocialPlatform } from '@/lib/types';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
@@ -28,6 +28,22 @@ export function GeneratePostsSeriesButton({ action, campaignId }: { action: Acti
     const initialState: GeneratePostSeriesState = { message: "", errors: {} };
     const [state, dispatch] = useActionState(generatePostSeriesAction, initialState);
 
+    useEffect(() => {
+        if (state.message && !isPending) {
+            if (state.error) {
+                const errorMessages = state.errors ? Object.values(state.errors).flat().join("\n") : state.message;
+                toast({ variant: "destructive", title: "Ошибка", description: errorMessages });
+            } else {
+                toast({ title: "Успех", description: state.message });
+                setOpen(false);
+                formRef.current?.reset();
+                setSelectedPlatforms([]);
+                setSelectedDates(undefined);
+            }
+        }
+    }, [state, isPending, toast]);
+
+
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
@@ -41,22 +57,6 @@ export function GeneratePostsSeriesButton({ action, campaignId }: { action: Acti
             dispatch(formData);
         });
     };
-
-    if (state.message && !state.error && !isPending) {
-        toast({ title: "Успех", description: state.message });
-        setOpen(false);
-        formRef.current?.reset();
-        setSelectedPlatforms([]);
-        setSelectedDates(undefined);
-        // Reset state after success
-        dispatch({ message: "", errors: {} }); 
-    } else if (state.message && state.error && !isPending) {
-         const errorMessages = state.errors ? Object.values(state.errors).flat().join("\n") : state.message;
-        toast({ variant: "destructive", title: "Ошибка", description: errorMessages });
-         // Reset state after error
-        dispatch({ message: "", errors: state.errors }); 
-    }
-
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
