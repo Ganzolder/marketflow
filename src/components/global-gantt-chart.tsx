@@ -10,6 +10,7 @@ import type { Campaign } from '@/lib/types';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from './ui/skeleton';
+import { getCampaigns } from '@/lib/data';
 
 interface GanttChartData {
   name: string;
@@ -84,10 +85,22 @@ const CustomYAxisTick = ({ y, payload, allItems }: { y: number, payload: any, al
 };
 
 
-export function GlobalGanttChart({ campaigns, isLoading }: { campaigns: Campaign[], isLoading: boolean }) {
+export function GlobalGanttChart() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      setIsLoading(true);
+      const allCampaigns = await getCampaigns();
+      setCampaigns(allCampaigns);
+      setIsLoading(false);
+    }
+    fetchData();
+  }, []);
 
   const selectedCampaignIds = useMemo(() => {
     const ganttCampaigns = searchParams.get('ganttCampaigns');
@@ -95,13 +108,13 @@ export function GlobalGanttChart({ campaigns, isLoading }: { campaigns: Campaign
   }, [searchParams, campaigns]);
 
   useEffect(() => {
-    if (!searchParams.get('ganttCampaigns') && campaigns.length > 0) {
+    if (!isLoading && !searchParams.get('ganttCampaigns') && campaigns.length > 0) {
         const defaultIds = campaigns.slice(0, 3).map(c => c.id).join(',');
         const params = new URLSearchParams(searchParams.toString());
         params.set('ganttCampaigns', defaultIds);
         router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     }
-  }, [campaigns, searchParams, router, pathname]);
+  }, [campaigns, searchParams, router, pathname, isLoading]);
 
   const handleCampaignChange = (selected: string[]) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -171,7 +184,7 @@ export function GlobalGanttChart({ campaigns, isLoading }: { campaigns: Campaign
         <div className="space-y-4">
             <h2 className="text-lg font-semibold">Диаграмма кампаний</h2>
             <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-64 w-full" />
+            <Skeleton className="h-96 w-full" />
         </div>
       )
   }
@@ -194,7 +207,7 @@ export function GlobalGanttChart({ campaigns, isLoading }: { campaigns: Campaign
                 <BarChart
                     data={chartData}
                     layout="vertical"
-                    margin={{ top: 5, right: 10, left: 5, bottom: 5 }}
+                    margin={{ top: 5, right: 10, left: 5, bottom: 20 }}
                     barCategoryGap="20%"
                 >
                     <CartesianGrid strokeDasharray="3 3" horizontal={true} />
@@ -204,7 +217,7 @@ export function GlobalGanttChart({ campaigns, isLoading }: { campaigns: Campaign
                         tickFormatter={dateFormatter}
                         scale="time"
                         allowDataOverflow
-                        tickCount={4}
+                        tickCount={6}
                         fontSize={10}
                     />
                     <YAxis 

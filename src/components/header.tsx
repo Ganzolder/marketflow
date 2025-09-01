@@ -1,5 +1,7 @@
+
 'use client';
 
+import { useState } from 'react';
 import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
@@ -12,14 +14,45 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { DatabaseActions } from './database-actions';
+import { GanttChartSquare } from 'lucide-react';
+import { GlobalGanttChart } from './global-gantt-chart';
+import { ScrollArea } from './ui/scroll-area';
+
+function GanttChartModalButton() {
+    const [open, setOpen] = useState(false);
+
+    return (
+         <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                    <GanttChartSquare className="h-5 w-5" />
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-5xl h-[90vh] flex flex-col">
+                <DialogHeader>
+                    <DialogTitle>Глобальная диаграмма Ганта</DialogTitle>
+                    <DialogDescription>
+                        Обзор всех кампаний, акций и активностей на временной шкале.
+                    </DialogDescription>
+                </DialogHeader>
+                <ScrollArea className="flex-1 -mx-6 px-6">
+                    <GlobalGanttChart />
+                </ScrollArea>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
 
 export function Header() {
     return (
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
             <SidebarTrigger className="flex md:hidden" />
-            <div className="ml-auto">
+            <div className="ml-auto flex items-center gap-2">
+                <GanttChartModalButton />
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
