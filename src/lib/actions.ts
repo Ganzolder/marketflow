@@ -5,13 +5,13 @@
 import { z } from "zod";
 import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData, updateExpenseStatus as updateExpenseStatusData, getSocialPostById, deleteSocialPost as deleteSocialPostData, getSocialPostsForAction, clearDatabase as clearDatabaseData, deleteAction as deleteActionData, getCampaigns, getAllSocialPosts, restoreDatabase, getAllTasks, addTask as addTaskData, updateTask as updateTaskData, deleteTask as deleteTaskData, updateTaskStatus as updateTaskStatusData, moveActionToCampaign, updateActionMechanics as updateActionMechanicsData, updateActionSalesKpiName as updateActionSalesKpiNameData, getCampaignById } from "./data";
 import { revalidatePath } from "next/cache";
-import type { Action, Activity, KPI, Expense, ActionStatus, CampaignStatus, KpiMetricLog, Campaign, ResponsibilityFormState, Resource, ResourceStatus, ResourceStatusFormState, ExpenseStatus, ExpenseStatusFormState, SocialPost, SocialPlatform, SocialPostStatus, SocialPostMetricsFormState, AiSocialPost, Task, EnrichedTask, TaskFormState, TaskLinkState, TaskStatus, TaskPriority } from "./types";
+import { SocialPlatforms, type Action, type Activity, type KPI, type Expense, type ActionStatus, type CampaignStatus, type KpiMetricLog, type Campaign, type ResponsibilityFormState, type Resource, type ResourceStatus, type ResourceStatusFormState, type ExpenseStatus, type ExpenseStatusFormState, type SocialPost, type SocialPlatform, type SocialPostStatus, type SocialPostMetricsFormState, type AiSocialPost, type Task, type EnrichedTask, type TaskFormState, type TaskLinkState, type TaskStatus, type TaskPriority } from "./types";
 import { analyzeActionPerformance, type AnalyzeActionPerformanceOutput } from "@/ai/flows/analyze-action-performance";
 import { generatePostText, type GeneratePostTextInput } from "@/ai/flows/generate-post-text";
 import { generatePostSeries, type GeneratePostSeriesInput, type GeneratePostSeriesOutput } from "@/ai/flows/generate-post-series";
 import { analyzeOverallPerformance as analyzeOverallPerformanceFlow, type AnalyzeOverallPerformanceOutput } from "@/ai/flows/analyze-overall-performance";
 import { generateActionIdeas as generateActionIdeasFlow, type GenerateActionIdeasOutput } from "@/ai/flows/generate-action-ideas";
-import { addDoc, collection, doc, updateDoc, getDoc, deleteField } from "firebase/firestore";
+import { addDoc, collection, doc, updateDoc, getDoc, deleteField, writeBatch } from "firebase/firestore";
 import { db } from "./firebase";
 import { redirect } from 'next/navigation';
 import * as XLSX from 'xlsx';
@@ -1842,6 +1842,7 @@ const TaskSchema = z.object({
   responsiblePerson: z.string().optional(),
   campaignId: z.string().optional().nullable(),
   actionId: z.string().optional().nullable(),
+  activityId: z.string().optional().nullable(),
 });
 
 export async function addTask(prevState: TaskFormState | null, formData: FormData): Promise<TaskFormState> {
