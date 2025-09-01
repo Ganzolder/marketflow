@@ -20,12 +20,12 @@ interface GanttChartData {
 }
 
 const COLORS = {
-  campaign: 'hsl(var(--chart-1))',
+  campaign: 'var(--chart-1)',
   action: 'hsl(var(--chart-2))',
   activity: 'hsl(var(--chart-5))',
 };
 
-const CustomYAxisTick = ({ y, payload, allItems, ...rest }: { y: number, payload: any, allItems: GanttChartData[], [key: string]: any }) => {
+const CustomYAxisTick = ({ y, payload, allItems }: { y: number, payload: any, allItems: GanttChartData[] }) => {
   const item = allItems.find((d: GanttChartData) => d.name === payload.value);
 
   if (!item) {
@@ -40,6 +40,12 @@ const CustomYAxisTick = ({ y, payload, allItems, ...rest }: { y: number, payload
   const linkHref = item.type === 'campaign' ? `/campaigns/${item.campaignId}` : 
                    item.type === 'action' ? `/campaigns/${item.campaignId}/${item.id}` : undefined;
 
+  const ActionIcon = () => (
+    <svg width="1em" height="1em" viewBox="0 0 16 16" fill="#01796F" className="inline-block -mt-px mr-1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M8 0L16 8L8 16L0 8L8 0Z"/>
+    </svg>
+  );
+
   const content = (
       <text
         x={0}
@@ -51,7 +57,7 @@ const CustomYAxisTick = ({ y, payload, allItems, ...rest }: { y: number, payload
       >
         <title>{item.name}</title>
         {item.type === 'campaign' && '🔹 '}
-        {item.type === 'action' && '🔸 '}
+        {item.type === 'action' && <tspan alignmentBaseline="middle"><ActionIcon /></tspan>}
         {item.type === 'activity' && '▫️ '}
         {item.name}
       </text>
@@ -217,9 +223,9 @@ export function GanttChart({ campaigns }: { campaigns: Campaign[] }) {
                     />
                     <Legend content={() => (
                         <div className="flex justify-center gap-4 text-xs mt-2">
-                             <span className="flex items-center gap-2"><div className="w-3 h-3 rounded-sm" style={{backgroundColor: COLORS.campaign}} /> Кампания</span>
-                             <span className="flex items-center gap-2"><div className="w-3 h-3 rounded-sm" style={{backgroundColor: COLORS.action}} /> Акция</span>
-                             <span className="flex items-center gap-2"><div className="w-3 h-3 rounded-sm" style={{backgroundColor: COLORS.activity}} /> Активность</span>
+                             <span className="flex items-center gap-2"><div className="w-3 h-3 rounded-sm" style={{backgroundColor: 'hsl(var(--chart-1))'}} /> Кампания</span>
+                             <span className="flex items-center gap-2"><div className="w-3 h-3 rounded-sm" style={{backgroundColor: 'hsl(var(--chart-2))'}} /> Акция</span>
+                             <span className="flex items-center gap-2"><div className="w-3 h-3 rounded-sm" style={{backgroundColor: 'hsl(var(--chart-5))'}} /> Активность</span>
                         </div>
                     )}/>
                     <Bar dataKey="dates" minPointSize={5}>
