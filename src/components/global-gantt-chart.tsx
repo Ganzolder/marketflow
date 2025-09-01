@@ -1,14 +1,15 @@
 
 "use client";
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList, Cell } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import type { Campaign, Action, Activity } from '@/lib/types';
+import type { Campaign } from '@/lib/types';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Label } from '@/components/ui/label';
+import { Skeleton } from './ui/skeleton';
 
 interface GanttChartData {
   name: string;
@@ -21,7 +22,7 @@ interface GanttChartData {
 
 const COLORS = {
   campaign: '#003366',
-  action: 'hsl(var(--chart-2))',
+  action: '#01796F',
   activity: 'hsl(var(--chart-5))',
 };
 
@@ -83,7 +84,7 @@ const CustomYAxisTick = ({ y, payload, allItems }: { y: number, payload: any, al
 };
 
 
-export function GanttChart({ campaigns }: { campaigns: Campaign[] }) {
+export function GlobalGanttChart({ campaigns, isLoading }: { campaigns: Campaign[], isLoading: boolean }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -92,6 +93,15 @@ export function GanttChart({ campaigns }: { campaigns: Campaign[] }) {
     const ganttCampaigns = searchParams.get('ganttCampaigns');
     return ganttCampaigns ? ganttCampaigns.split(',') : campaigns.map(c => c.id).slice(0, 3);
   }, [searchParams, campaigns]);
+
+  useEffect(() => {
+    if (!searchParams.get('ganttCampaigns') && campaigns.length > 0) {
+        const defaultIds = campaigns.slice(0, 3).map(c => c.id).join(',');
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('ganttCampaigns', defaultIds);
+        router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    }
+  }, [campaigns, searchParams, router, pathname]);
 
   const handleCampaignChange = (selected: string[]) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -107,7 +117,7 @@ export function GanttChart({ campaigns }: { campaigns: Campaign[] }) {
     let allItems: GanttChartData[] = [];
     let overallMinDate = new Date();
     let overallMaxDate = new Date();
-    overallMaxDate.setDate(overallMaxDate.getDate() + 30); // Default range
+    overallMaxDate.setDate(overallMaxDate.getDate() + 30); 
     
     const filteredCampaigns = campaigns.filter(c => selectedCampaignIds.includes(c.id));
 
@@ -156,40 +166,35 @@ export function GanttChart({ campaigns }: { campaigns: Campaign[] }) {
     return new Date(date).toLocaleDateString('ru-RU', { month: 'short', day: 'numeric' });
   };
 
-  if (campaigns.length === 0) {
+  if (isLoading) {
       return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Диаграмма кампаний</CardTitle>
-                <CardDescription>Нет данных для отображения. Создайте кампанию, чтобы начать.</CardDescription>
-            </CardHeader>
-        </Card>
+        <div className="space-y-4">
+            <h2 className="text-lg font-semibold">Диаграмма кампаний</h2>
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-64 w-full" />
+        </div>
       )
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="grid gap-2 col-span-full md:col-span-3">
-                <Label htmlFor="campaign-filter">Фильтр по кампаниям</Label>
-                <MultiSelect
-                    options={campaignOptions}
-                    selected={selectedCampaignIds}
-                    onChange={handleCampaignChange}
-                    placeholder="Выберите кампании"
-                    className="w-full"
-                />
-            </div>
+    <div>
+        <h2 className="text-lg font-semibold mb-2">Диаграмма кампаний</h2>
+        <div className="grid gap-2 mb-4">
+            <Label htmlFor="campaign-filter">Фильтр по кампаниям</Label>
+            <MultiSelect
+                options={campaignOptions}
+                selected={selectedCampaignIds}
+                onChange={handleCampaignChange}
+                placeholder="Выберите кампании"
+                className="w-full"
+            />
         </div>
-      </CardHeader>
-      <CardContent>
         <div style={{ width: '100%', height: chartData.length * 40 + 60 }}>
             <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                     data={chartData}
                     layout="vertical"
-                    margin={{ top: 5, right: 30, left: 120, bottom: 5 }}
+                    margin={{ top: 5, right: 10, left: 5, bottom: 5 }}
                     barCategoryGap="20%"
                 >
                     <CartesianGrid strokeDasharray="3 3" horizontal={true} />
@@ -199,12 +204,13 @@ export function GanttChart({ campaigns }: { campaigns: Campaign[] }) {
                         tickFormatter={dateFormatter}
                         scale="time"
                         allowDataOverflow
-                        tickCount={8}
+                        tickCount={4}
+                        fontSize={10}
                     />
                     <YAxis 
                         type="category" 
                         dataKey="name" 
-                        width={200} 
+                        width={150} 
                         tickLine={false} 
                         axisLine={false}
                         tick={(props) => <CustomYAxisTick {...props} allItems={chartData} />}
@@ -242,7 +248,6 @@ export function GanttChart({ campaigns }: { campaigns: Campaign[] }) {
                 </BarChart>
             </ResponsiveContainer>
         </div>
-      </CardContent>
-    </Card>
+    </div>
   );
 }

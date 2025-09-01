@@ -79,17 +79,6 @@ export default async function CampaignsPage({ searchParams: searchParamsPromise 
         </div>
       </PageHeader>
       
-      <Accordion type="single" collapsible className="w-full mb-8">
-        <AccordionItem value="gantt-chart">
-            <AccordionTrigger>
-                <h2 className="text-lg font-semibold">Диаграмма кампаний</h2>
-            </AccordionTrigger>
-            <AccordionContent>
-                <GanttChart campaigns={campaigns} />
-            </AccordionContent>
-        </AccordionItem>
-      </Accordion>
-
       <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-6">
         {filteredCampaigns.map((campaign) => {
           const startDate = new Date(campaign.startDate);
