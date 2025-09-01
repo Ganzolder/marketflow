@@ -6,15 +6,17 @@ import {
 } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/app-sidebar';
 import { Header } from '@/components/header';
+import { EridBar } from './erid-bar';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
         <div className="flex h-full">
             <AppSidebar />
-            <main className="flex-1 overflow-y-auto">
+            <main className="flex-1 flex flex-col h-screen">
                 <Header />
-                <div className="p-4 sm:p-6 lg:p-8">
+                <EridBar />
+                <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
                     {children}
                 </div>
             </main>
