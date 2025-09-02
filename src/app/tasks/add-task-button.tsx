@@ -87,9 +87,9 @@ export function AddTaskButton({ campaigns, defaultCampaignId, defaultActionId }:
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Новая задача
+                <Button size="icon" className="h-9 w-9">
+                    <PlusCircle className="h-4 w-4" />
+                    <span className="sr-only">Новая задача</span>
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-xl h-[90vh] flex flex-col sm:h-auto sm:max-h-[85vh]">
