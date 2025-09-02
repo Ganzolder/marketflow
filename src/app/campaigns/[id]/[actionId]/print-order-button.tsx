@@ -54,7 +54,7 @@ function PrintContent({ action, campaign }: { action: Action, campaign: Campaign
                     </div>
                     <div className="w-full text-left">
                         <p>№ ______</p>
-                        <p>г. Томск</p>
+                        <p>{campaign.company || 'г. Томск'}</p>
                         <p>Дата: {new Date().toLocaleDateString('ru-RU')}</p>
                     </div>
                 </div>
@@ -81,7 +81,7 @@ function PrintContent({ action, campaign }: { action: Action, campaign: Campaign
                     <p className="mt-4">Основание: План маркетинговых активностей на ____________________, служебная записка ____________________.</p>
 
                     <div className="mt-12">
-                        <p>Директор <span className="inline-block border-b border-black w-48 mx-2"></span> /Гавриленко А.С.</p>
+                        <p>Директор {campaign.company || ''} <span className="inline-block border-b border-black w-48 mx-2"></span> /Гавриленко А.С.</p>
                     </div>
 
                     <div className="mt-8">

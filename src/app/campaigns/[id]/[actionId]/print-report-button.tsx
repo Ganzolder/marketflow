@@ -20,7 +20,7 @@ function PrintContent({ action, campaign }: { action: Action, campaign: Campaign
     const plannedTotalBudget = action.activities?.reduce((sum, activity) => sum + activity.budget, 0) || 0;
     const actualTotalSpent = (action.activities?.reduce((sum, activity) => sum + (activity.spent || 0), 0) || 0) + (action.generalExpenses?.reduce((sum, expense) => sum + (expense.amount || 0), 0) || 0);
 
-    const salesKpiName = "Продажи";
+    const salesKpiName = action.salesKpiName || "Продажи";
     let plannedSales = 0;
     let actualSales = 0;
 
@@ -124,7 +124,7 @@ function PrintContent({ action, campaign }: { action: Action, campaign: Campaign
                  <div className="flex justify-end mb-8">
                     <div className="text-right">
                         <p>Утверждаю</p>
-                        <p>Директор ООО АВТОГИК</p>
+                        <p>Директор {campaign.company || 'ООО АВТОГИК'}</p>
                         <p>Гавриленко А. С.</p>
                         <p className="mt-2">_____________________</p>
                     </div>
