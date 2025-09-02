@@ -3,7 +3,7 @@
 "use server";
 
 import { z } from "zod";
-import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData, updateExpenseStatus as updateExpenseStatusData, getSocialPostById, deleteSocialPost as deleteSocialPostData, getSocialPostsForAction, clearDatabase as clearDatabaseData, deleteAction as deleteActionData, getCampaigns, getAllSocialPosts, restoreDatabase, getAllTasks, addTask as addTaskData, updateTask as updateTaskData, deleteTask as deleteTaskData, updateTaskStatus as updateTaskStatusData, moveActionToCampaign, updateActionMechanics as updateActionMechanicsData, updateActionSalesKpiName as updateActionSalesKpiNameData, getCampaignById, copyActivity as copyActivityData } from "./data";
+import { createCampaign as createCampaignData, addAction, updateAction, addActivity, updateActivity as updateActivityData, deleteActivity as deleteActivityData, updateActivityMetrics as updateActivityMetricsData, addExpenseToActivity as addExpenseToActivityData, updateExpense as updateExpenseData, deleteExpenseFromActivity, addGeneralExpenseToAction, updateGeneralExpenseInAction, deleteGeneralExpenseFromAction, updateActionSummaryKpis as updateActionSummaryKpisData, updateActionEffectiveness as updateActionEffectivenessData, updateActionStatus as updateActionStatusData, updateCampaignStatus as updateCampaignStatusData, updateCampaign as updateCampaignData, deleteCampaign as deleteCampaignData, editKpiMetric as editKpiMetricData, deleteKpiMetric as deleteKpiMetricData, updateActionResponsibility as updateActionResponsibilityData, updateActionConditions as updateActionConditionsData, addResourceToAction as addResourceToActionData, updateResourceInAction as updateResourceInActionData, deleteResourceFromAction, updateResourceStatus as updateResourceStatusData, updateExpenseStatus as updateExpenseStatusData, getSocialPostById, deleteSocialPost as deleteSocialPostData, getSocialPostsForAction, clearDatabase as clearDatabaseData, deleteAction as deleteActionData, getCampaigns, getAllSocialPosts, restoreDatabase, getAllTasks, addTask as addTaskData, updateTask as updateTaskData, deleteTask as deleteTaskData, updateTaskStatus as updateTaskStatusData, moveActionToCampaign, updateActionMechanics as updateActionMechanicsData, updateActionSalesKpiName as updateActionSalesKpiNameData, getCampaignById, copyActivity as copyActivityData, updateErid } from "./data";
 import { revalidatePath } from "next/cache";
 import { SocialPlatforms, type Action, type Activity, type KPI, type Expense, type ActionStatus, type CampaignStatus, type KpiMetricLog, type Campaign, type ResponsibilityFormState, type Resource, type ResourceStatus, type ResourceStatusFormState, type ExpenseStatus, type ExpenseStatusFormState, type SocialPost, type SocialPlatform, type SocialPostStatus, type SocialPostMetricsFormState, type AiSocialPost, type Task, type EnrichedTask, type TaskFormState, type TaskLinkState, type TaskStatus, type TaskPriority } from "./types";
 import { analyzeActionPerformance, type AnalyzeActionPerformanceOutput } from "@/ai/flows/analyze-action-performance";
@@ -2374,4 +2374,22 @@ export async function rephraseTextAction(prevState: RephraseState, formData: For
         error: true 
     };
   }
+}
+
+// ERID Actions
+type EridState = {
+    message: string;
+    error?: boolean;
+}
+export async function updateEridAction(erid: string): Promise<EridState> {
+    if (typeof erid !== 'string') {
+        return { message: "Неверный формат ERID.", error: true };
+    }
+    try {
+        await updateErid(erid);
+        return { message: 'ERID успешно обновлен.' };
+    } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+        return { message: `Ошибка сохранения ERID: ${errorMessage}`, error: true };
+    }
 }

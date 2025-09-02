@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
@@ -17,12 +17,14 @@ import {
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { DatabaseActions } from './database-actions';
-import { GanttChartSquare, Save, Pencil } from 'lucide-react';
+import { GanttChartSquare, Save, Pencil, Loader2 } from 'lucide-react';
 import { GlobalGanttChart } from './global-gantt-chart';
 import { ScrollArea } from './ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { MapsLogo } from './maps-logo';
+import { getErid } from '@/lib/data';
+import { updateEridAction } from '@/lib/actions';
 
 function GanttChartModalButton() {
     const [open, setOpen] = useState(false);
@@ -52,26 +54,39 @@ function GanttChartModalButton() {
 function EridControl() {
   const [erid, setErid] = useState('');
   const [isEditing, setIsEditing] = useState(false);
-  const [isClient, setIsClient] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, startSavingTransition] = useTransition();
   const { toast } = useToast();
 
   useEffect(() => {
-    setIsClient(true);
-    const savedErid = localStorage.getItem('erid');
-    if (savedErid) {
+    async function fetchErid() {
+      setIsLoading(true);
+      const savedErid = await getErid();
       setErid(savedErid);
-    } else {
-      // If no ERID is saved, start in editing mode
-      setIsEditing(true);
+      if (!savedErid) {
+        setIsEditing(true);
+      }
+      setIsLoading(false);
     }
+    fetchErid();
   }, []);
 
   const handleSave = () => {
-    localStorage.setItem('erid', erid);
-    setIsEditing(false);
-    toast({
-      title: 'Сохранено',
-      description: 'Значение ERID было успешно сохранено.',
+    startSavingTransition(async () => {
+      const result = await updateEridAction(erid);
+      if (result.error) {
+        toast({
+          variant: 'destructive',
+          title: 'Ошибка',
+          description: result.message,
+        });
+      } else {
+        toast({
+          title: 'Сохранено',
+          description: result.message,
+        });
+        setIsEditing(false);
+      }
     });
   };
   
@@ -79,8 +94,8 @@ function EridControl() {
     setIsEditing(true);
   }
 
-  if (!isClient) {
-    return null; 
+  if (isLoading) {
+    return <div className="h-8 w-48 bg-muted rounded-md animate-pulse" />;
   }
 
   return (
@@ -99,8 +114,8 @@ function EridControl() {
             className="h-8 w-48"
             autoFocus
           />
-          <Button variant="ghost" size="icon" onClick={handleSave} className="h-8 w-8">
-            <Save className="h-4 w-4" />
+          <Button variant="ghost" size="icon" onClick={handleSave} disabled={isSaving} className="h-8 w-8">
+            {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             <span className="sr-only">Сохранить ERID</span>
           </Button>
         </>

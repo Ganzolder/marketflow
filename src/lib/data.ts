@@ -3,7 +3,7 @@
 
 import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction, ActionStatus, CampaignStatus, KpiMetricLog, EnrichedActivity, Resource, ResourceStatus, ExpenseStatus, SocialPost, EnrichedSocialPost, Task, TaskStatus, EnrichedTask, UpcomingEvent } from './types';
 import { db } from './firebase';
-import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, addDoc, writeBatch, runTransaction, deleteDoc, arrayRemove } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, addDoc, writeBatch, runTransaction, deleteDoc, arrayRemove, setDoc } from "firebase/firestore";
 
 // Helper function to seed the database with initial data if it's empty
 async function seedDatabase() {
@@ -1506,5 +1506,27 @@ export async function updateActionSalesKpiName(campaignId: string, actionId: str
     } catch (e) {
         console.error("Transaction failed: ", e);
         throw new Error('Failed to update sales KPI name.');
+    }
+}
+
+// Global Settings Actions
+const SETTINGS_DOC_ID = 'app_settings';
+
+export async function getErid(): Promise<string> {
+    const settingsRef = doc(db, 'settings', SETTINGS_DOC_ID);
+    const settingsSnap = await getDoc(settingsRef);
+    if (settingsSnap.exists()) {
+        return settingsSnap.data().erid || '';
+    }
+    return '';
+}
+
+export async function updateErid(erid: string) {
+    const settingsRef = doc(db, 'settings', SETTINGS_DOC_ID);
+    try {
+        await setDoc(settingsRef, { erid }, { merge: true });
+    } catch (e) {
+        console.error("Update ERID failed: ", e);
+        throw new Error('Failed to update ERID.');
     }
 }
