@@ -126,6 +126,9 @@ export type Campaign = {
   status: CampaignStatus;
   goals: Goal[];
   actions: Action[];
+  company?: string;
+  address?: string;
+  phone?: string;
 };
 
 export type TaskStatus = 'planned' | 'in-progress' | 'completed';
