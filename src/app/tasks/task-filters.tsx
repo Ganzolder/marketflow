@@ -13,9 +13,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { Campaign, Action } from '@/lib/types';
 import { useCallback, useState, useEffect } from 'react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { Filter, X } from 'lucide-react';
+import { X } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 const statusTranslations = {
   planned: "Запланирована",
@@ -78,92 +78,81 @@ export function TaskFilters({ campaigns, responsibles }: { campaigns: Campaign[]
   const hasActiveFilters = selectedCampaignId || selectedActionId || selectedStatus || deadlineFrom || deadlineTo || responsible;
 
   return (
-    <Popover>
-        <PopoverTrigger asChild>
-            <Button variant="outline">
-                <Filter className="mr-2 h-4 w-4" />
-                Фильтры
-                {hasActiveFilters && <span className="ml-2 h-2 w-2 rounded-full bg-primary animate-pulse"></span>}
-            </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-80" align="end">
-            <div className="grid gap-4">
-                <div className="space-y-2">
-                    <h4 className="font-medium leading-none">Фильтры задач</h4>
-                    <p className="text-sm text-muted-foreground">
-                        Отфильтруйте задачи по нужным параметрам.
-                    </p>
+    <Card className="mb-8">
+        <CardHeader>
+            <CardTitle>Фильтры задач</CardTitle>
+            <CardDescription>Используйте поля ниже для фильтрации списка задач.</CardDescription>
+        </CardHeader>
+        <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <div className="grid gap-1.5">
+                    <Label>Статус</Label>
+                    <Select onValueChange={(val) => handleFilterChange('status', val)} value={selectedStatus || 'all'}>
+                        <SelectTrigger><SelectValue placeholder="Все статусы" /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Все статусы</SelectItem>
+                            {Object.entries(statusTranslations).map(([value, label]) => (
+                                <SelectItem key={value} value={value}>{label}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 </div>
-                <div className="grid gap-4">
-                    <div className="grid grid-cols-1 items-center gap-2">
-                        <Label>Статус</Label>
-                        <Select onValueChange={(val) => handleFilterChange('status', val)} value={selectedStatus || 'all'}>
-                             <SelectTrigger><SelectValue placeholder="Все статусы" /></SelectTrigger>
-                             <SelectContent>
-                                <SelectItem value="all">Все статусы</SelectItem>
-                                {Object.entries(statusTranslations).map(([value, label]) => (
-                                    <SelectItem key={value} value={value}>{label}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                     <div className="grid grid-cols-1 items-center gap-2">
-                        <Label>Ответственный</Label>
-                        <Select onValueChange={(val) => handleFilterChange('responsible', val)} value={responsible || 'all'}>
-                             <SelectTrigger><SelectValue placeholder="Все" /></SelectTrigger>
-                             <SelectContent>
-                                <SelectItem value="all">Все</SelectItem>
-                                {responsibles.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                     <div className="grid grid-cols-2 items-center gap-2">
-                        <div className="space-y-1">
-                           <Label htmlFor="deadlineFrom">Дедлайн от</Label>
-                           <Input id="deadlineFrom" type="date" value={deadlineFrom} onChange={e => handleFilterChange('deadlineFrom', e.target.value)} />
-                        </div>
-                         <div className="space-y-1">
-                           <Label htmlFor="deadlineTo">Дедлайн до</Label>
-                           <Input id="deadlineTo" type="date" value={deadlineTo} onChange={e => handleFilterChange('deadlineTo', e.target.value)} />
-                        </div>
-                    </div>
-                     <div className="grid grid-cols-1 items-center gap-2">
-                        <Label>Кампания</Label>
-                        <Select onValueChange={(val) => handleFilterChange('campaignId', val)} value={selectedCampaignId || 'all'}>
-                            <SelectTrigger><SelectValue placeholder="Все кампании" /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">Все кампании</SelectItem>
-                                {campaigns.map((campaign) => (
-                                <SelectItem key={campaign.id} value={campaign.id}>
-                                    {campaign.name}
-                                </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                     <div className="grid grid-cols-1 items-center gap-2">
-                        <Label>Акция</Label>
-                        <Select onValueChange={(val) => handleFilterChange('actionId', val)} value={selectedActionId || 'all'} disabled={!selectedCampaignId}>
-                            <SelectTrigger><SelectValue placeholder="Все акции" /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">Все акции</SelectItem>
-                                {actionsForCampaign.map((action) => (
-                                <SelectItem key={action.id} value={action.id}>
-                                    {action.name}
-                                </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    {hasActiveFilters && (
-                        <Button variant="ghost" size="sm" onClick={resetFilters} className="justify-center">
+                 <div className="grid gap-1.5">
+                    <Label>Ответственный</Label>
+                    <Select onValueChange={(val) => handleFilterChange('responsible', val)} value={responsible || 'all'}>
+                        <SelectTrigger><SelectValue placeholder="Все" /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Все</SelectItem>
+                            {responsibles.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="grid gap-1.5">
+                    <Label htmlFor="deadlineFrom">Дедлайн от</Label>
+                    <Input id="deadlineFrom" type="date" value={deadlineFrom} onChange={e => handleFilterChange('deadlineFrom', e.target.value)} />
+                </div>
+                <div className="grid gap-1.5">
+                    <Label htmlFor="deadlineTo">Дедлайн до</Label>
+                    <Input id="deadlineTo" type="date" value={deadlineTo} onChange={e => handleFilterChange('deadlineTo', e.target.value)} />
+                </div>
+                <div className="grid gap-1.5">
+                    <Label>Кампания</Label>
+                    <Select onValueChange={(val) => handleFilterChange('campaignId', val)} value={selectedCampaignId || 'all'}>
+                        <SelectTrigger><SelectValue placeholder="Все кампании" /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Все кампании</SelectItem>
+                            {campaigns.map((campaign) => (
+                            <SelectItem key={campaign.id} value={campaign.id}>
+                                {campaign.name}
+                            </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="grid gap-1.5">
+                    <Label>Акция</Label>
+                    <Select onValueChange={(val) => handleFilterChange('actionId', val)} value={selectedActionId || 'all'} disabled={!selectedCampaignId}>
+                        <SelectTrigger><SelectValue placeholder="Все акции" /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Все акции</SelectItem>
+                            {actionsForCampaign.map((action) => (
+                            <SelectItem key={action.id} value={action.id}>
+                                {action.name}
+                            </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                 {hasActiveFilters && (
+                    <div className="flex items-end">
+                        <Button variant="ghost" size="sm" onClick={resetFilters} className="w-full">
                             <X className="mr-2 h-4 w-4" />
                             Сбросить фильтры
                         </Button>
-                    )}
-                </div>
+                    </div>
+                )}
             </div>
-        </PopoverContent>
-    </Popover>
+        </CardContent>
+    </Card>
   );
 }
