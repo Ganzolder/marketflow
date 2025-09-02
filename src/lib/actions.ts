@@ -25,6 +25,8 @@ const ActionSchema = z.object({
   endDate: z.string().refine((date) => !isNaN(Date.parse(date)), { message: "Неверный формат даты окончания." }),
   status: z.enum(['planned', 'in-progress', 'completed']),
   campaignId: z.string(),
+  address: z.string().optional(),
+  phone: z.string().optional(),
 });
 
 const AddActionSchema = ActionSchema.extend({
@@ -55,6 +57,8 @@ export type ActionFormState = {
     itHead?: string[];
     curator?: string[];
     salesHead?: string[];
+    address?: string[];
+    phone?: string[];
   };
 };
 
@@ -72,6 +76,8 @@ export async function addActionToCampaign(
     endDate: formData.get('end-date'),
     status: formData.get('status'),
     campaignId: formData.get('campaignId'),
+    address: formData.get('address'),
+    phone: formData.get('phone'),
   });
 
   if (!validatedFields.success) {
@@ -113,6 +119,8 @@ export async function editActionInCampaign(
     campaignId: formData.get('campaignId'), // Original campaign ID
     newCampaignId: formData.get('newCampaignId'), // New campaign ID
     conditions: formData.get('conditions') || '',
+    address: formData.get('address'),
+    phone: formData.get('phone'),
   };
 
   const validatedFields = EditActionSchema.safeParse(rawData);
@@ -137,6 +145,8 @@ export async function editActionInCampaign(
       endDate: actionData.endDate,
       status: actionData.status,
       conditions: actionData.conditions,
+      address: actionData.address,
+      phone: actionData.phone,
   }
 
   try {
@@ -916,8 +926,6 @@ const CampaignSchema = z.object({
   startDate: z.string().refine((date) => !isNaN(Date.parse(date)), { message: "Неверный формат даты начала." }),
   endDate: z.string().refine((date) => !isNaN(Date.parse(date)), { message: "Неверный формат даты окончания." }),
   company: z.string().optional(),
-  address: z.string().optional(),
-  phone: z.string().optional(),
 });
 
 export type CampaignFormState = {
@@ -939,8 +947,6 @@ export async function createCampaign(formData: FormData): Promise<CampaignFormSt
         startDate: formData.get('startDate'),
         endDate: formData.get('endDate'),
         company: formData.get('company'),
-        address: formData.get('address'),
-        phone: formData.get('phone'),
     };
     
     const validatedFields = CampaignSchema.safeParse(rawFormData);
@@ -982,8 +988,6 @@ export async function editCampaign(prevState: CampaignFormState, formData: FormD
         startDate: formData.get('startDate'),
         endDate: formData.get('endDate'),
         company: formData.get('company'),
-        address: formData.get('address'),
-        phone: formData.get('phone'),
     };
 
     const validatedFields = CampaignSchema.safeParse(rawFormData);
@@ -1033,11 +1037,27 @@ export async function deleteCampaign(formData: FormData): Promise<DeleteFormStat
 }
 
 export async function clearDatabase(): Promise<DeleteFormState> {
+    const batch = writeBatch(db);
+    
+    // Delete all campaigns
+    const campaignsCollection = collection(db, "campaigns");
+    const campaignsSnapshot = await getDocs(campaignsCollection);
+    if (!campaignsSnapshot.empty) {
+        campaignsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+    }
+    
+    // Delete all social posts
+    const postsCollection = collection(db, "socialPosts");
+    const postsSnapshot = await getDocs(postsCollection);
+    if (!postsSnapshot.empty) {
+        postsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+    }
+
     try {
-        await clearDatabaseData();
+        await batch.commit();
     } catch (e) {
-        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
-        return { message: `Ошибка базы данных: ${errorMessage}`, error: true };
+        console.error("Batch deletion failed: ", e);
+        throw new Error("Failed to clear database.");
     }
     
     revalidatePath('/database');
