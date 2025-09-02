@@ -44,9 +44,7 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
   const { id, actionId } = params;
   
   const campaign = await getCampaignById(id);
-  const socialPostsForAction = (await getSocialPostsForAction(actionId)).filter(
-    post => post.status === 'draft' || post.status === 'ready'
-  );
+  const socialPostsForAction = await getSocialPostsForAction(actionId);
   const allSocialPosts = await getAllSocialPosts();
   const allTasks = await getAllTasks();
   const actionTasks = allTasks.filter(task => task.actionId === actionId);
