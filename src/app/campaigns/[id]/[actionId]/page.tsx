@@ -5,7 +5,7 @@ import { getCampaignById, getSocialPostsForAction, getAllTasks, getAllSocialPost
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Calendar as CalendarIcon, Target, Users, Landmark, TrendingUp, CalendarDays, LocateFixed, History, Ruble, FileText, Share2, ArrowLeft, ChevronDown, Edit, ClipboardCheck } from 'lucide-react';
+import { Calendar as CalendarIcon, Target, Users, Landmark, TrendingUp, CalendarDays, LocateFixed, History, Ruble, FileText, Share2, ArrowLeft, ChevronDown, Edit, ClipboardCheck, Phone, MapPin } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { NewActivityButton } from './new-activity-button';
 import { EditActivityButton } from './edit-activity-button';
@@ -124,14 +124,14 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
             <CardTitle>Информация об акции</CardTitle>
           </CardHeader>
           <CardContent>
-             <div className="grid md:grid-cols-3 gap-6 text-sm mb-6">
+             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 text-sm mb-6">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-muted rounded-md">
                         <CalendarIcon className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div>
                         <p className="text-muted-foreground">Длительность</p>
-                        <p className="font-semibold text-lg">{startDate.toLocaleDateString(locale, dateOptions)} - {endDate.toLocaleDateString(locale, dateOptions)}</p>
+                        <p className="font-semibold">{startDate.toLocaleDateString(locale, dateOptions)} - {endDate.toLocaleDateString(locale, dateOptions)}</p>
                     </div>
                 </div>
                  <div className="flex items-center gap-3">
@@ -140,7 +140,7 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
                     </div>
                     <div>
                         <p className="text-muted-foreground">Статус</p>
-                        <div className="font-semibold text-lg">
+                        <div className="font-semibold">
                           <UpdateActionStatus action={action} campaignId={campaign.id} />
                         </div>
                     </div>
@@ -151,7 +151,25 @@ export default async function ActionDetailPage({ params: paramsPromise }: Action
                     </div>
                     <div>
                         <p className="text-muted-foreground">Целевая аудитория</p>
-                        <div className="font-semibold text-lg">{action.targetAudience || 'Не указана'}</div>
+                        <p className="font-semibold">{action.targetAudience || 'Не указана'}</p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-muted rounded-md">
+                        <MapPin className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div>
+                        <p className="text-muted-foreground">Адрес</p>
+                        <p className="font-semibold">{action.address || 'Не указан'}</p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-muted rounded-md">
+                        <Phone className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div>
+                        <p className="text-muted-foreground">Телефон</p>
+                        <p className="font-semibold">{action.phone || 'Не указан'}</p>
                     </div>
                 </div>
             </div>
