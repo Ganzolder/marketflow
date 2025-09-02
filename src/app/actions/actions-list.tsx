@@ -13,6 +13,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/status-badge';
 import Link from 'next/link';
@@ -22,6 +30,7 @@ import { CampaignFilter } from './campaign-filter';
 import { StatusFilter } from './status-filter';
 import type { ActionStatus, Campaign, EnrichedAction } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ViewModeToggle } from '@/app/tasks/view-mode-toggle';
 
 export function ActionsList() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -29,6 +38,7 @@ export function ActionsList() {
   const [isLoading, setIsLoading] = useState(true);
   const [today, setToday] = useState(new Date());
   const searchParams = useSearchParams();
+  const view = searchParams.get('view') || 'grid';
 
   useEffect(() => {
     async function fetchData() {
@@ -61,44 +71,7 @@ export function ActionsList() {
   const currencyOptions = { style: 'currency', currency: 'RUB', minimumFractionDigits: 0, maximumFractionDigits: 0 };
 
 
-  if (isLoading) {
-    return (
-        <div>
-            <PageHeader title="Все акции" description="Просматривайте и управляйте всеми акциями в одном месте.">
-                 <div className="flex flex-wrap gap-2 w-full md:w-auto">
-                    <Skeleton className="h-10 w-full md:w-64" />
-                    <Skeleton className="h-10 w-full md:w-64" />
-                </div>
-            </PageHeader>
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {[...Array(3)].map((_, i) => (
-                    <Card key={i}>
-                        <CardHeader>
-                            <Skeleton className="h-5 w-3/4" />
-                            <Skeleton className="h-4 w-1/2" />
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <Skeleton className="h-16 w-full" />
-                            <Skeleton className="h-16 w-full" />
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
-        </div>
-    )
-  }
-
-  return (
-    <div>
-      <PageHeader
-        title="Все акции"
-        description="Просматривайте и управляйте всеми акциями в одном месте."
-      >
-        <div className="flex flex-wrap gap-2 w-full md:w-auto">
-            <CampaignFilter campaigns={campaigns} />
-            <StatusFilter />
-        </div>
-      </PageHeader>
+  const renderGrid = () => (
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {actions.map((action) => {
           const allKpis =
@@ -258,6 +231,109 @@ export function ActionsList() {
           );
         })}
       </div>
+  );
+
+  const renderTable = () => (
+     <Card>
+        <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead>Название акции</TableHead>
+                    <TableHead>Кампания</TableHead>
+                    <TableHead>Статус</TableHead>
+                    <TableHead>Период</TableHead>
+                    <TableHead className="text-right">Бюджет (потрачено)</TableHead>
+                    <TableHead className="text-right">Прибыль</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {actions.map((action) => {
+                    const plannedBudget = action.activities?.reduce((sum, activity) => sum + activity.budget, 0) || 0;
+                    const totalSpent = (action.activities?.reduce((sum, activity) => sum + activity.spent, 0) || 0) + (action.generalExpenses?.reduce((sum, expense) => sum + expense.amount, 0) || 0);
+                    
+                    const salesKpiName = action.salesKpiName || "Продажи";
+                    let actualSales = 0;
+                    action.activities?.forEach(activity => {
+                        activity.kpis?.forEach(kpi => {
+                            if (kpi.name === salesKpiName) {
+                                actualSales += kpi.current;
+                            }
+                        });
+                    });
+                    
+                    const actualRevenue = actualSales * (action.actualAverageCheck || 0);
+                    const actualGrossProfit = actualRevenue * ((action.actualMarginality || 0) / 100);
+                    const actualProfit = actualGrossProfit - totalSpent;
+
+                    return (
+                        <TableRow key={action.id}>
+                            <TableCell className="font-medium">
+                                <Link href={`/campaigns/${action.campaignId}/${action.id}`} className="hover:underline">
+                                    {action.name}
+                                </Link>
+                            </TableCell>
+                            <TableCell>{action.campaignName}</TableCell>
+                            <TableCell><StatusBadge status={action.status} /></TableCell>
+                            <TableCell>
+                                {new Date(action.startDate).toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: '2-digit' })} - {new Date(action.endDate).toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: '2-digit' })}
+                            </TableCell>
+                            <TableCell className="text-right font-mono">
+                                {new Intl.NumberFormat(locale, currencyOptions).format(totalSpent)} / {new Intl.NumberFormat(locale, currencyOptions).format(plannedBudget)}
+                            </TableCell>
+                             <TableCell className="text-right font-mono text-accent">
+                                {new Intl.NumberFormat(locale, currencyOptions).format(actualProfit)}
+                            </TableCell>
+                        </TableRow>
+                    )
+                })}
+            </TableBody>
+        </Table>
+     </Card>
+  );
+
+  if (isLoading) {
+    return (
+        <div>
+            <PageHeader title="Все акции" description="Просматривайте и управляйте всеми акциями в одном месте.">
+                 <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                    <Skeleton className="h-10 w-full md:w-56" />
+                    <Skeleton className="h-10 w-full md:w-56" />
+                    <Skeleton className="h-10 w-20" />
+                </div>
+            </PageHeader>
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {[...Array(3)].map((_, i) => (
+                    <Card key={i}>
+                        <CardHeader>
+                            <Skeleton className="h-5 w-3/4" />
+                            <Skeleton className="h-4 w-1/2" />
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <Skeleton className="h-16 w-full" />
+                            <Skeleton className="h-16 w-full" />
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+        </div>
+    )
+  }
+
+  return (
+    <div>
+      <PageHeader
+        title="Все акции"
+        description="Просматривайте и управляйте всеми акциями в одном месте."
+      >
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+            <CampaignFilter campaigns={campaigns} />
+            <StatusFilter />
+            <ViewModeToggle />
+        </div>
+      </PageHeader>
+
+      {view === 'grid' ? renderGrid() : renderTable()}
+
       {actions.length === 0 && !isLoading && (
         <Card>
           <CardContent className="py-10">
