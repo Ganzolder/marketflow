@@ -22,6 +22,8 @@ const GeneratePostSeriesInputSchema = z.object({
   actionName: z.string().describe('Название маркетинговой акции.'),
   actionDescription: z.string().describe('Описание маркетинговой акции.'),
   actionConditions: z.string().describe('Условия проведения акции.'),
+  actionAddress: z.string().optional().describe('Адрес проведения акции.'),
+  actionPhone: z.string().optional().describe('Контактный телефон для акции.'),
   additionalInfo: z.string().optional().describe('Дополнительная информация или ключевые моменты, которые нужно обязательно упомянуть в постах.'),
   platforms: z.array(z.nativeEnum(SocialPlatforms)).describe('Список социальных сетей для публикации.'),
   dates: z.array(z.string().refine(d => !isNaN(Date.parse(d)))).describe('Массив дат для публикации постов в формате YYYY-MM-DD.'),
@@ -80,6 +82,8 @@ const generatePostSeriesFlow = ai.defineFlow(
             actionName: z.string(), 
             actionDescription: z.string(),
             actionConditions: z.string(),
+            actionAddress: z.string().optional(),
+            actionPhone: z.string().optional(),
             additionalInfo: z.string().optional(),
             platforms: z.array(z.nativeEnum(SocialPlatforms)),
             promoCodes: z.string(),
@@ -94,6 +98,8 @@ const generatePostSeriesFlow = ai.defineFlow(
 - **Акция:** {{{actionName}}}
 - **Описание акции:** {{{actionDescription}}}
 - **Условия акции:** {{{actionConditions}}}
+{{#if actionAddress}}- **Адрес:** {{{actionAddress}}}{{/if}}
+{{#if actionPhone}}- **Телефон:** {{{actionPhone}}}{{/if}}
 - **Социальные сети для публикации:** {{#each platforms}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
 - **Дата публикации этого поста:** {{{publicationDate}}}
 - **Всего дат публикаций:** {{{allDates}}} (этот пост номер {{postIndex}} из {{allDates.length}})
@@ -103,6 +109,8 @@ const generatePostSeriesFlow = ai.defineFlow(
 **Задача:**
 Напиши креативный и привлекательный пост. Адаптируй текст так, чтобы он хорошо смотрелся во всех указанных соцсетях ({{{platforms}}}).
 Обязательно включи в текст все промокоды. Ты можешь написать что-то вроде: "Используйте промокод для вашей любимой соцсети: VK - XCODE, Telegram - YCODE".
+{{#if actionAddress}}Упомяни адрес, где проходит акция.{{/if}}
+{{#if actionPhone}}Добавь контактный телефон.{{/if}}
 Сделай пост уникальным, учитывая, что это часть серии публикаций. Не повторяйся.
 
 **Требования к результату:**

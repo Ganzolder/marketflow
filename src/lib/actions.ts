@@ -11,7 +11,7 @@ import { generatePostText, type GeneratePostTextInput } from "@/ai/flows/generat
 import { generatePostSeries, type GeneratePostSeriesInput, type GeneratePostSeriesOutput } from "@/ai/flows/generate-post-series";
 import { analyzeOverallPerformance as analyzeOverallPerformanceFlow, type AnalyzeOverallPerformanceOutput } from "@/ai/flows/analyze-overall-performance";
 import { generateActionIdeas as generateActionIdeasFlow, type GenerateActionIdeasOutput } from "@/ai/flows/generate-action-ideas";
-import { addDoc, collection, doc, updateDoc, getDoc, deleteField, writeBatch } from "firebase/firestore";
+import { addDoc, collection, doc, updateDoc, getDoc, deleteField, writeBatch, getDocs } from "firebase/firestore";
 import { db } from "./firebase";
 import { redirect } from 'next/navigation';
 import * as XLSX from 'xlsx';
@@ -2255,6 +2255,8 @@ const GeneratePostSeriesSchema = z.object({
   platforms: z.array(z.nativeEnum(SocialPlatforms)),
   dates: z.array(z.string().refine(d => !isNaN(Date.parse(d)))),
   additionalInfo: z.string().optional(),
+  actionAddress: z.string().optional(),
+  actionPhone: z.string().optional(),
   plannedReach: z.coerce.number().min(0).optional(),
   plannedComments: z.coerce.number().min(0).optional(),
 });
@@ -2301,6 +2303,8 @@ export async function generatePostSeriesAction(
       actionName: action.name,
       actionDescription: action.description || '',
       actionConditions: action.conditions || '',
+      actionAddress: action.address || '',
+      actionPhone: action.phone || '',
       ...input
     });
     
