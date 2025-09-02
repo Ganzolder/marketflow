@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/sidebar';
 import { useSidebar } from './ui/sidebar';
 import { ThemeSwitcher } from './theme-switcher';
+import { MapsLogo } from './maps-logo';
 
 const menuItems = [
   { href: '/', label: 'Панель управления', icon: LayoutGrid },
@@ -46,9 +47,8 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <Link href="/" className="flex items-center gap-2 p-2 group-data-[collapsible=icon]:justify-center">
-            <Rocket className="w-8 h-8 text-primary shrink-0" />
-            <span className="text-xl font-semibold font-headline group-data-[collapsible=icon]:hidden">МаркетФлоу</span>
+        <Link href="/" className="group-data-[collapsible=icon]:justify-center">
+            <MapsLogo />
         </Link>
       </SidebarHeader>
       <SidebarContent>

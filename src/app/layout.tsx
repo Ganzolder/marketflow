@@ -4,8 +4,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { AppLayout } from '@/components/app-layout';
 
 export const metadata: Metadata = {
-  title: 'МаркетФлоу',
-  description: 'Управление маркетинговыми кампаниями с помощью ИИ',
+  title: 'MAPS',
+  description: 'Marketing Activities · Planning · Spend',
 };
 
 export default function RootLayout({
@@ -20,7 +20,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Inter&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap"
           rel="stylesheet"
         />
       </head>

@@ -41,6 +41,7 @@ body {
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 240 5.9% 90%;
     --sidebar-ring: 284 55% 53%;
+    --ink: #0B1220;
   }
   .dark {
     --background: 240 10% 3.9%;
@@ -75,6 +76,7 @@ body {
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 284 55% 63%;
+    --ink: #E5E7EB;
   }
 }
 
@@ -89,4 +91,17 @@ body {
   .dark input[type="date"]::-webkit-calendar-picker-indicator {
     filter: invert(1);
   }
+}
+
+@layer utilities {
+    .pulse { 
+        animation: pulse 2.2s ease-in-out infinite;
+    }
+    .pulse:nth-child(odd) { 
+        animation-delay: .8s;
+    }
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 1 }
+        50% { transform: scale(1.25); opacity: .8 }
+    }
 }
