@@ -915,6 +915,9 @@ const CampaignSchema = z.object({
   budget: z.coerce.number().min(0, { message: "Бюджет не может быть отрицательным." }),
   startDate: z.string().refine((date) => !isNaN(Date.parse(date)), { message: "Неверный формат даты начала." }),
   endDate: z.string().refine((date) => !isNaN(Date.parse(date)), { message: "Неверный формат даты окончания." }),
+  company: z.string().optional(),
+  address: z.string().optional(),
+  phone: z.string().optional(),
 });
 
 export type CampaignFormState = {
@@ -935,6 +938,9 @@ export async function createCampaign(formData: FormData): Promise<CampaignFormSt
         budget: formData.get('budget'),
         startDate: formData.get('startDate'),
         endDate: formData.get('endDate'),
+        company: formData.get('company'),
+        address: formData.get('address'),
+        phone: formData.get('phone'),
     };
     
     const validatedFields = CampaignSchema.safeParse(rawFormData);
@@ -975,6 +981,9 @@ export async function editCampaign(prevState: CampaignFormState, formData: FormD
         budget: formData.get('budget'),
         startDate: formData.get('startDate'),
         endDate: formData.get('endDate'),
+        company: formData.get('company'),
+        address: formData.get('address'),
+        phone: formData.get('phone'),
     };
 
     const validatedFields = CampaignSchema.safeParse(rawFormData);
