@@ -1,12 +1,12 @@
 
 "use client";
 
-import { useState, useEffect, useRef, useActionState } from 'react';
+import { useState, useEffect, useRef, useActionState, useTransition } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
-import { Loader2, Edit } from "lucide-react";
-import { updateActionMechanics, type MechanicsFormState } from '@/lib/actions';
+import { Loader2, Edit, Wand2 } from "lucide-react";
+import { updateActionMechanics, type MechanicsFormState, rephraseTextAction, type RephraseState } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import type { Action } from '@/lib/types';
 import { Textarea } from '@/components/ui/textarea';
@@ -30,9 +30,15 @@ export function EditActionMechanicsButton({ action, campaignId }: { action: Acti
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
-    
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const [isRephrasing, startRephraseTransition] = useTransition();
+
     const initialState: MechanicsFormState = { message: "", errors: {} };
     const [state, dispatch] = useActionState(updateActionMechanics, initialState);
+    
+    const rephraseInitialState: RephraseState = { message: "" };
+    const [rephraseState, rephraseDispatch] = useActionState(rephraseTextAction, rephraseInitialState);
+
 
     useEffect(() => {
         if (state.message) {
@@ -53,6 +59,35 @@ export function EditActionMechanicsButton({ action, campaignId }: { action: Acti
         }
     }, [state, toast]);
     
+     useEffect(() => {
+        if (rephraseState.rephrasedText && textareaRef.current) {
+            textareaRef.current.value = rephraseState.rephrasedText;
+        }
+        if (rephraseState.error) {
+            toast({
+                variant: "destructive",
+                title: "Ошибка перефразирования",
+                description: rephraseState.message,
+            })
+        }
+    }, [rephraseState, toast]);
+
+    const handleRephrase = () => {
+        if (textareaRef.current?.value) {
+            const formData = new FormData();
+            formData.append('text', textareaRef.current.value);
+            startRephraseTransition(() => {
+                rephraseDispatch(formData);
+            });
+        } else {
+            toast({
+                variant: "destructive",
+                title: "Ошибка",
+                description: "Поле с текстом пустое.",
+            })
+        }
+    }
+    
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -72,10 +107,17 @@ export function EditActionMechanicsButton({ action, campaignId }: { action: Acti
                     <input type="hidden" name="actionId" value={action.id} />
                     <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
-                            <Label htmlFor="mechanics">Механика акции</Label>
+                             <div className="flex justify-between items-center">
+                                <Label htmlFor="mechanics">Механика акции</Label>
+                                <Button type="button" variant="ghost" size="sm" onClick={handleRephrase} disabled={isRephrasing}>
+                                     {isRephrasing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                                     Улучшить текст
+                                </Button>
+                            </div>
                             <Textarea 
                                 id="mechanics" 
                                 name="mechanics" 
+                                ref={textareaRef}
                                 defaultValue={action.mechanics || ''}
                                 placeholder="Опишите здесь механику акции..."
                                 rows={10}
