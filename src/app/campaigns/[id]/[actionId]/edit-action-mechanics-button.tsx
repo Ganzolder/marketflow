@@ -111,7 +111,7 @@ export function EditActionMechanicsButton({ action, campaignId }: { action: Acti
                                 <Label htmlFor="mechanics">Механика акции</Label>
                                 <Button type="button" variant="ghost" size="sm" onClick={handleRephrase} disabled={isRephrasing}>
                                      {isRephrasing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                                     Улучшить текст
+                                     Сгенерировать инструкцию
                                 </Button>
                             </div>
                             <Textarea 
