@@ -11,6 +11,7 @@ import { generatePostText, type GeneratePostTextInput } from "@/ai/flows/generat
 import { generatePostSeries, type GeneratePostSeriesInput, type GeneratePostSeriesOutput } from "@/ai/flows/generate-post-series";
 import { analyzeOverallPerformance as analyzeOverallPerformanceFlow, type AnalyzeOverallPerformanceOutput } from "@/ai/flows/analyze-overall-performance";
 import { generateActionIdeas as generateActionIdeasFlow, type GenerateActionIdeasOutput } from "@/ai/flows/generate-action-ideas";
+import { rephraseText } from "@/ai/flows/rephrase-text";
 import { addDoc, collection, doc, updateDoc, getDoc, deleteField, writeBatch, getDocs } from "firebase/firestore";
 import { db } from "./firebase";
 import { redirect } from 'next/navigation';
@@ -2255,8 +2256,6 @@ const GeneratePostSeriesSchema = z.object({
   platforms: z.array(z.nativeEnum(SocialPlatforms)),
   dates: z.array(z.string().refine(d => !isNaN(Date.parse(d)))),
   additionalInfo: z.string().optional(),
-  actionAddress: z.string().optional(),
-  actionPhone: z.string().optional(),
   plannedReach: z.coerce.number().min(0).optional(),
   plannedComments: z.coerce.number().min(0).optional(),
 });
@@ -2336,5 +2335,43 @@ export async function generatePostSeriesAction(
   } catch (e) {
     const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
     return { message: `Ошибка генерации серии постов: ${errorMessage}`, error: true };
+  }
+}
+
+// Rephrase AI Action
+const RephraseTextSchema = z.object({
+  text: z.string().min(1, "Текст для перефразирования не может быть пустым."),
+});
+
+export type RephraseState = {
+  message: string;
+  rephrasedText?: string;
+  error?: boolean;
+}
+
+export async function rephraseTextAction(prevState: RephraseState, formData: FormData): Promise<RephraseState> {
+  const validatedFields = RephraseTextSchema.safeParse({
+    text: formData.get('text'),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      message: validatedFields.error.flatten().fieldErrors.text?.[0] || "Неверные данные.",
+      error: true,
+    };
+  }
+
+  try {
+    const result = await rephraseText(validatedFields.data);
+    if (result && result.rephrasedText) {
+      return { message: "Текст успешно перефразирован.", rephrasedText: result.rephrasedText };
+    }
+    return { message: "Не удалось перефразировать текст. ИИ вернул пустой результат.", error: true };
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
+    return { 
+        message: `Ошибка перефразирования: ${errorMessage}`,
+        error: true 
+    };
   }
 }
