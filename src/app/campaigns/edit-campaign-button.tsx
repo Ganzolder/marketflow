@@ -111,18 +111,6 @@ export function EditCampaignButton({ campaign, asIcon = false }: { campaign: Cam
                             <Input id="company" name="company" defaultValue={campaign.company || ''} placeholder="Название организации" />
                             {state?.errors?.company && <p className="text-sm text-destructive">{state.errors.company[0]}</p>}
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="address">Адрес (необязательно)</Label>
-                                <Input id="address" name="address" defaultValue={campaign.address || ''} placeholder="Город, улица, дом" />
-                                {state?.errors?.address && <p className="text-sm text-destructive">{state.errors.address[0]}</p>}
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="phone">Телефон (необязательно)</Label>
-                                <Input id="phone" name="phone" defaultValue={campaign.phone || ''} placeholder="+7 (XXX) XXX-XX-XX" />
-                                {state?.errors?.phone && <p className="text-sm text-destructive">{state.errors.phone[0]}</p>}
-                            </div>
-                        </div>
                     </div>
                     <DialogFooter>
                         <DeleteCampaignButton campaignId={campaign.id} />
