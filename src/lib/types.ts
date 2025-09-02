@@ -112,6 +112,8 @@ export type Action = {
   curator?: string;
   salesHead?: string;
   resources?: Resource[];
+  address?: string;
+  phone?: string;
 };
 
 export type CampaignStatus = 'active' | 'planned' | 'completed' | 'paused' | 'archived';
@@ -127,8 +129,6 @@ export type Campaign = {
   goals: Goal[];
   actions: Action[];
   company?: string;
-  address?: string;
-  phone?: string;
 };
 
 export type TaskStatus = 'planned' | 'in-progress' | 'completed';
