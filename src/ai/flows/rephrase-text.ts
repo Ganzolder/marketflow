@@ -29,19 +29,14 @@ const prompt = ai.definePrompt({
   name: 'rephraseTextPrompt',
   input: { schema: RephraseTextInputSchema },
   output: { schema: RephraseTextOutputSchema },
-  prompt: `You are an experienced marketing manager. Your task is to take the following raw text and transform it into a clear, structured, step-by-step instruction manual (brief) for a front-line employee.
+  prompt: `Твоя задача — взять следующий текст и преобразовать его в краткую, структурированную, пошаговую инструкцию для сотрудника.
 
-The output must be in Russian.
-The tone should be professional, clear, and encouraging.
-Use markdown for formatting, especially numbered lists for employee actions (e.g., "1. Сделайте...", "2. Скажите...").
+- Используй русский язык.
+- Используй markdown для нумерованных списков (например, "1. Сделай...", "2. Скажи...").
+- Не добавляй никакой новой информации, которой нет в исходном тексте. Будь кратким.
+- Сохраняй заголовки, если они есть.
 
-If the original text contains sections like "Цель", "Условия", "Что делать сотруднику", preserve them as headings. The most important part is to convert any free-form description of employee tasks into a clear, numbered, step-by-step list.
-
-For example, if the input is "сотрудник должен сказать клиенту про скидку и потом пробить чек", the output should be something like:
-"1. Сообщите клиенту о действующей скидке.
-2. Пробейте чек с учетом скидки."
-
-Now, rephrase the following text:
+Текст для преобразования:
 "{{text}}"`,
 });
 
