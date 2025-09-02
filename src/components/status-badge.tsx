@@ -12,6 +12,7 @@ const statusTranslations: Record<CampaignStatus | ActionStatus, string> = {
   completed: "Завершена",
   paused: "Приостановлена",
   archived: "В архиве",
+  rejected: "Отклонена",
 }
 
 export function StatusBadge({ status }: StatusBadgeProps) {
@@ -22,6 +23,7 @@ export function StatusBadge({ status }: StatusBadgeProps) {
     completed: "bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-100 dark:bg-gray-800/50 dark:text-gray-300 dark:border-gray-700/50",
     paused: "bg-purple-100 text-purple-800 border-purple-200 hover:bg-purple-100 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700/50",
     archived: "bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-100 dark:bg-gray-800/30 dark:text-gray-400 dark:border-gray-700/50",
+    rejected: "bg-red-100 text-red-800 border-red-200 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700/50",
   };
 
   return (

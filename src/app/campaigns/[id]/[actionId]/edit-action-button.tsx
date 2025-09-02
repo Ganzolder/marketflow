@@ -155,6 +155,8 @@ export function EditActionButton({ action, campaignId, asChild = false }: { acti
                                             <SelectItem value="planned">Запланирована</SelectItem>
                                             <SelectItem value="in-progress">В процессе</SelectItem>
                                             <SelectItem value="completed">Завершена</SelectItem>
+                                            <SelectItem value="archived">В архиве</SelectItem>
+                                            <SelectItem value="rejected">Отклонена</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     {state?.errors?.status && <p className="text-sm text-destructive">{state.errors.status[0]}</p>}

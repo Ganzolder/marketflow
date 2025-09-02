@@ -13,6 +13,8 @@ const statusTranslations: Record<ActionStatus, string> = {
   'in-progress': "В процессе",
   planned: "Запланирована",
   completed: "Завершена",
+  archived: "В архиве",
+  rejected: "Отклонена",
 }
 
 export function UpdateActionStatus({ action, campaignId }: { action: Action; campaignId: string }) {

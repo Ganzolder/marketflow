@@ -7,7 +7,7 @@ export type Goal = {
   current: number;
 };
 
-export type ActionStatus = 'planned' | 'in-progress' | 'completed';
+export type ActionStatus = 'planned' | 'in-progress' | 'completed' | 'archived' | 'rejected';
 
 export type KpiMetricLog = {
     id: string;

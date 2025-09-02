@@ -24,7 +24,7 @@ const ActionSchema = z.object({
   conditions: z.string().optional(),
   startDate: z.string().refine((date) => !isNaN(Date.parse(date)), { message: "Неверный формат даты начала." }),
   endDate: z.string().refine((date) => !isNaN(Date.parse(date)), { message: "Неверный формат даты окончания." }),
-  status: z.enum(['planned', 'in-progress', 'completed']),
+  status: z.enum(['planned', 'in-progress', 'completed', 'archived', 'rejected']),
   campaignId: z.string(),
   address: z.string().optional(),
   phone: z.string().optional(),
@@ -93,7 +93,7 @@ export async function addActionToCampaign(
   const { campaignId, status, ...actionData } = validatedFields.data;
 
   try {
-    await addAction(campaignId, { ...actionData, status: status as 'planned' | 'in-progress' | 'completed' });
+    await addAction(campaignId, { ...actionData, status: status as ActionStatus });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Произошла неизвестная ошибка.";
     return { message: `Ошибка базы данных: не удалось создать акцию. ${errorMessage}`, error: true };
@@ -840,7 +840,7 @@ export async function updateActionEffectiveness(
 const UpdateActionStatusSchema = z.object({
   campaignId: z.string(),
   actionId: z.string(),
-  status: z.enum(['planned', 'in-progress', 'completed']),
+  status: z.enum(['planned', 'in-progress', 'completed', 'archived', 'rejected']),
 });
 
 export type StatusFormState = {
