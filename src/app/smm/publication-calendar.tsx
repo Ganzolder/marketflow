@@ -47,6 +47,7 @@ const CalendarMonth = ({ monthDate, postsByDate, allPostsByDate }: { monthDate: 
           const allData = allPostsByDate ? (allPostsByDate[dateKey] || { count: 0, posts: [] }) : null;
           const colorClass = getIntensityColor(allData?.count || data.count);
           const isCurrentMonth = isSameMonth(day, monthDate);
+          const hasPostsInFilter = data.count > 0;
 
           return (
             <Popover key={day.toString()}>
@@ -55,7 +56,8 @@ const CalendarMonth = ({ monthDate, postsByDate, allPostsByDate }: { monthDate: 
                   "h-14 w-14 rounded-md flex flex-col justify-between p-1 relative transition-colors",
                   isCurrentMonth ? 'cursor-pointer hover:ring-2 hover:ring-primary' : 'cursor-default',
                   isCurrentMonth ? colorClass : 'bg-muted/20',
-                  isSameDay(day, today) && isCurrentMonth && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
+                  isSameDay(day, today) && isCurrentMonth && 'ring-2 ring-primary ring-offset-2 ring-offset-background',
+                  hasPostsInFilter && isCurrentMonth && 'ring-2 ring-accent ring-offset-1 ring-offset-background'
                 )}>
                     <div className={cn(
                         "text-xs font-medium text-foreground text-center self-start w-full",
@@ -119,21 +121,10 @@ export function PublicationCalendar({ posts, allPosts }: { posts: SocialPost[], 
       }, {} as PostsByDate);
     };
     
-    const allPostsByDate = allPosts ? processPosts(allPosts) : null;
-    let postsByDate: PostsByDate;
+    const allPostsData = allPosts ? processPosts(allPosts) : null;
+    const postsData = processPosts(posts);
 
-    if (allPostsByDate) {
-      postsByDate = processPosts(posts);
-      for (const dateKey in allPostsByDate) {
-        if (!postsByDate[dateKey]) {
-          postsByDate[dateKey] = { count: 0, posts: [] };
-        }
-      }
-    } else {
-      postsByDate = processPosts(posts);
-    }
-    
-    return { postsByDate, allPostsByDate };
+    return { postsByDate: postsData, allPostsByDate: allPostsData };
   }, [posts, allPosts]);
   
   const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
