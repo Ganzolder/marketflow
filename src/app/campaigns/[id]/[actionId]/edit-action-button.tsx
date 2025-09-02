@@ -122,6 +122,18 @@ export function EditActionButton({ action, campaignId, asChild = false }: { acti
                                  <Input id="target-audience" name="target-audience" placeholder="например, Студенты... (необязательно)" defaultValue={action.targetAudience}/>
                                  {state?.errors?.targetAudience && <p className="text-sm text-destructive">{state.errors.targetAudience[0]}</p>}
                             </div>
+                             <div className="grid grid-cols-2 gap-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="address">Адрес</Label>
+                                    <Input id="address" name="address" placeholder="Город, улица, дом" defaultValue={action.address || ''} />
+                                    {state?.errors?.address && <p className="text-sm text-destructive">{state.errors.address[0]}</p>}
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="phone">Телефон</Label>
+                                    <Input id="phone" name="phone" placeholder="+7 (XXX) XXX-XX-XX" defaultValue={action.phone || ''} />
+                                    {state?.errors?.phone && <p className="text-sm text-destructive">{state.errors.phone[0]}</p>}
+                                </div>
+                            </div>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div className="grid gap-2">
                                     <Label htmlFor="start-date">Дата начала</Label>
