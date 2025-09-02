@@ -17,7 +17,7 @@ import {
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { DatabaseActions } from './database-actions';
-import { GanttChartSquare, Save } from 'lucide-react';
+import { GanttChartSquare, Save, Pencil } from 'lucide-react';
 import { GlobalGanttChart } from './global-gantt-chart';
 import { ScrollArea } from './ui/scroll-area';
 import { Input } from '@/components/ui/input';
@@ -50,6 +50,7 @@ function GanttChartModalButton() {
 
 function EridControl() {
   const [erid, setErid] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const { toast } = useToast();
 
@@ -58,16 +59,24 @@ function EridControl() {
     const savedErid = localStorage.getItem('erid');
     if (savedErid) {
       setErid(savedErid);
+    } else {
+      // If no ERID is saved, start in editing mode
+      setIsEditing(true);
     }
   }, []);
 
   const handleSave = () => {
     localStorage.setItem('erid', erid);
+    setIsEditing(false);
     toast({
       title: 'Сохранено',
       description: 'Значение ERID было успешно сохранено.',
     });
   };
+  
+  const handleEdit = () => {
+    setIsEditing(true);
+  }
 
   if (!isClient) {
     return null; 
@@ -75,21 +84,36 @@ function EridControl() {
 
   return (
     <div className="flex items-center gap-2">
-       <label htmlFor="erid-input" className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+      <label htmlFor="erid-input" className="text-sm font-medium text-muted-foreground whitespace-nowrap">
         ERID:
       </label>
-      <Input
-        id="erid-input"
-        type="text"
-        value={erid}
-        onChange={(e) => setErid(e.target.value)}
-        placeholder="Введите идентификатор"
-        className="h-8 w-64"
-      />
-      <Button variant="ghost" size="icon" onClick={handleSave} className="h-8 w-8">
-        <Save className="h-4 w-4" />
-        <span className="sr-only">Сохранить ERID</span>
-      </Button>
+      {isEditing ? (
+        <>
+          <Input
+            id="erid-input"
+            type="text"
+            value={erid}
+            onChange={(e) => setErid(e.target.value)}
+            placeholder="Введите идентификатор"
+            className="h-8 w-48"
+            autoFocus
+          />
+          <Button variant="ghost" size="icon" onClick={handleSave} className="h-8 w-8">
+            <Save className="h-4 w-4" />
+            <span className="sr-only">Сохранить ERID</span>
+          </Button>
+        </>
+      ) : (
+        <>
+          <div className="h-8 flex items-center px-3 rounded-md border border-transparent">
+             <span className="text-sm font-mono">{erid || 'Не указан'}</span>
+          </div>
+          <Button variant="ghost" size="icon" onClick={handleEdit} className="h-8 w-8">
+            <Pencil className="h-4 w-4" />
+            <span className="sr-only">Редактировать ERID</span>
+          </Button>
+        </>
+      )}
     </div>
   )
 }
@@ -99,7 +123,7 @@ export function Header() {
     return (
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
             <SidebarTrigger className="flex md:hidden" />
-            <div className="ml-auto flex items-center gap-4">
+            <div className="ml-auto flex items-center gap-2">
                 <EridControl />
                 <GanttChartModalButton />
                 <DropdownMenu>
