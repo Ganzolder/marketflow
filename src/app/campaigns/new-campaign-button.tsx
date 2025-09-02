@@ -12,6 +12,7 @@ import { Loader2, PlusCircle } from "lucide-react";
 import { createCampaign, type CampaignFormState } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
+import { Separator } from '@/components/ui/separator';
 
 
 function SubmitButton() {
@@ -103,6 +104,24 @@ export function NewCampaignButton() {
                                 <Label htmlFor="endDate">Дата окончания</Label>
                                 <Input id="endDate" name="endDate" type="date" defaultValue={state?.fields?.endDate} />
                                 {state?.errors?.endDate && <p className="text-sm text-destructive">{state.errors.endDate[0]}</p>}
+                            </div>
+                        </div>
+                         <Separator />
+                        <div className="grid gap-2">
+                            <Label htmlFor="company">Компания (необязательно)</Label>
+                            <Input id="company" name="company" placeholder="Название организации" defaultValue={state?.fields?.company} />
+                            {state?.errors?.company && <p className="text-sm text-destructive">{state.errors.company[0]}</p>}
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="address">Адрес (необязательно)</Label>
+                                <Input id="address" name="address" placeholder="Город, улица, дом" defaultValue={state?.fields?.address} />
+                                {state?.errors?.address && <p className="text-sm text-destructive">{state.errors.address[0]}</p>}
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="phone">Телефон (необязательно)</Label>
+                                <Input id="phone" name="phone" placeholder="+7 (XXX) XXX-XX-XX" defaultValue={state?.fields?.phone} />
+                                {state?.errors?.phone && <p className="text-sm text-destructive">{state.errors.phone[0]}</p>}
                             </div>
                         </div>
                     </div>
