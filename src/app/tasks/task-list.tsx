@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -19,6 +18,7 @@ import { ArchiveTaskButton } from './archive-task-button';
 import { RestoreTaskButton } from './restore-task-button';
 import { TaskLinkControl } from './task-link-control';
 import { UpdateTaskStatus } from './update-task-status';
+import { ViewModeToggle } from './view-mode-toggle';
 
 export function TaskList({ initialTasks, allCampaigns, allTasks }: { initialTasks: EnrichedTask[], allCampaigns: Campaign[], allTasks: EnrichedTask[] }) {
   const searchParams = useSearchParams();
@@ -47,6 +47,7 @@ export function TaskList({ initialTasks, allCampaigns, allTasks }: { initialTask
                     </Link>
                   </Button>
                   <TaskFilters campaigns={allCampaigns} responsibles={allResponsibles}/>
+                  <ViewModeToggle />
                   <AddTaskButton campaigns={allCampaigns} />
                 </>
             )}
