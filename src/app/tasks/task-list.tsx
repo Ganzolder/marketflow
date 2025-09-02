@@ -145,13 +145,14 @@ export function TaskList({ initialTasks, allCampaigns, allTasks }: { initialTask
                       Архив
                     </Link>
                   </Button>
-                  <TaskFilters campaigns={allCampaigns} responsibles={allResponsibles}/>
                   <ViewModeToggle />
                   <AddTaskButton campaigns={allCampaigns} />
                 </>
             )}
         </div>
       </PageHeader>
+      
+      {!isArchivedView && <TaskFilters campaigns={allCampaigns} responsibles={allResponsibles}/>}
       
       {view === 'list' && !isArchivedView ? renderList() : renderGrid()}
       
