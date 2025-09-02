@@ -8,3 +8,4 @@ import '@/ai/flows/generate-post-text.ts';
 import '@/ai/flows/analyze-overall-performance.ts';
 import '@/ai/flows/generate-action-ideas.ts';
 import '@/ai/flows/generate-post-series.ts';
+import '@/ai/flows/rephrase-text.ts';
