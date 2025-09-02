@@ -6,7 +6,6 @@ import { useSearchParams } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Calendar, User, ClipboardCheck, Archive, ArchiveRestore } from 'lucide-react';
 import type { EnrichedTask, Campaign } from '@/lib/types';
@@ -19,42 +18,65 @@ import { RestoreTaskButton } from './restore-task-button';
 import { TaskLinkControl } from './task-link-control';
 import { UpdateTaskStatus } from './update-task-status';
 import { ViewModeToggle } from './view-mode-toggle';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+
 
 export function TaskList({ initialTasks, allCampaigns, allTasks }: { initialTasks: EnrichedTask[], allCampaigns: Campaign[], allTasks: EnrichedTask[] }) {
   const searchParams = useSearchParams();
-  const view = searchParams.get('view');
+  const view = searchParams.get('view') || 'grid';
+  const isArchivedView = searchParams.get('view') === 'archived';
   const locale = 'ru-RU';
   
   const allResponsibles = Array.from(new Set(allTasks.map(t => t.responsiblePerson).filter(Boolean)));
+  
+  const renderList = () => (
+    <Card>
+        <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead>Название</TableHead>
+                    <TableHead>Привязка</TableHead>
+                    <TableHead>Дедлайн</TableHead>
+                    <TableHead>Ответственный</TableHead>
+                    <TableHead>Статус</TableHead>
+                    <TableHead className="text-right">Действия</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {initialTasks.map(task => (
+                    <TableRow key={task.id}>
+                        <TableCell className="font-medium max-w-xs truncate" title={task.title}>{task.title}</TableCell>
+                        <TableCell><TaskLinkControl task={task} campaigns={allCampaigns} /></TableCell>
+                        <TableCell>{new Date(task.deadline).toLocaleDateString(locale)}</TableCell>
+                        <TableCell>{task.responsiblePerson || '—'}</TableCell>
+                        <TableCell><UpdateTaskStatus task={task} /></TableCell>
+                        <TableCell className="text-right">
+                           <div className="flex items-center justify-end gap-1">
+                                {isArchivedView ? (
+                                    <RestoreTaskButton taskId={task.id} />
+                                ) : (
+                                    <>
+                                        <EditTaskButton task={task} />
+                                        <ArchiveTaskButton taskId={task.id} />
+                                    </>
+                                )}
+                                <DeleteTaskButton taskId={task.id} />
+                            </div>
+                        </TableCell>
+                    </TableRow>
+                ))}
+            </TableBody>
+        </Table>
+        {initialTasks.length === 0 && (
+             <CardContent className="py-10 text-center text-muted-foreground">
+                {isArchivedView ? 'Нет задач в архиве.' : 'Нет задач, соответствующих фильтрам.'}
+            </CardContent>
+        )}
+    </Card>
+  );
 
-  return (
-    <div>
-      <PageHeader title="Задачи" description="Управляйте всеми задачами в одном месте.">
-        <div className="flex flex-wrap gap-2 w-full md:w-auto">
-             {view === 'archived' ? (
-              <Button asChild variant="outline">
-                <Link href="/tasks">
-                  <ArchiveRestore className="mr-2 h-4 w-4" />
-                  Активные задачи
-                </Link>
-              </Button>
-            ) : (
-                <>
-                 <Button asChild variant="outline">
-                    <Link href="/tasks?view=archived">
-                      <Archive className="mr-2 h-4 w-4" />
-                      Архив
-                    </Link>
-                  </Button>
-                  <TaskFilters campaigns={allCampaigns} responsibles={allResponsibles}/>
-                  <ViewModeToggle />
-                  <AddTaskButton campaigns={allCampaigns} />
-                </>
-            )}
-        </div>
-      </PageHeader>
-      
-      <div className="grid gap-4 md:grid-cols-2">
+  const renderGrid = () => (
+     <div className="grid gap-4 md:grid-cols-2">
         {initialTasks.map(task => (
             <Card key={task.id}>
                 <CardHeader>
@@ -64,11 +86,13 @@ export function TaskList({ initialTasks, allCampaigns, allTasks }: { initialTask
                             {task.description && <CardDescription className="mt-2 whitespace-pre-wrap">{task.description}</CardDescription>}
                         </div>
                         <div className="flex items-center gap-1">
-                            {view !== 'archived' && <EditTaskButton task={task} />}
-                             {view === 'archived' ? (
+                            {isArchivedView ? (
                                 <RestoreTaskButton taskId={task.id} />
                             ) : (
-                                <ArchiveTaskButton taskId={task.id} />
+                                <>
+                                    <EditTaskButton task={task} />
+                                    <ArchiveTaskButton taskId={task.id} />
+                                </>
                             )}
                             <DeleteTaskButton taskId={task.id} />
                         </div>
@@ -95,11 +119,42 @@ export function TaskList({ initialTasks, allCampaigns, allTasks }: { initialTask
          {initialTasks.length === 0 && (
             <Card className="md:col-span-2">
                 <CardContent className="py-10 text-center text-muted-foreground">
-                     {view === 'archived' ? 'Нет задач в архиве.' : 'Нет задач, соответствующих фильтрам.'}
+                     {isArchivedView ? 'Нет задач в архиве.' : 'Нет задач, соответствующих фильтрам.'}
                 </CardContent>
             </Card>
         )}
       </div>
+  );
+
+  return (
+    <div>
+      <PageHeader title="Задачи" description="Управляйте всеми задачами в одном месте.">
+        <div className="flex flex-wrap gap-2 w-full md:w-auto">
+             {isArchivedView ? (
+              <Button asChild variant="outline">
+                <Link href="/tasks">
+                  <ArchiveRestore className="mr-2 h-4 w-4" />
+                  Активные задачи
+                </Link>
+              </Button>
+            ) : (
+                <>
+                 <Button asChild variant="outline">
+                    <Link href="/tasks?view=archived">
+                      <Archive className="mr-2 h-4 w-4" />
+                      Архив
+                    </Link>
+                  </Button>
+                  <TaskFilters campaigns={allCampaigns} responsibles={allResponsibles}/>
+                  <ViewModeToggle />
+                  <AddTaskButton campaigns={allCampaigns} />
+                </>
+            )}
+        </div>
+      </PageHeader>
+      
+      {view === 'list' && !isArchivedView ? renderList() : renderGrid()}
+      
     </div>
   );
 }
