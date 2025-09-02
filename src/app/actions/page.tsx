@@ -10,8 +10,9 @@ function ActionsLoadingSkeleton() {
     <div>
       <PageHeader title="Все акции" description="Просматривайте и управляйте всеми акциями в одном месте.">
         <div className="flex flex-wrap gap-2 w-full md:w-auto">
-          <Skeleton className="h-10 w-full md:w-64" />
-          <Skeleton className="h-10 w-full md:w-64" />
+          <Skeleton className="h-10 w-full md:w-56" />
+          <Skeleton className="h-10 w-full md:w-56" />
+          <Skeleton className="h-10 w-full md:w-56" />
         </div>
       </PageHeader>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

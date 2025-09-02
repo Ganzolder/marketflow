@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -28,6 +27,7 @@ import { Progress } from '@/components/ui/progress';
 import { Eye, FilePlus, Landmark, TrendingUp, CalendarDays } from 'lucide-react';
 import { CampaignFilter } from './campaign-filter';
 import { StatusFilter } from './status-filter';
+import { DateFilter } from './date-filter';
 import type { ActionStatus, Campaign, EnrichedAction } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ViewModeToggle } from '@/app/tasks/view-mode-toggle';
@@ -51,13 +51,22 @@ export function ActionsList() {
       
       const campaignId = searchParams.get('campaignId');
       const status = searchParams.get('status') as ActionStatus | null;
+      const startDate = searchParams.get('startDate');
+      const endDate = searchParams.get('endDate');
 
       let filteredActions = allActions;
+
       if (campaignId) {
         filteredActions = filteredActions.filter((action) => action.campaignId === campaignId);
       }
       if (status) {
           filteredActions = filteredActions.filter((action) => action.status === status);
+      }
+      if (startDate) {
+        filteredActions = filteredActions.filter((action) => new Date(action.startDate) >= new Date(startDate));
+      }
+      if (endDate) {
+        filteredActions = filteredActions.filter((action) => new Date(action.endDate) <= new Date(endDate));
       }
       
       setActions(filteredActions);
@@ -298,6 +307,7 @@ export function ActionsList() {
                  <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
                     <Skeleton className="h-10 w-full md:w-56" />
                     <Skeleton className="h-10 w-full md:w-56" />
+                    <Skeleton className="h-10 w-full md:w-56" />
                     <Skeleton className="h-10 w-20" />
                 </div>
             </PageHeader>
@@ -328,6 +338,7 @@ export function ActionsList() {
         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
             <CampaignFilter campaigns={campaigns} />
             <StatusFilter />
+            <DateFilter />
             <ViewModeToggle />
         </div>
       </PageHeader>
@@ -339,7 +350,7 @@ export function ActionsList() {
           <CardContent className="py-10">
             <div className="text-center text-sm text-muted-foreground">
               <FilePlus className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-              {searchParams.has('campaignId') || searchParams.has('status')
+              {searchParams.has('campaignId') || searchParams.has('status') || searchParams.has('startDate') || searchParams.has('endDate')
                 ? 'Нет акций, соответствующих вашим фильтрам.'
                 : 'Акции еще не созданы.'}
             </div>
