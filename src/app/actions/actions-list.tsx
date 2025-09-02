@@ -303,14 +303,16 @@ export function ActionsList() {
   if (isLoading) {
     return (
         <div>
-            <PageHeader title="Все акции" description="Просматривайте и управляйте всеми акциями в одном месте.">
-                 <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-                    <Skeleton className="h-10 w-full md:w-56" />
-                    <Skeleton className="h-10 w-full md:w-56" />
-                    <Skeleton className="h-10 w-full md:w-56" />
-                    <Skeleton className="h-10 w-20" />
+            <PageHeader title="Все акции" description="Просматривайте и управляйте всеми акциями в одном месте." />
+            <div className="mb-8 p-4 border rounded-lg bg-card shadow-sm flex flex-wrap items-end gap-4">
+                <Skeleton className="h-10 w-64" />
+                <Skeleton className="h-10 w-64" />
+                <div className="flex gap-2">
+                    <Skeleton className="h-10 w-32" />
+                    <Skeleton className="h-10 w-32" />
                 </div>
-            </PageHeader>
+                <Skeleton className="h-10 w-10" />
+            </div>
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {[...Array(3)].map((_, i) => (
                     <Card key={i}>
@@ -334,14 +336,16 @@ export function ActionsList() {
       <PageHeader
         title="Все акции"
         description="Просматривайте и управляйте всеми акциями в одном месте."
-      >
-        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+      />
+
+      <div className="mb-8 p-4 border rounded-lg bg-card shadow-sm flex flex-wrap items-end gap-4">
             <CampaignFilter campaigns={campaigns} />
             <StatusFilter />
             <DateFilter />
-            <ViewModeToggle />
-        </div>
-      </PageHeader>
+            <div className="ml-auto">
+              <ViewModeToggle />
+            </div>
+      </div>
 
       {view === 'grid' ? renderGrid() : renderTable()}
 
