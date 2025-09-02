@@ -22,6 +22,7 @@ import { GlobalGanttChart } from './global-gantt-chart';
 import { ScrollArea } from './ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { MapsLogo } from './maps-logo';
 
 function GanttChartModalButton() {
     const [open, setOpen] = useState(false);
@@ -121,10 +122,15 @@ function EridControl() {
 
 export function Header() {
     return (
-        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
-            <SidebarTrigger className="flex md:hidden" />
-            <div className="ml-auto flex items-center gap-2">
-                <EridControl />
+        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
+            <div className="flex items-center gap-2">
+                 <SidebarTrigger className="flex md:hidden" />
+                 <MapsLogo />
+                 <div className="hidden md:flex">
+                    <EridControl />
+                 </div>
+            </div>
+            <div className="flex items-center gap-2">
                 <GanttChartModalButton />
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>

@@ -26,7 +26,7 @@ import {
 } from '@/components/ui/sidebar';
 import { useSidebar } from './ui/sidebar';
 import { ThemeSwitcher } from './theme-switcher';
-import { MapsLogo } from './maps-logo';
+import { Button } from './ui/button';
 
 const menuItems = [
   { href: '/', label: 'Панель управления', icon: LayoutGrid },
@@ -42,14 +42,14 @@ const menuItems = [
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const { state } = useSidebar();
+  const { state, setOpen } = useSidebar();
 
   return (
     <Sidebar>
       <SidebarHeader>
-        <Link href="/" className="group-data-[collapsible=icon]:justify-center">
-            <MapsLogo />
-        </Link>
+         <Button variant="ghost" size="icon" className="group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8" onClick={() => setOpen(true)}>
+            <Rocket className="h-5 w-5" />
+         </Button>
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
