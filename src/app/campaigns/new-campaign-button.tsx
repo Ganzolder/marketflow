@@ -112,18 +112,6 @@ export function NewCampaignButton() {
                             <Input id="company" name="company" placeholder="Название организации" defaultValue={state?.fields?.company} />
                             {state?.errors?.company && <p className="text-sm text-destructive">{state.errors.company[0]}</p>}
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="address">Адрес (необязательно)</Label>
-                                <Input id="address" name="address" placeholder="Город, улица, дом" defaultValue={state?.fields?.address} />
-                                {state?.errors?.address && <p className="text-sm text-destructive">{state.errors.address[0]}</p>}
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="phone">Телефон (необязательно)</Label>
-                                <Input id="phone" name="phone" placeholder="+7 (XXX) XXX-XX-XX" defaultValue={state?.fields?.phone} />
-                                {state?.errors?.phone && <p className="text-sm text-destructive">{state.errors.phone[0]}</p>}
-                            </div>
-                        </div>
                     </div>
                     <DialogFooter>
                         <DialogClose asChild>
