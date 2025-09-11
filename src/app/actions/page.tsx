@@ -8,7 +8,12 @@ import { Card, CardHeader, CardContent } from '@/components/ui/card';
 function ActionsLoadingSkeleton() {
   return (
     <div>
-      <PageHeader title="Все акции" description="Просматривайте и управляйте всеми акциями в одном месте." />
+      <PageHeader title="Все акции" description="Просматривайте и управляйте всеми акциями в одном месте.">
+         <div className="flex items-center gap-2">
+            <Skeleton className="h-10 w-32" />
+            <Skeleton className="h-10 w-10 ml-auto" />
+         </div>
+      </PageHeader>
        <div className="mb-8 p-4 border rounded-lg bg-card shadow-sm flex flex-wrap items-end gap-4">
           <Skeleton className="h-10 w-64" />
           <Skeleton className="h-10 w-64" />

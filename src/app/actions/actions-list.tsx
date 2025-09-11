@@ -31,6 +31,7 @@ import { DateFilter } from './date-filter';
 import type { ActionStatus, Campaign, EnrichedAction } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ViewModeToggle } from '@/app/tasks/view-mode-toggle';
+import { OverallAiAnalyzerButton } from '../overall-ai-analyzer-button';
 
 export function ActionsList() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -303,7 +304,12 @@ export function ActionsList() {
   if (isLoading) {
     return (
         <div>
-            <PageHeader title="Все акции" description="Просматривайте и управляйте всеми акциями в одном месте." />
+            <PageHeader title="Все акции" description="Просматривайте и управляйте всеми акциями в одном месте.">
+                 <div className="flex items-center gap-2">
+                    <Skeleton className="h-10 w-32" />
+                    <Skeleton className="h-10 w-10 ml-auto" />
+                 </div>
+            </PageHeader>
             <div className="mb-8 p-4 border rounded-lg bg-card shadow-sm flex flex-wrap items-end gap-4">
                 <Skeleton className="h-10 w-64" />
                 <Skeleton className="h-10 w-64" />
@@ -336,14 +342,18 @@ export function ActionsList() {
       <PageHeader
         title="Все акции"
         description="Просматривайте и управляйте всеми акциями в одном месте."
-      />
+      >
+        <div className="flex items-center gap-2">
+            <OverallAiAnalyzerButton />
+            <ViewModeToggle />
+        </div>
+      </PageHeader>
 
       <div className="mb-8 p-4 border rounded-lg bg-card shadow-sm flex flex-wrap items-end gap-4">
             <CampaignFilter campaigns={campaigns} />
             <StatusFilter />
             <DateFilter />
             <div className="ml-auto">
-              <ViewModeToggle />
             </div>
       </div>
 
