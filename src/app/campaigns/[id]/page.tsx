@@ -21,6 +21,7 @@ import { CampaignTasksCard } from './campaign-tasks-card';
 import { cn } from '@/lib/utils';
 import { Eye, FilePlus } from 'lucide-react';
 import { AddTaskButton } from '@/app/tasks/add-task-button';
+import { PrintCampaignReportButton } from './print-campaign-report-button';
 
 
 type CampaignDetailPageProps = {
@@ -117,6 +118,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
       <PageHeader title={campaign.name}>
         <div className="flex items-center gap-2">
             <AddTaskButton campaigns={[campaign]} />
+            <PrintCampaignReportButton campaign={campaign} socialPosts={socialPosts} asChild={false} />
             <Button variant="outline" asChild>
                 <Link href={`/campaigns`}>
                     <ArrowLeft className="h-4 w-4" />
