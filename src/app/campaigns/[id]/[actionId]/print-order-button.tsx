@@ -10,22 +10,30 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 function PrintContent({ action, campaign }: { action: Action, campaign: Campaign }) {
     const formatDate = (dateString: string) => {
-        if (!dateString) return '__________';
-        return new Date(dateString).toLocaleDateString('ru-RU', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        });
+        if (!dateString) return { day: '«»', month: '______', year: '20 __' };
+        const date = new Date(dateString);
+        return {
+            day: `«${date.getDate().toString().padStart(2, '0')}»`,
+            month: date.toLocaleString('ru-RU', { month: 'long' }),
+            year: date.getFullYear().toString()
+        };
     }
+    
+    const today = formatDate(new Date().toISOString());
 
     const plannedBudget = action.activities?.reduce((sum, activity) => sum + activity.budget, 0) || 0;
+    
+    const numberToWords = (num: number) => {
+        const text = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', currencyDisplay: 'name' }).format(num);
+        return text.replace('российских рублей', 'рублей');
+    }
 
     return (
         <div className="print-container p-8 bg-white text-black">
             <style type="text/css" media="print">
                 {`
                     @page { 
-                        size: auto;
+                        size: A4;
                         margin: 20mm;
                     }
                     body {
@@ -45,51 +53,58 @@ function PrintContent({ action, campaign }: { action: Action, campaign: Campaign
                     .page-break {
                         page-break-after: always;
                     }
+                    .prose { max-width: 100%; }
+                    ul { list-style-type: none; padding-left: 0; }
+                    li { margin-top: 0.5rem; }
                 `}
             </style>
             <div className="print-content font-serif text-sm">
-                <div className="min-h-[90vh] flex flex-col justify-between items-center text-center page-break">
-                    <div className="flex-grow flex items-center">
-                        <h1 className="text-2xl font-bold">Приказ о проведении маркетингового мероприятия "{action.name}" в рамках кампании "{campaign.name}"</h1>
+                <div className="text-center space-y-1 mb-6">
+                    <p className="font-bold">Общество с ограниченной ответственностью «АвтоГиК»</p>
+                    <p className="text-xs">ОГРН 1137017000097, ИНН/КПП 7017321414/701701001, зарегистрировано 10.01.2013</p>
+                    <p className="text-xs">Адрес: 634040, г. Томск, ул. Бела Куна, дом 13</p>
+                </div>
+                
+                <h1 className="text-xl font-bold text-center mb-1">ПРИКАЗ</h1>
+                <p className="text-center mb-6">№ М-___ от {today.day} {today.month} {today.year} г.</p>
+
+                <p className="mb-4 text-justify indent-8">
+                    В целях расширения рынка сбыта, привлечения дополнительного числа покупателей, формирования устойчивого интереса и спроса к продукции, а также для увеличения доходов
+                </p>
+
+                <p className="text-center font-bold mb-4">ПРИКАЗЫВАЮ:</p>
+                
+                <ol className="list-decimal list-inside space-y-3 prose">
+                    <li>Утвердить проведение маркетинговой акции "{action.name}".</li>
+                    <li>Утвердить условия проведения акции (Приложение № 1).</li>
+                    <li>Утвердить смету расходов на проведение акции в размере "{plannedBudget.toLocaleString('ru-RU')} ({numberToWords(plannedBudget)})".</li>
+                    <li>Ответственным за организацию акции назначить "{action.responsiblePerson || '____________________'}".</li>
+                    <li>Контроль за выполнением приказа возлагаю на себя.</li>
+                </ol>
+
+                <div className="mt-12 space-y-6">
+                     <div className="flex items-center gap-4">
+                        <p>С приказом ознакомлен:</p>
+                        <div className="border-b border-black flex-1"></div>
+                        <p>"{action.responsiblePerson || '____________________'}"</p>
                     </div>
-                    <div className="w-full text-left">
-                        <p>№ ______</p>
-                        <p>{campaign.company || 'г. Томск'}</p>
-                        <p>Дата: {new Date().toLocaleDateString('ru-RU')}</p>
+                     <div className="flex items-center gap-4 mt-8">
+                        <p>Директор</p>
+                        <div className="border-b border-black flex-1"></div>
+                        <p>А.С. Гавриленко</p>
                     </div>
                 </div>
 
-                <div className="min-h-[90vh]">
-                    <p className="mb-4">В целях повышения узнаваемости бренда, увеличения продаж и привлечения новых клиентов</p>
-                    <p className="text-center font-bold mb-4">ПРИКАЗЫВАЮ:</p>
-                    <ol className="list-decimal list-inside space-y-3">
-                        <li>Провести маркетинговое мероприятие "{action.name || '____________________'}" в период с {formatDate(action.startDate)} по {formatDate(action.endDate)}.</li>
-                        <li>Ответственным за организацию и проведение мероприятия назначить {action.responsiblePerson || '____________________'}.</li>
-                        <li>Маркетинговому отделу ({action.marketingHead || '____________________'}) обеспечить:
-                            <ul className="list-disc list-inside ml-6">
-                                <li>- разработку концепции и плана мероприятия;</li>
-                                <li>- подготовку рекламных материалов (баннеры, листовки, промопосты и т. д.);</li>
-                                <li>- взаимодействие с партнёрами и подрядчиками;</li>
-                                <li>- контроль за исполнением бюджета.</li>
-                            </ul>
-                        </li>
-                        <li>Отделу продаж ({action.salesHead || '____________________'}) обеспечить участие сотрудников в мероприятии и подготовку специальных предложений для клиентов.</li>
-                        <li>IT-отделу ({action.itHead || '____________________'}) обеспечить техническую поддержку онлайн-части мероприятия (если требуется).</li>
-                        <li>Финансовому отделу ({action.financeHead || '____________________'}) выделить необходимый бюджет в размере {new Intl.NumberFormat('ru-RU').format(plannedBudget)} рублей и осуществлять контроль за его расходованием.</li>
-                        <li>Контроль за исполнением приказа возложить на {action.curator || '____________________'}.</li>
-                    </ol>
-                    <p className="mt-4">Основание: План маркетинговых активностей на ____________________, служебная записка ____________________.</p>
-
-                    <div className="mt-12">
-                        <p>Директор {campaign.company || ''} <span className="inline-block border-b border-black w-48 mx-2"></span> /Гавриленко А.С.</p>
+                {action.conditions && (
+                    <div className="page-break">
+                        <div className="min-h-[90vh] flex flex-col">
+                            <h2 className="text-lg font-bold text-center my-6">Приложение № 1</h2>
+                            <h3 className="text-md font-semibold text-center mb-6">к приказу № М-___ от {today.day} {today.month} {today.year} г.</h3>
+                            <h4 className="text-md font-semibold text-center mb-6">Условия проведения акции "{action.name}"</h4>
+                            <div className="prose prose-sm whitespace-pre-wrap flex-1">{action.conditions}</div>
+                        </div>
                     </div>
-
-                    <div className="mt-8">
-                        <p>С приказом ознакомлены:</p>
-                        <p className="mt-2">Нечепуренко А.В., гл.бухгалтер <span className="inline-block border-b border-black w-24 ml-2"></span></p>
-                        <p className="mt-2">Опалева К.В., маркетолог <span className="inline-block border-b border-black w-24 ml-2"></span></p>
-                    </div>
-                </div>
+                )}
             </div>
         </div>
     );
