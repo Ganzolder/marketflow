@@ -31,6 +31,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import { OverallAiAnalyzerButton } from '../overall-ai-analyzer-button';
 
 type CampaignsPageProps = {
   searchParams: {
@@ -60,6 +61,7 @@ export default async function CampaignsPage({ searchParams: searchParamsPromise 
     <div>
       <PageHeader title="Кампании" description="Управляйте и отслеживайте все ваши маркетинговые кампании.">
         <div className="flex flex-wrap gap-2 w-full md:w-auto">
+            <OverallAiAnalyzerButton />
           {view === 'archived' ? (
               <Button asChild variant="outline">
                 <Link href="/campaigns">
