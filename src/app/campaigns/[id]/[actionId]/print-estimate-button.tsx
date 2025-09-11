@@ -19,6 +19,7 @@ function PrintContent({ action, campaign }: { action: Action, campaign: Campaign
     }
 
     const plannedBudget = action.activities?.reduce((sum, activity) => sum + activity.budget, 0) || 0;
+    const actualSpentTotal = (action.activities?.reduce((sum, activity) => sum + activity.spent, 0) || 0) + (action.generalExpenses?.reduce((sum, expense) => sum + expense.amount, 0) || 0);
     const maxBudget = plannedBudget * 1.20;
 
     return (
@@ -68,8 +69,8 @@ function PrintContent({ action, campaign }: { action: Action, campaign: Campaign
                             <th className="border border-black p-2 text-left">Наименование затрат</th>
                             <th className="border border-black p-2 text-center">Единица измерения</th>
                             <th className="border border-black p-2 text-center">Количество единиц</th>
-                            <th className="border border-black p-2 text-right">Цена, руб.</th>
-                            <th className="border border-black p-2 text-right">Сумма, руб.</th>
+                            <th className="border border-black p-2 text-right">План. сумма, руб.</th>
+                            <th className="border border-black p-2 text-right">Факт. сумма, руб.</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -80,14 +81,25 @@ function PrintContent({ action, campaign }: { action: Action, campaign: Campaign
                                 <td className="border border-black p-2 text-center">услуга</td>
                                 <td className="border border-black p-2 text-center">1</td>
                                 <td className="border border-black p-2 text-right">{new Intl.NumberFormat('ru-RU').format(activity.budget)}</td>
-                                <td className="border border-black p-2 text-right">{new Intl.NumberFormat('ru-RU').format(activity.budget)}</td>
+                                <td className="border border-black p-2 text-right">{new Intl.NumberFormat('ru-RU').format(activity.spent)}</td>
+                            </tr>
+                        ))}
+                         {(action.generalExpenses || []).map((expense, index) => (
+                             <tr key={expense.id}>
+                                <td className="border border-black p-2 text-center">{index + 1 + (action.activities?.length || 0)}</td>
+                                <td className="border border-black p-2">{expense.description} (общий расход)</td>
+                                <td className="border border-black p-2 text-center">услуга</td>
+                                <td className="border border-black p-2 text-center">1</td>
+                                <td className="border border-black p-2 text-right">—</td>
+                                <td className="border border-black p-2 text-right">{new Intl.NumberFormat('ru-RU').format(expense.amount)}</td>
                             </tr>
                         ))}
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colSpan={5} className="text-right font-bold p-2">Итого:</td>
+                            <td colSpan={4} className="text-right font-bold p-2">Итого:</td>
                             <td className="font-bold border border-black p-2 text-right">{new Intl.NumberFormat('ru-RU').format(plannedBudget)}</td>
+                            <td className="font-bold border border-black p-2 text-right">{new Intl.NumberFormat('ru-RU').format(actualSpentTotal)}</td>
                         </tr>
                     </tfoot>
                 </table>
