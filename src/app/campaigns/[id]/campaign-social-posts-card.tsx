@@ -1,12 +1,12 @@
 
 "use client";
 
-import { useState, useRef, useTransition, useActionState } from 'react';
+import { useState, useRef, useTransition, useActionState, useEffect } from 'react';
 import type { SocialPost, SocialPostStatus, SocialPlatform, Campaign, Action } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Share2, PlusCircle, Loader2, Wand2 } from 'lucide-react';
+import { Share2, PlusCircle, Loader2, Wand2, ArrowUp, ArrowDown, Minus, MessageSquare, Users, Save } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
-import { addSocialPost, type SocialPostFormState, generatePostTextAction } from '@/lib/actions';
+import { addSocialPost, type SocialPostFormState, generatePostTextAction, updateSocialPostMetrics, type SocialPostMetricsFormState } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -17,17 +17,93 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { SocialPlatforms } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { EditSocialPostButton } from './[actionId]/edit-social-post-button';
 import { DeleteSocialPostButton } from './[actionId]/delete-social-post-button';
 import Link from 'next/link';
 import { UpdateSocialPostStatus } from '@/app/smm/update-social-post-status';
+import { useFormStatus } from 'react-dom';
 
 const statusTranslations: Record<SocialPostStatus, string> = {
   draft: "Черновик",
   ready: "Готово",
   published: "Опубликован",
 };
+
+function MetricsUpdateButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button size="sm" type="submit" disabled={pending}>
+            {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+        </Button>
+    )
+}
+
+function ActualMetricsForm({ post }: { post: SocialPost }) {
+    const initialState: SocialPostMetricsFormState = { message: "", errors: {} };
+    const [state, formAction] = useActionState(updateSocialPostMetrics, initialState);
+    const { toast } = useToast();
+
+    useEffect(() => {
+        if (state.message) {
+            if (state.error) {
+                const errorMessages = state.errors ? Object.values(state.errors).flat().join("\n") : state.message;
+                toast({ variant: "destructive", title: "Ошибка", description: errorMessages });
+            } else {
+                toast({ title: "Успех", description: state.message });
+            }
+        }
+    }, [state, toast]);
+
+    return (
+        <form action={formAction} className="flex-1 space-y-4">
+             <input type="hidden" name="postId" value={post.id} />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <Label className="text-xs text-muted-foreground">План. охват: {(post.plannedReach || 0).toLocaleString('ru-RU')}</Label>
+                     <div className="relative mt-1">
+                        <Users className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input type="number" name="actualReach" defaultValue={post.actualReach || ''} placeholder="Факт. охват" className="pl-8"/>
+                    </div>
+                    {state.errors?.actualReach && <p className="text-destructive text-xs mt-1">{state.errors.actualReach[0]}</p>}
+                </div>
+                 <div>
+                    <Label className="text-xs text-muted-foreground">План. коммент.: {(post.plannedComments || 0).toLocaleString('ru-RU')}</Label>
+                     <div className="relative mt-1">
+                        <MessageSquare className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input type="number" name="actualComments" defaultValue={post.actualComments || ''} placeholder="Факт. коммент." className="pl-8" />
+                    </div>
+                     {state.errors?.actualComments && <p className="text-destructive text-xs mt-1">{state.errors.actualComments[0]}</p>}
+                </div>
+            </div>
+             <div className="flex justify-end">
+                <MetricsUpdateButton />
+            </div>
+        </form>
+    );
+}
+
+const StatDisplay = ({ label, plan, fact, locale }: { label: string, plan: number, fact: number | undefined, locale: string }) => {
+    const factValue = fact || 0;
+    const difference = factValue - plan;
+    const isOver = difference > 0;
+    const isUnder = difference < 0;
+    const isEqual = difference === 0;
+
+    return (
+        <div className="text-center">
+            <p className="text-xs text-muted-foreground">{label}</p>
+            <p className="font-semibold text-base">{factValue.toLocaleString(locale)}</p>
+            <p className={`text-xs font-mono flex items-center justify-center ${isOver ? 'text-green-600' : isUnder ? 'text-red-500' : 'text-muted-foreground'}`}>
+                {isOver && <ArrowUp className="w-3 h-3" />}
+                {isUnder && <ArrowDown className="w-3 h-3" />}
+                {isEqual && <Minus className="w-3 h-3" />}
+                <span className="ml-1">{difference.toLocaleString(locale)}</span>
+            </p>
+        </div>
+    )
+}
 
 const AddSocialPostToCampaignButton = ({ campaign }: { campaign: Campaign }) => {
     const [open, setOpen] = useState(false);
@@ -240,6 +316,13 @@ export function CampaignSocialPostsCard({ campaign, posts }: { campaign: Campaig
                            <CardContent className="p-4">
                                 <p className="text-sm text-foreground whitespace-pre-wrap">{post.text}</p>
                            </CardContent>
+                            <CardFooter className="bg-muted/50 p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-4 items-center">
+                                  <StatDisplay label="Охват" plan={post.plannedReach || 0} fact={post.actualReach} locale={locale} />
+                                  <StatDisplay label="Комментарии" plan={post.plannedComments || 0} fact={post.actualComments} locale={locale} />
+                                </div>
+                                <ActualMetricsForm post={post} />
+                            </CardFooter>
                         </Card>
                     ))
                 ) : (
