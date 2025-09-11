@@ -54,6 +54,7 @@ function PrintContent({ campaign, socialPosts }: { campaign: Campaign, socialPos
                         border: 1px solid black;
                         padding: 4px;
                         text-align: left;
+                        vertical-align: top;
                     }
                     .print-table th {
                         background-color: #f2f2f2 !important;
@@ -159,14 +160,26 @@ function PrintContent({ campaign, socialPosts }: { campaign: Campaign, socialPos
                             <h4 className="font-bold text-base mt-4 mb-1">SMM-посты</h4>
                              {actionSocialPosts.length > 0 ? (
                                 <table className="print-table">
-                                    <thead><tr><th>Дата</th><th>Заголовок</th><th>Платформы</th><th>Статус</th></tr></thead>
+                                    <thead>
+                                      <tr>
+                                        <th>Заголовок</th>
+                                        <th className="text-right">Охват (План/Факт)</th>
+                                        <th className="text-right">Комментарии (План/Факт)</th>
+                                      </tr>
+                                    </thead>
                                     <tbody>
                                         {actionSocialPosts.map(p => (
                                             <tr key={p.id}>
-                                                <td>{formatDate(p.publicationDate)}</td>
-                                                <td>{p.title}</td>
-                                                <td>{p.platforms.join(', ')}</td>
-                                                <td>{p.status}</td>
+                                                <td>
+                                                  {p.title}
+                                                  <div style={{ color: '#555', fontSize: '9px' }}>{formatDate(p.publicationDate)} - {p.platforms.join(', ')} - {p.status}</div>
+                                                </td>
+                                                <td className="text-right">
+                                                  {(p.plannedReach || 0).toLocaleString(locale)} / {(p.actualReach || 0).toLocaleString(locale)}
+                                                </td>
+                                                <td className="text-right">
+                                                  {(p.plannedComments || 0).toLocaleString(locale)} / {(p.actualComments || 0).toLocaleString(locale)}
+                                                </td>
                                             </tr>
                                         ))}
                                     </tbody>
