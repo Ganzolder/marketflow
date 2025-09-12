@@ -12,6 +12,7 @@ import { generatePostSeries, type GeneratePostSeriesInput, type GeneratePostSeri
 import { analyzeOverallPerformance as analyzeOverallPerformanceFlow, type AnalyzeOverallPerformanceOutput } from "@/ai/flows/analyze-overall-performance";
 import { generateActionIdeas as generateActionIdeasFlow, type GenerateActionIdeasOutput } from "@/ai/flows/generate-action-ideas";
 import { rephraseText } from "@/ai/flows/rephrase-text";
+import { analyzeTrackingMethods, type AnalyzeTrackingMethodsOutput } from "@/ai/flows/analyze-tracking-methods";
 import { addDoc, collection, doc, updateDoc, getDoc, deleteField, writeBatch, getDocs } from "firebase/firestore";
 import { db } from "./firebase";
 import { redirect } from 'next/navigation';
@@ -2409,5 +2410,25 @@ export async function updateEridAction(erid: string): Promise<EridState> {
     } catch (e) {
         const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка.";
         return { message: `Ошибка сохранения ERID: ${errorMessage}`, error: true };
+    }
+}
+
+export type AnalyzeTrackingState = {
+  status: 'idle' | 'loading' | 'success' | 'error';
+  analysis?: AnalyzeTrackingMethodsOutput;
+  error?: string;
+};
+
+export async function analyzeTrackingMethodsAction(
+    action: Action,
+    socialPosts: AiSocialPost[]
+): Promise<AnalyzeTrackingState> {
+    const actionContext = JSON.stringify({ ...action, socialPosts }, null, 2);
+    try {
+        const analysis = await analyzeTrackingMethods({ actionContext });
+        return { status: 'success', analysis };
+    } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка при анализе.";
+        return { status: 'error', error: errorMessage };
     }
 }

@@ -10,3 +10,4 @@ import '@/ai/flows/generate-action-ideas.ts';
 import '@/ai/flows/generate-post-series.ts';
 import '@/ai/flows/rephrase-text.ts';
 import '@/ai/flows/generate-action-mechanics.ts';
+import '@/ai/flows/analyze-tracking-methods.ts';

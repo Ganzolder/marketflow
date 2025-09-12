@@ -1,33 +1,16 @@
 
 "use client";
 
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { Printer, LocateFixed } from "lucide-react";
+import { Printer, LocateFixed, Wand2, Loader2 } from "lucide-react";
 import type { Action, SocialPost } from '@/lib/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { analyzeTrackingMethodsAction, type AnalyzeTrackingState } from '@/lib/actions';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-function PrintContent({ action, socialPosts }: { action: Action, socialPosts: SocialPost[] }) {
-    const promoCodes: { [code: string]: string[] } = {};
-
-    socialPosts.forEach(post => {
-        if (post.promoCodes) {
-            Object.entries(post.promoCodes).forEach(([platform, code]) => {
-                if (!promoCodes[code]) {
-                    promoCodes[code] = [];
-                }
-                if (!promoCodes[code].includes(platform)) {
-                    promoCodes[code].push(platform);
-                }
-            });
-        }
-    });
-
-    const otherTrackingMethods = action.activities
-        ?.map(a => a.trackingMethod)
-        .filter((value, index, self) => value && self.indexOf(value) === index) || [];
-
+function PrintContent({ analysisResult }: { analysisResult: AnalyzeTrackingState }) {
     return (
         <div className="print-container p-8 bg-white text-black">
             <style type="text/css" media="print">
@@ -65,48 +48,38 @@ function PrintContent({ action, socialPosts }: { action: Action, socialPosts: So
                     .print-table th {
                         background-color: #f2f2f2 !important;
                     }
+                    .promo-code {
+                        font-family: monospace;
+                        font-size: 1.5em;
+                        font-weight: bold;
+                    }
                 `}
             </style>
             <div className="print-content font-serif text-sm">
-                <h1 className="text-xl font-bold text-center mb-2">Отчет по способам отслеживания</h1>
-                <h2 className="text-lg text-center mb-6">Акция: "{action.name}"</h2>
+                <h1 className="text-xl font-bold text-center mb-6">Задачи по настройке отслеживания</h1>
 
-                {Object.keys(promoCodes).length > 0 && (
-                    <div className="mb-8">
-                        <h3 className="font-bold text-base mt-4 mb-2 border-b pb-1">Промокоды</h3>
-                        <table className="print-table">
-                            <thead>
-                                <tr>
-                                    <th className="w-1/3">Промокод</th>
-                                    <th>Каналы распространения</th>
+                {analysisResult.status === 'success' && analysisResult.analysis ? (
+                    <table className="print-table">
+                        <thead>
+                            <tr>
+                                <th className="w-1/4">Промокод / Метод</th>
+                                <th className="w-1/3">Где используется</th>
+                                <th>Рекомендация (Что сделать)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {analysisResult.analysis.analysis.map((item, index) => (
+                                <tr key={index}>
+                                    <td className="promo-code">{item.method}</td>
+                                    <td>{item.usage}</td>
+                                    <td>{item.recommendation}</td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {Object.entries(promoCodes).map(([code, platforms]) => (
-                                    <tr key={code}>
-                                        <td className="p-4 text-2xl font-mono font-bold text-center align-middle">{code}</td>
-                                        <td className="p-4 align-middle">{platforms.join(', ')}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-
-                {otherTrackingMethods.length > 0 && (
-                    <div>
-                         <h3 className="font-bold text-base mt-4 mb-2 border-b pb-1">Другие способы отслеживания</h3>
-                         <ul className="list-disc list-inside space-y-1">
-                            {otherTrackingMethods.map((method, index) => (
-                                <li key={index}>{method}</li>
                             ))}
-                         </ul>
-                    </div>
+                        </tbody>
+                    </table>
+                ) : (
+                    <p>Нет данных для отображения.</p>
                 )}
-
-                 {Object.keys(promoCodes).length === 0 && otherTrackingMethods.length === 0 && (
-                     <p className="text-center text-gray-500 mt-8">Для данной акции не задано ни одного способа отслеживания.</p>
-                 )}
             </div>
         </div>
     );
@@ -115,6 +88,20 @@ function PrintContent({ action, socialPosts }: { action: Action, socialPosts: So
 
 export function PrintTrackingReportButton({ action, socialPosts, asChild = true }: { action: Action, socialPosts: SocialPost[], asChild?: boolean }) {
     const componentRef = useRef<HTMLDivElement>(null);
+    const [open, setOpen] = useState(false);
+    const [state, setState] = useState<AnalyzeTrackingState>({ status: 'idle' });
+
+    useEffect(() => {
+        if (open && state.status === 'idle') {
+            handleAnalysis();
+        }
+    }, [open]);
+
+    const handleAnalysis = async () => {
+        setState({ status: 'loading' });
+        const result = await analyzeTrackingMethodsAction(action, socialPosts);
+        setState(result);
+    };
     
     const handlePrint = () => {
         const contentToPrint = componentRef.current?.innerHTML;
@@ -154,26 +141,43 @@ export function PrintTrackingReportButton({ action, socialPosts, asChild = true 
     );
 
     return (
-        <Dialog>
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 {TriggerButton}
             </DialogTrigger>
             <DialogContent className="sm:max-w-4xl h-[90vh] flex flex-col">
                 <DialogHeader>
-                    <DialogTitle>Предварительный просмотр: Отчет по способам отслеживания</DialogTitle>
+                    <DialogTitle>AI-помощник по настройке отслеживания</DialogTitle>
                 </DialogHeader>
-                <ScrollArea className="flex-1 -mx-6">
-                    <div className="px-6 bg-gray-200">
-                        <div ref={componentRef}>
-                            <PrintContent action={action} socialPosts={socialPosts} />
+                 <ScrollArea className="flex-1 -mx-6">
+                    {state.status === 'loading' && (
+                        <div className="flex flex-col items-center justify-center gap-4 py-12 h-full">
+                            <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                            <p className="text-muted-foreground">Анализирую методы отслеживания...</p>
                         </div>
-                    </div>
+                    )}
+                    {state.status === 'error' && (
+                         <div className="p-6">
+                             <Alert variant="destructive">
+                                <Wand2 className="h-4 w-4" />
+                                <AlertTitle>Ошибка анализа</AlertTitle>
+                                <AlertDescription>{state.error}</AlertDescription>
+                            </Alert>
+                         </div>
+                    )}
+                    {state.status === 'success' && state.analysis && (
+                        <div className="px-6 bg-gray-200">
+                            <div ref={componentRef}>
+                                <PrintContent analysisResult={state} />
+                            </div>
+                        </div>
+                    )}
                 </ScrollArea>
                  <DialogFooter className="mt-4 shrink-0">
                     <DialogClose asChild>
                         <Button variant="outline">Закрыть</Button>
                     </DialogClose>
-                    <Button onClick={handlePrint}>
+                    <Button onClick={handlePrint} disabled={state.status !== 'success'}>
                         <Printer className="mr-2 h-4 w-4" />
                         Печать
                     </Button>
