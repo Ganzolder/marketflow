@@ -26,6 +26,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { UpdateSocialPostStatus } from '@/app/smm/update-social-post-status';
 import { PublicationCalendar } from '@/app/smm/publication-calendar';
 import { GeneratePostsSeriesButton } from './generate-posts-series-button';
+import { CopySocialPostButton } from './copy-social-post-button';
 
 
 const statusTranslations: Record<SocialPostStatus, string> = {
@@ -376,6 +377,7 @@ export function ActionSocialPostsPlanner({ action, campaignId, posts, allPosts }
                              </div>
                               <div className="flex flex-col items-end gap-2">
                                     <div className="flex items-center">
+                                       <CopySocialPostButton postId={post.id} />
                                        <EditSocialPostButton post={post} />
                                        <DeleteSocialPostButton postId={post.id} campaignId={campaignId} actionId={action.id} />
                                     </div>

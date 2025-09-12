@@ -1,4 +1,5 @@
 
+
 "use server";
 
 import { Campaign, UpcomingAction, Action, Activity, KPI, Expense, EnrichedAction, ActionStatus, CampaignStatus, KpiMetricLog, EnrichedActivity, Resource, ResourceStatus, ExpenseStatus, SocialPost, EnrichedSocialPost, Task, TaskStatus, EnrichedTask, UpcomingEvent } from './types';
@@ -800,6 +801,24 @@ export async function getSocialPostById(postId: string): Promise<SocialPost | un
 export async function deleteSocialPost(postId: string) {
     const postRef = doc(db, "socialPosts", postId);
     await deleteDoc(postRef);
+}
+
+export async function copySocialPost(postId: string): Promise<void> {
+    const postSnap = await getDoc(doc(db, "socialPosts", postId));
+    if (!postSnap.exists()) {
+        throw new Error("Post to copy not found!");
+    }
+    const postData = postSnap.data() as Omit<SocialPost, 'id'>;
+
+    const newPost: Omit<SocialPost, 'id'> = {
+        ...postData,
+        title: `Копия ${postData.title}`,
+        status: 'draft',
+        actualReach: 0,
+        actualComments: 0,
+    };
+
+    await addDoc(collection(db, "socialPosts"), newPost);
 }
 
 
