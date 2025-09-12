@@ -57,7 +57,7 @@ function PrintContent({ action, campaign, socialPosts }: { action: Action, campa
                         box-shadow: none !important;
                     }
                     .page-break {
-                        page-break-after: always;
+                        page-break-before: always;
                     }
                      .prose {
                         max-width: 100%;
@@ -67,6 +67,21 @@ function PrintContent({ action, campaign, socialPosts }: { action: Action, campa
                     }
                      .prose p, .prose li, .prose dt, .prose dd {
                         color: #333;
+                    }
+                     .print-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        border: 1px solid black;
+                        font-size: 10px;
+                    }
+                    .print-table th, .print-table td {
+                        border: 1px solid black;
+                        padding: 8px;
+                        text-align: left;
+                        vertical-align: top;
+                    }
+                    .print-table th {
+                        background-color: #f2f2f2 !important;
                     }
                 `}
             </style>
@@ -137,18 +152,18 @@ function PrintContent({ action, campaign, socialPosts }: { action: Action, campa
                     <div className="print-content font-serif text-sm min-h-[90vh] flex flex-col">
                         <h2 className="text-lg font-bold text-center my-6">Приложение: Промокоды</h2>
                         <div className="flex-1">
-                            <table className="w-full border-collapse border border-black">
+                            <table className="print-table">
                                 <thead>
                                     <tr>
-                                        <th className="border border-black p-2 text-left bg-gray-100">Промокод</th>
-                                        <th className="border border-black p-2 text-left bg-gray-100">Каналы распространения</th>
+                                        <th className="w-1/3">Промокод</th>
+                                        <th>Каналы распространения</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {Object.entries(promoCodes).map(([code, platforms]) => (
                                         <tr key={code}>
-                                            <td className="border border-black p-4 text-2xl font-mono font-bold text-center align-middle">{code}</td>
-                                            <td className="border border-black p-4 align-middle">{platforms.join(', ')}</td>
+                                            <td className="p-4 text-2xl font-mono font-bold text-center align-middle">{code}</td>
+                                            <td className="p-4 align-middle">{platforms.join(', ')}</td>
                                         </tr>
                                     ))}
                                 </tbody>
