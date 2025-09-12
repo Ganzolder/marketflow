@@ -47,7 +47,7 @@ export function ActionPageHeaderActions({ action, campaign, socialPosts }: { act
           <PrintOrderButton action={action} campaign={campaign} />
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <PrintBriefButton action={action} campaign={campaign} />
+          <PrintBriefButton action={action} campaign={campaign} socialPosts={socialPosts} />
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>

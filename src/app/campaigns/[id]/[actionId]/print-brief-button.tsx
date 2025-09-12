@@ -5,11 +5,11 @@ import React, { useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Printer, ClipboardList } from "lucide-react";
-import type { Action, Campaign } from '@/lib/types';
+import type { Action, Campaign, SocialPost } from '@/lib/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 
-function PrintContent({ action, campaign }: { action: Action, campaign: Campaign }) {
+function PrintContent({ action, campaign, socialPosts }: { action: Action, campaign: Campaign, socialPosts: SocialPost[] }) {
     const formatDate = (dateString: string) => {
         if (!dateString) return '__________';
         return new Date(dateString).toLocaleDateString('ru-RU', {
@@ -18,6 +18,21 @@ function PrintContent({ action, campaign }: { action: Action, campaign: Campaign
             year: 'numeric'
         });
     }
+    
+    const promoCodes: { [code: string]: string[] } = {};
+
+    socialPosts.forEach(post => {
+        if (post.promoCodes) {
+            Object.entries(post.promoCodes).forEach(([platform, code]) => {
+                if (!promoCodes[code]) {
+                    promoCodes[code] = [];
+                }
+                if (!promoCodes[code].includes(platform)) {
+                    promoCodes[code].push(platform);
+                }
+            });
+        }
+    });
 
     return (
         <div className="print-container p-8 bg-white text-black">
@@ -116,12 +131,40 @@ function PrintContent({ action, campaign }: { action: Action, campaign: Campaign
                     </div>
                 </div>
             </div>
+
+            {Object.keys(promoCodes).length > 0 && (
+                <div className="page-break">
+                    <div className="print-content font-serif text-sm min-h-[90vh] flex flex-col">
+                        <h2 className="text-lg font-bold text-center my-6">Приложение: Промокоды</h2>
+                        <div className="flex-1">
+                            <table className="w-full border-collapse border border-black">
+                                <thead>
+                                    <tr>
+                                        <th className="border border-black p-2 text-left bg-gray-100">Промокод</th>
+                                        <th className="border border-black p-2 text-left bg-gray-100">Каналы распространения</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {Object.entries(promoCodes).map(([code, platforms]) => (
+                                        <tr key={code}>
+                                            <td className="border border-black p-4 text-2xl font-mono font-bold text-center align-middle">{code}</td>
+                                            <td className="border border-black p-4 align-middle">{platforms.join(', ')}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        <p className="text-xs text-center mt-4">Не забудьте зафиксировать использованный промокод при оформлении продажи/услуги.</p>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 };
 
 
-export function PrintBriefButton({ action, campaign, asChild = true }: { action: Action, campaign: Campaign, asChild?: boolean }) {
+export function PrintBriefButton({ action, campaign, socialPosts, asChild = true }: { action: Action, campaign: Campaign, socialPosts: SocialPost[], asChild?: boolean }) {
     const componentRef = useRef<HTMLDivElement>(null);
     
     const handlePrint = () => {
@@ -174,7 +217,7 @@ export function PrintBriefButton({ action, campaign, asChild = true }: { action:
                     <div className="px-6 bg-gray-200">
                         {/* The component to be printed */}
                         <div ref={componentRef}>
-                            <PrintContent action={action} campaign={campaign} />
+                            <PrintContent action={action} campaign={campaign} socialPosts={socialPosts} />
                         </div>
                     </div>
                 </ScrollArea>
