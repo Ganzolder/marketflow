@@ -19,6 +19,7 @@ import { EditActionButton } from "./edit-action-button";
 import { EditActionResponsibilityButton } from "./edit-action-responsibility-button";
 import { EditActionConditionsButton } from "./edit-action-conditions-button";
 import { PrintBriefButton } from "./print-brief-button";
+import { PrintTrackingReportButton } from "./print-tracking-report-button";
 
 export function ActionPageHeaderActions({ action, campaign, socialPosts }: { action: Action; campaign: Campaign; socialPosts: SocialPost[] }) {
   return (
@@ -48,6 +49,9 @@ export function ActionPageHeaderActions({ action, campaign, socialPosts }: { act
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <PrintBriefButton action={action} campaign={campaign} socialPosts={socialPosts} />
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <PrintTrackingReportButton action={action} socialPosts={socialPosts} />
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
