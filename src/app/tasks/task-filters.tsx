@@ -12,15 +12,18 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { Campaign, Action } from '@/lib/types';
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
+import { MultiSelect } from '@/components/ui/multi-select';
 
 const statusTranslations = {
   planned: "Запланирована",
   "in-progress": "В процессе",
   completed: "Выполнена",
 };
+
+const statusOptions = Object.entries(statusTranslations).map(([value, label]) => ({ value, label }));
 
 
 export function TaskFilters({ campaigns, responsibles }: { campaigns: Campaign[], responsibles: string[] }) {
@@ -30,7 +33,15 @@ export function TaskFilters({ campaigns, responsibles }: { campaigns: Campaign[]
 
   const selectedCampaignId = searchParams.get('campaignId') || '';
   const selectedActionId = searchParams.get('actionId') || '';
-  const selectedStatus = searchParams.get('status') || '';
+  const selectedStatuses = useMemo(() => {
+    const statuses = searchParams.get('status');
+    // If status param is not present, default to planned and in-progress
+    if (statuses === null) return ['planned', 'in-progress'];
+    // If status param is empty string, it means user selected nothing
+    if (statuses === '') return [];
+    return statuses.split(',');
+  }, [searchParams]);
+
   const deadlineFrom = searchParams.get('deadlineFrom') || '';
   const deadlineTo = searchParams.get('deadlineTo') || '';
   const responsible = searchParams.get('responsible') || '';
@@ -62,8 +73,9 @@ export function TaskFilters({ campaigns, responsibles }: { campaigns: Campaign[]
     [searchParams]
   );
   
-  const handleFilterChange = (name: string, value: string) => {
-    let updates = [{ name, value }];
+  const handleFilterChange = (name: string, value: string | string[]) => {
+    const stringValue = Array.isArray(value) ? value.join(',') : value;
+    let updates = [{ name, value: stringValue }];
     if (name === 'campaignId') {
         updates.push({ name: 'actionId', value: 'all' });
     }
@@ -74,22 +86,20 @@ export function TaskFilters({ campaigns, responsibles }: { campaigns: Campaign[]
     router.push(pathname);
   }
 
-  const hasActiveFilters = selectedCampaignId || selectedActionId || selectedStatus || deadlineFrom || deadlineTo || responsible;
+  const hasActiveFilters = selectedCampaignId || selectedActionId || searchParams.has('status') || deadlineFrom || deadlineTo || responsible;
 
   return (
     <div className="mb-8 p-4 border rounded-lg bg-card shadow-sm">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
             <div className="grid gap-1.5">
                 <Label className="text-xs">Статус</Label>
-                <Select onValueChange={(val) => handleFilterChange('status', val)} value={selectedStatus || 'all'}>
-                    <SelectTrigger className="h-9"><SelectValue placeholder="Все" /></SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">Все</SelectItem>
-                        {Object.entries(statusTranslations).map(([value, label]) => (
-                            <SelectItem key={value} value={value}>{label}</SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+                 <MultiSelect
+                    options={statusOptions}
+                    selected={selectedStatuses}
+                    onChange={(val) => handleFilterChange('status', val)}
+                    placeholder="Выберите статусы"
+                    className="h-9"
+                />
             </div>
              <div className="grid gap-1.5">
                 <Label className="text-xs">Ответственный</Label>

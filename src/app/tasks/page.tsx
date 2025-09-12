@@ -1,4 +1,5 @@
 
+
 import { PageHeader } from "@/components/page-header";
 import { getAllTasks, getCampaigns } from "@/lib/data";
 import { TaskList } from "./task-list";
@@ -6,10 +7,11 @@ import { Suspense } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AddTaskButton } from "./add-task-button";
+import type { TaskStatus } from "@/lib/types";
 
 type TasksPageProps = {
     searchParams: {
-        status?: 'planned' | 'in-progress' | 'completed';
+        status?: string; // Comma-separated
         deadlineFrom?: string;
         deadlineTo?: string;
         campaignId?: string;
@@ -56,7 +58,12 @@ export default async function TasksPage({ searchParams: searchParamsProp }: Task
     } else {
         if (task.isArchived) return false;
     }
-    if (searchParams.status && task.status !== searchParams.status) return false;
+
+    const statuses = searchParams.status ? searchParams.status.split(',') as TaskStatus[] : ['planned', 'in-progress'];
+    if (statuses.length > 0 && !statuses.includes(task.status)) {
+        return false;
+    }
+    
     if (searchParams.deadlineFrom && new Date(task.deadline) < new Date(searchParams.deadlineFrom)) return false;
     if (searchParams.deadlineTo && new Date(task.deadline) > new Date(searchParams.deadlineTo)) return false;
     if (searchParams.campaignId && task.campaignId !== searchParams.campaignId) return false;
