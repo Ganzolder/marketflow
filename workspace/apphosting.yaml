@@ -1,2 +1,3 @@
+specVersion: v1alpha1
 runConfig:
   maxInstances: 0
