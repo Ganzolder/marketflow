@@ -165,7 +165,9 @@ export function Header() {
                         </DropdownMenuItem>
                         <DropdownMenuItem>Поддержка</DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>Выйти</DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                            <a href="/api/auth/logout" className="cursor-pointer">Выйти</a>
+                        </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>

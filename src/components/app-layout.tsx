@@ -1,6 +1,7 @@
 
 "use client";
 
+import { usePathname } from 'next/navigation';
 import {
   SidebarProvider,
 } from '@/components/ui/sidebar';
@@ -8,6 +9,10 @@ import { AppSidebar } from '@/components/app-sidebar';
 import { Header } from '@/components/header';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  if (pathname === '/login') {
+    return <>{children}</>;
+  }
   return (
     <SidebarProvider>
         <div className="flex h-full">
