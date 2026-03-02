@@ -8,6 +8,18 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // OpenTelemetry (Firebase/Genkit) must not be bundled — runtime requires real module paths
+  serverExternalPackages: [
+    '@opentelemetry/api',
+    '@opentelemetry/core',
+    '@opentelemetry/sdk-node',
+    '@opentelemetry/sdk-trace-base',
+    '@opentelemetry/sdk-metrics',
+    '@opentelemetry/resources',
+    '@opentelemetry/auto-instrumentations-node',
+    '@opentelemetry/instrumentation',
+    '@opentelemetry/context-async-hooks',
+  ],
   images: {
     remotePatterns: [
       {
