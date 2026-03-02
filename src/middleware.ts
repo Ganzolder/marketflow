@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getCookieName } from '@/lib/auth';
+import { getCookieName } from '@/lib/auth-constants';
 import { verifySessionEdge } from '@/lib/auth-edge';
 
 export async function middleware(request: NextRequest) {

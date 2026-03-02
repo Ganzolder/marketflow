@@ -1,8 +1,6 @@
 import { cookies } from 'next/headers';
 import { createHmac, timingSafeEqual } from 'crypto';
-
-const COOKIE_NAME = 'marketflow_session';
-const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
+import { COOKIE_NAME, SESSION_MAX_AGE } from './auth-constants';
 
 function getSecret(): string {
   const secret = process.env.SESSION_SECRET;
@@ -42,10 +40,4 @@ export async function getSession(): Promise<{ username: string } | null> {
   return verifySession(token);
 }
 
-export function getCookieName(): string {
-  return COOKIE_NAME;
-}
-
-export function getSessionMaxAge(): number {
-  return SESSION_MAX_AGE;
-}
+export { getCookieName, getSessionMaxAge } from './auth-constants';
