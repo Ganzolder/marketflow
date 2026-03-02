@@ -126,8 +126,9 @@ export default async function CampaignsPage({ searchParams: searchParamsPromise 
               totalActualNetProfit += actualActionProfit - actualActionSpent;
           });
           
+          const groupClass = campaign.status === 'archived' ? 'group-bg-5' : campaign.status === 'completed' ? 'group-bg-3' : 'group-bg-1';
           return (
-            <Card key={campaign.id} className="flex flex-col">
+            <Card key={campaign.id} className={cn('flex flex-col border-l-4 border-l-[hsl(var(--group-border))]', groupClass)}>
               <CardHeader>
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                   <div className="flex-1">

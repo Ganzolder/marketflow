@@ -83,7 +83,7 @@ export function ActionsList() {
 
   const renderGrid = () => (
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {actions.map((action) => {
+        {actions.map((action, idx) => {
           const allKpis =
             action.activities?.flatMap(
               (a) => a.kpis?.filter((k) => k.includeInActionGoals !== false) || []
@@ -132,13 +132,14 @@ export function ActionsList() {
           const elapsedDuration = Math.max(0, today.getTime() - startDate.getTime());
           let durationProgress = Math.min(100, (elapsedDuration / totalDuration) * 100);
 
+          const groupClass = ['group-bg-1', 'group-bg-2', 'group-bg-3'][idx % 3];
           return (
             <Link
               key={action.id}
               href={`/campaigns/${action.campaignId}/${action.id}`}
               className="block hover:shadow-lg transition-shadow rounded-lg"
             >
-              <Card className="h-full flex flex-col">
+              <Card className={cn('h-full flex flex-col border-l-4 border-l-[hsl(var(--group-border))]', groupClass)}>
                 <CardHeader>
                   <CardTitle className="text-lg flex justify-between items-start">
                     <span>{action.name}</span>
@@ -256,7 +257,7 @@ export function ActionsList() {
                     <TableHead className="text-right">Прибыль</TableHead>
                 </TableRow>
             </TableHeader>
-            <TableBody>
+            <TableBody className="striped-rows">
                 {actions.map((action) => {
                     const plannedBudget = action.activities?.reduce((sum, activity) => sum + activity.budget, 0) || 0;
                     const totalSpent = (action.activities?.reduce((sum, activity) => sum + activity.spent, 0) || 0) + (action.generalExpenses?.reduce((sum, expense) => sum + expense.amount, 0) || 0);

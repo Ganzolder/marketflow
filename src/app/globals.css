@@ -42,6 +42,13 @@ body {
     --sidebar-border: 240 5.9% 90%;
     --sidebar-ring: 284 55% 53%;
     --ink: #0B1220;
+    /* Мягкие фоны для группировки (не яркие) */
+    --group-1: 240 8% 97%;
+    --group-2: 30 12% 96%;
+    --group-3: 210 12% 96%;
+    --group-4: 260 10% 97%;
+    --group-5: 160 10% 96%;
+    --group-border: 240 6% 91%;
   }
   .dark {
     --background: 240 10% 3.9%;
@@ -77,6 +84,12 @@ body {
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 284 55% 63%;
     --ink: #E5E7EB;
+    --group-1: 240 5% 14%;
+    --group-2: 30 6% 14%;
+    --group-3: 210 6% 14%;
+    --group-4: 260 5% 14%;
+    --group-5: 160 6% 14%;
+    --group-border: 240 4% 22%;
   }
 }
 
@@ -104,4 +117,15 @@ body {
         0%, 100% { transform: scale(1); opacity: 1 }
         50% { transform: scale(1.25); opacity: .8 }
     }
+    /* Группировка по цвету — приглушённые фоны */
+    .group-bg-1 { background-color: hsl(var(--group-1)); }
+    .group-bg-2 { background-color: hsl(var(--group-2)); }
+    .group-bg-3 { background-color: hsl(var(--group-3)); }
+    .group-bg-4 { background-color: hsl(var(--group-4)); }
+    .group-bg-5 { background-color: hsl(var(--group-5)); }
+    .group-border-l-1 { border-left: 3px solid hsl(var(--group-border)); }
+    .group-border-l-2 { border-left: 3px solid hsl(30 12% 85%); }
+    .group-border-l-3 { border-left: 3px solid hsl(210 12% 85%); }
+    .striped-rows > *:nth-child(even) { background-color: hsl(var(--group-1)); }
+    .striped-rows > *:nth-child(odd) { background-color: transparent; }
 }

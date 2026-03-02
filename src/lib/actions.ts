@@ -18,6 +18,18 @@ import { db } from "./firebase";
 import { redirect } from 'next/navigation';
 import * as XLSX from 'xlsx';
 
+/** Понятные сообщения при ошибках Gemini API. */
+function normalizeAiError(e: unknown, fallback: string): string {
+  const msg = e instanceof Error ? e.message : String(e ?? fallback);
+  if (/GEMINI_API_KEY|GOOGLE_API_KEY|API key|pass in the API key/i.test(msg)) {
+    return 'Не задан ключ Gemini. Добавьте GEMINI_API_KEY в переменные окружения на сервере (Firebase Console или Vercel → Settings → Environment Variables).';
+  }
+  if (/429|Too Many Requests|quota|rate limit|Quota exceeded/i.test(msg)) {
+    return 'Превышена квота запросов к Gemini. Подождите минуту или проверьте лимиты и тариф: https://ai.google.dev/gemini-api/docs/rate-limits';
+  }
+  return msg;
+}
+
 const ActionSchema = z.object({
   name: z.string().min(3, { message: "Название акции должно содержать не менее 3 символов." }),
   description: z.string().optional(),
@@ -2153,8 +2165,7 @@ export async function analyzeAction(
         const analysis = await analyzeActionPerformance({ actionContext });
         return { status: 'success', analysis };
     } catch (e) {
-        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка при анализе.";
-        return { status: 'error', error: errorMessage };
+        return { status: 'error', error: normalizeAiError(e, "Произошла неизвестная ошибка при анализе.") };
     }
 }
 
@@ -2174,8 +2185,7 @@ export async function analyzeOverallPerformance(): Promise<AnalyzeOverallState> 
         const analysis = await analyzeOverallPerformanceFlow({ allDataContext });
         return { status: 'success', analysis };
     } catch (e) {
-        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка при анализе.";
-        return { status: 'error', error: errorMessage };
+        return { status: 'error', error: normalizeAiError(e, "Произошла неизвестная ошибка при анализе.") };
     }
 }
 
@@ -2191,8 +2201,7 @@ export async function generateActionIdeas(campaign: Campaign): Promise<GenerateA
         const ideas = await generateActionIdeasFlow({ campaignContext });
         return { status: 'success', ideas };
     } catch (e) {
-        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка при генерации идей.";
-        return { status: 'error', error: errorMessage };
+        return { status: 'error', error: normalizeAiError(e, "Произошла неизвестная ошибка при генерации идей.") };
     }
 }
 
@@ -2428,7 +2437,6 @@ export async function analyzeTrackingMethodsAction(
         const analysis = await analyzeTrackingMethods({ actionContext });
         return { status: 'success', analysis };
     } catch (e) {
-        const errorMessage = e instanceof Error ? e.message : "Произошла неизвестная ошибка при анализе.";
-        return { status: 'error', error: errorMessage };
+        return { status: 'error', error: normalizeAiError(e, "Произошла неизвестная ошибка при анализе.") };
     }
 }

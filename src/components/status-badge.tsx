@@ -17,13 +17,13 @@ const statusTranslations: Record<CampaignStatus | ActionStatus, string> = {
 
 export function StatusBadge({ status }: StatusBadgeProps) {
   const statusStyles: Record<CampaignStatus | ActionStatus, string> = {
-    active: "bg-green-100 text-green-800 border-green-200 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700/50",
-    'in-progress': "bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700/50",
-    planned: "bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-700/50",
-    completed: "bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-100 dark:bg-gray-800/50 dark:text-gray-300 dark:border-gray-700/50",
-    paused: "bg-purple-100 text-purple-800 border-purple-200 hover:bg-purple-100 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700/50",
-    archived: "bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-100 dark:bg-gray-800/30 dark:text-gray-400 dark:border-gray-700/50",
-    rejected: "bg-red-100 text-red-800 border-red-200 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700/50",
+    active: "bg-emerald-50 text-emerald-800 border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-800/50",
+    'in-progress': "bg-slate-100 text-slate-700 border-slate-200/80 dark:bg-slate-800/50 dark:text-slate-200 dark:border-slate-700/50",
+    planned: "bg-amber-50 text-amber-800 border-amber-200/80 dark:bg-amber-950/40 dark:text-amber-200 dark:border-amber-800/50",
+    completed: "bg-stone-100 text-stone-600 border-stone-200/80 dark:bg-stone-800/40 dark:text-stone-300 dark:border-stone-700/50",
+    paused: "bg-violet-50 text-violet-700 border-violet-200/80 dark:bg-violet-950/40 dark:text-violet-200 dark:border-violet-800/50",
+    archived: "bg-neutral-100 text-neutral-500 border-neutral-200/80 dark:bg-neutral-800/30 dark:text-neutral-400 dark:border-neutral-700/50",
+    rejected: "bg-rose-50 text-rose-700 border-rose-200/80 dark:bg-rose-950/40 dark:text-rose-200 dark:border-rose-800/50",
   };
 
   return (

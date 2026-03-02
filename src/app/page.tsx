@@ -76,7 +76,7 @@ export default async function Dashboard() {
       </PageHeader>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
-        <Card>
+        <Card className="group-bg-1 border-l-4 border-l-[hsl(var(--group-border))]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Активные кампании</CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
@@ -88,7 +88,7 @@ export default async function Dashboard() {
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="group-bg-1 border-l-4 border-l-[hsl(var(--group-border))]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Завершенные акции</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
@@ -100,7 +100,7 @@ export default async function Dashboard() {
             </p>
           </CardContent>
         </Card>
-         <Card>
+        <Card className="group-bg-1 border-l-4 border-l-[hsl(var(--group-border))]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Общий бюджет</CardTitle>
             <Landmark className="h-4 w-4 text-muted-foreground" />
@@ -112,7 +112,7 @@ export default async function Dashboard() {
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="group-bg-2 border-l-4 border-l-[hsl(30_12%_85%)]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Всего потрачено</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
@@ -124,7 +124,7 @@ export default async function Dashboard() {
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="group-bg-2 border-l-4 border-l-[hsl(30_12%_85%)]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Общая выручка</CardTitle>
             <BarChart className="h-4 w-4 text-muted-foreground" />
@@ -136,7 +136,7 @@ export default async function Dashboard() {
             </p>
           </CardContent>
         </Card>
-         <Card>
+        <Card className="group-bg-2 border-l-4 border-l-[hsl(30_12%_85%)]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Общая прибыль</CardTitle>
             <PiggyBank className="h-4 w-4 text-muted-foreground" />
@@ -151,7 +151,7 @@ export default async function Dashboard() {
       </div>
 
       <div className="space-y-8">
-        <Card>
+        <Card className="group-bg-3 border-l-4 border-l-[hsl(210_12%_85%)]">
           <CardHeader>
             <CardTitle>Недавние кампании</CardTitle>
           </CardHeader>
@@ -164,7 +164,7 @@ export default async function Dashboard() {
                   <TableHead className="text-right hidden sm:table-cell">Бюджет</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
+              <TableBody className="striped-rows">
                 {campaigns.slice(0, 5).map((campaign) => (
                   <TableRow key={campaign.id}>
                     <TableCell>
@@ -183,7 +183,7 @@ export default async function Dashboard() {
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="group-bg-4 border-l-4 border-l-[hsl(260_10%_88%)]">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
                 <ClipboardCheck className="w-5 h-5"/>
@@ -193,7 +193,7 @@ export default async function Dashboard() {
           </CardHeader>
           <CardContent>
              <Table>
-              <TableBody>
+              <TableBody className="striped-rows">
                 {upcomingTasks.length > 0 ? upcomingTasks.map((event) => {
                     const Icon = eventIcons[event.type];
                     return (
@@ -224,7 +224,7 @@ export default async function Dashboard() {
             </Table>
           </CardContent>
         </Card>
-         <Card>
+         <Card className="group-bg-4 border-l-4 border-l-[hsl(260_10%_88%)]">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
                 <Share2 className="w-5 h-5"/>
@@ -234,7 +234,7 @@ export default async function Dashboard() {
           </CardHeader>
           <CardContent>
              <Table>
-              <TableBody>
+              <TableBody className="striped-rows">
                 {upcomingPosts.length > 0 ? upcomingPosts.map((event) => {
                     const Icon = eventIcons[event.type];
                     return (
