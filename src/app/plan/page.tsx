@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { getAllTasks, getAllSocialPosts } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -289,7 +290,9 @@ export default async function PlanPage() {
           </CardContent>
         </Card>
 
-        <PlanGanttSection />
+        <Suspense fallback={<div className="h-64 rounded-lg border bg-muted/30 animate-pulse" />}>
+          <PlanGanttSection />
+        </Suspense>
       </div>
     </div>
   );
