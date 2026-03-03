@@ -239,7 +239,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="group-bg-3 border-l-4 border-l-[hsl(210_12%_85%)]">
             <CardHeader>
                 <div className="flex items-center justify-between">
                     <CardTitle>Акции</CardTitle>
@@ -252,7 +252,7 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
             </CardHeader>
             <CardContent>
                 <div className="grid gap-4 md:grid-cols-2">
-                    {filteredActions.map(action => {
+                    {filteredActions.map((action, idx) => {
                         const allKpis = action.activities?.flatMap(a => a.kpis?.filter(k => k.includeInActionGoals !== false) || []) || [];
                         const summaryKpis: Record<string, { current: number, target: number }> = {};
                         
@@ -294,8 +294,9 @@ export default async function CampaignDetailPage({ params: paramsPromise, search
                         const elapsedDuration = Math.max(0, today.getTime() - startDate.getTime());
                         let durationProgress = Math.min(100, (elapsedDuration / totalDuration) * 100);
 
+                        const actionGroupClass = ['group-bg-1', 'group-bg-2', 'group-bg-5'][idx % 3];
                         return (
-                        <Card key={action.id} className="h-full flex flex-col hover:shadow-lg transition-shadow">
+                        <Card key={action.id} className={cn('h-full flex flex-col hover:shadow-lg transition-shadow border-l-4 border-l-[hsl(var(--group-border))]', actionGroupClass)}>
                             <CardHeader>
                                 <CardTitle className="text-lg flex justify-between items-start">
                                      <Link href={`/campaigns/${campaign.id}/${action.id}`} className="hover:underline">
