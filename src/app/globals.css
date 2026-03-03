@@ -129,3 +129,7 @@ body {
     .striped-rows > *:nth-child(even) { background-color: hsl(var(--group-1)); }
     .striped-rows > *:nth-child(odd) { background-color: transparent; }
 }
+
+@media print {
+  .no-print { display: none !important; }
+}

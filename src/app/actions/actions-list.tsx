@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
 import { getAllActions, getCampaigns } from '@/lib/data';
@@ -81,10 +81,16 @@ export function ActionsList() {
   const locale = 'ru-RU';
   const currencyOptions = { style: 'currency', currency: 'RUB', minimumFractionDigits: 0, maximumFractionDigits: 0 };
 
+  // Уникальные кампании в стабильном порядке — цвет карточки по принадлежности к кампании
+  const uniqueCampaignIds = useMemo(
+    () => [...new Set(actions.map((a) => a.campaignId))].sort(),
+    [actions]
+  );
+  const groupClasses = ['group-bg-1', 'group-bg-2', 'group-bg-3', 'group-bg-4', 'group-bg-5'];
 
   const renderGrid = () => (
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {actions.map((action, idx) => {
+        {actions.map((action) => {
           const allKpis =
             action.activities?.flatMap(
               (a) => a.kpis?.filter((k) => k.includeInActionGoals !== false) || []
@@ -133,7 +139,8 @@ export function ActionsList() {
           const elapsedDuration = Math.max(0, today.getTime() - startDate.getTime());
           let durationProgress = Math.min(100, (elapsedDuration / totalDuration) * 100);
 
-          const groupClass = ['group-bg-1', 'group-bg-2', 'group-bg-3'][idx % 3];
+          const campaignColorIndex = uniqueCampaignIds.indexOf(action.campaignId);
+          const groupClass = groupClasses[campaignColorIndex % groupClasses.length];
           return (
             <Link
               key={action.id}
@@ -258,7 +265,7 @@ export function ActionsList() {
                     <TableHead className="text-right">Прибыль</TableHead>
                 </TableRow>
             </TableHeader>
-            <TableBody className="striped-rows">
+            <TableBody>
                 {actions.map((action) => {
                     const plannedBudget = action.activities?.reduce((sum, activity) => sum + activity.budget, 0) || 0;
                     const totalSpent = (action.activities?.reduce((sum, activity) => sum + activity.spent, 0) || 0) + (action.generalExpenses?.reduce((sum, expense) => sum + expense.amount, 0) || 0);
@@ -277,8 +284,11 @@ export function ActionsList() {
                     const actualGrossProfit = actualRevenue * ((action.actualMarginality || 0) / 100);
                     const actualProfit = actualGrossProfit - totalSpent;
 
+                    const rowCampaignIndex = uniqueCampaignIds.indexOf(action.campaignId);
+                    const rowGroupClass = groupClasses[rowCampaignIndex % groupClasses.length];
+
                     return (
-                        <TableRow key={action.id}>
+                        <TableRow key={action.id} className={cn('border-l-4 border-l-[hsl(var(--group-border))]', rowGroupClass)}>
                             <TableCell className="font-medium">
                                 <Link href={`/campaigns/${action.campaignId}/${action.id}`} className="hover:underline">
                                     {action.name}

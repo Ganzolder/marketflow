@@ -16,10 +16,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import Link from 'next/link';
 import { PageHeader } from '@/components/page-header';
 import { getCampaigns, getUpcomingEvents, getAllTasks, getAllSocialPosts } from '@/lib/data';
-import { Activity, Landmark, Target, CalendarClock, Share2, ClipboardCheck, TrendingUp, PiggyBank, BarChart, Wand2 } from "lucide-react";
+import { Activity, Landmark, Target, CalendarClock, Share2, ClipboardCheck, TrendingUp, PiggyBank, BarChart, Wand2, CalendarRange } from "lucide-react";
 import { StatusBadge } from "@/components/status-badge";
 import type { UpcomingEvent } from "@/lib/types";
 import { OverallAiAnalyzerButton } from "./overall-ai-analyzer-button";
@@ -72,6 +73,12 @@ export default async function Dashboard() {
   return (
     <div>
       <PageHeader title="Панель управления" description="Обзор ваших маркетинговых кампаний.">
+        <Link href="/plan">
+          <Button variant="outline">
+            <CalendarRange className="mr-2 h-4 w-4" />
+            Сводный план
+          </Button>
+        </Link>
         <OverallAiAnalyzerButton />
       </PageHeader>
 
