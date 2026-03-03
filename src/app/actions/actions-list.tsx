@@ -32,6 +32,7 @@ import type { ActionStatus, Campaign, EnrichedAction } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ViewModeToggle } from '@/app/tasks/view-mode-toggle';
 import { OverallAiAnalyzerButton } from '../overall-ai-analyzer-button';
+import { cn } from '@/lib/utils';
 
 export function ActionsList() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
